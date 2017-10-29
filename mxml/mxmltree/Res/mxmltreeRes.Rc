@@ -1,0 +1,9 @@
+#define MANIFEST 						24
+1						MANIFEST  DISCARDABLE "mxmltree.xml"
+100						ICON      DISCARDABLE "Images/class_module.ico"
+101						ICON      DISCARDABLE "Images/element.ico"
+102						ICON      DISCARDABLE "Images/attribute.ico"
+103						ICON      DISCARDABLE "Images/xmlstring.ico"
+104						ICON      DISCARDABLE "Images/xmlinteger.ico"
+105						ICON      DISCARDABLE "Images/xmlfloat.ico"
+106						ICON      DISCARDABLE "Images/xmlcustom.ico"

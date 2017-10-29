@@ -1,0 +1,72 @@
+;; ллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+;
+;.686
+;.MMX
+;.XMM
+;.x64
+;
+;option casemap : none
+;option win64 : 11
+;option frame : auto
+;option stackbase : rsp
+;
+;_WIN64 EQU 1
+;WINVER equ 0501h
+;
+;szLen PROTO :QWORD
+;
+;.code
+;
+;; ллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+;
+;align 8
+;
+;szPadLeft PROC FRAME USES RBX RCX RDI RSI lpszSource:QWORD, lpszDestination:QWORD, qwPadSize:QWORD, qwPadType:QWORD
+;    LOCAL lensrc:QWORD
+;    
+;    Invoke szLen, lpszSource
+;    mov lensrc, rax
+;    .IF rax > qwPadSize || rax == 0
+;        xor rax, rax
+;        ret
+;    .ENDIF
+;
+;    mov rsi, lpszSource
+;    mov rdi, lpszDestination
+;    
+;    mov rax, qwPadSize
+;    mov rbx, lensrc
+;    sub rax, rbx
+;    mov rcx, rax
+;    .WHILE rcx > 0 
+;        
+;        mov rax, qwPadType
+;        .IF rax == 0 ; spaces
+;            mov byte ptr [rdi], ' '
+;        .ELSE ; == 1 ; zer0s
+;            mov byte ptr [rdi], '0'
+;        .ENDIF
+;        
+;        inc rdi
+;        dec rcx
+;    .ENDW
+;    
+;    mov rcx, lensrc
+;    .WHILE rcx > 0
+;        movzx rax, byte ptr [rsi]
+;        mov byte ptr [rdi], al
+;        inc rsi
+;        inc rdi
+;        dec rcx
+;    .ENDW
+;    
+;    mov byte ptr [rdi], 0h
+;    
+;    xor rax, rax
+;    ret
+;
+;szPadLeft endp
+;
+;; ллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+;
+end

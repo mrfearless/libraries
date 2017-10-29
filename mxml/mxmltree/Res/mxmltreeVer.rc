@@ -1,0 +1,27 @@
+#define VERINF1 1
+VERINF1 VERSIONINFO
+FILEVERSION 1,1,6,6
+PRODUCTVERSION 1,1,6,6
+FILEOS 0x00000004
+FILETYPE 0x00000001
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904B0"
+    BEGIN
+      VALUE "CompanyName", "fearless\0"
+      VALUE "FileVersion", "1.1.6.6\0"
+      VALUE "FileDescription", "mxmltree\0"
+      VALUE "InternalName", "mxmltree\0"
+      VALUE "LegalCopyright", "fearless 2017\0"
+      VALUE "LegalTrademarks", "fearless 2017\0"
+      VALUE "OriginalFilename", "mxmltree\0"
+      VALUE "ProductName", "mxmltree\0"
+      VALUE "ProductVersion", "1.1.6.6\0"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x0409, 0x04B0
+  END
+END

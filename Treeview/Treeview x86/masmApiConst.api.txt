@@ -1,0 +1,8 @@
+;-----------------------------------------------------------------------------------------------------
+; LTLT Treeview Additions 05/09/2014
+;
+; Paste this text at the end of \Radasm\Masm\masmApiConst.api to add these to Radasm
+;
+;-----------------------------------------------------------------------------------------------------
+3TreeViewLinkImageList,TVSIL_NORMAL,TVSIL_SMALL,TVSIL_STATE
+5TreeViewInsertItem,TVI_FIRST,TVI_LAST,TVI_SORT,TVI_ROOT

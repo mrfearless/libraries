@@ -1,0 +1,4 @@
+#include "Res/mxmltreeMnu.rc"
+#include "Res/mxmltreeVer.rc"
+#include "Res/mxmltreeDlg.rc"
+#include "Res/mxmltreeRes.rc"

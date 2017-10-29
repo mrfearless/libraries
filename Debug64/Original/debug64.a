@@ -1,0 +1,464 @@
+
+#IFNDEF DBG64LIB
+	#DEFINE DBG64LIB \RadAsm\GoAsm\Dbg\Debug64.lib
+#ENDIF
+
+QWORD_DEC = 0
+QWORD_HEX = 1
+DOUBLE_REAL8 = 2
+FLOAT_REAL4 = 3
+DWORD_DEC = 4
+DWORD_HEX = 5
+WORD_HEX = 6
+BYTE_HEX = 7
+WORD_DEC = 8
+BYTE_DEC = 9
+
+// Variable types for use with Spy
+SPY_TYPE_FLOAT = 0
+SPY_TYPE_DOUBLE = 1
+SPY_TYPE_QWORD = 2
+SPY_TYPE_DWORD = 3
+SPY_TYPE_QWORDHEX = 4
+SPY_TYPE_DWORDHEX = 5
+SPY_TYPE_STRING = 6
+SPY_TYPE_REGRAX = 7
+SPY_TYPE_REGRBX = 8
+SPY_TYPE_REGRCX = 9
+SPY_TYPE_REGRDX = 10
+SPY_TYPE_REGRSI = 11
+SPY_TYPE_REGRDI = 12
+SPY_TYPE_REGRSP = 13
+SPY_TYPE_REGRBP = 14
+SPY_TYPE_REGR8 = 15
+SPY_TYPE_REGR9 = 16
+SPY_TYPE_REGR10 = 17
+SPY_TYPE_REGR11 = 18
+SPY_TYPE_REGR12 = 19
+SPY_TYPE_REGR13 = 20
+SPY_TYPE_REGR14 = 21
+SPY_TYPE_REGR15 = 22
+
+#IFNDEF GUID
+GUID STRUCT
+		Data1	dd
+		Data2	dw
+		Data3	dw
+		Data4	db 8 DUP
+ENDS
+#ENDIF
+
+#IFNDEF COMObject
+// COM Object definition for the output interface
+COMObject  STRUCT
+	; interface object
+	lpVtbl			DQ
+	; object data
+	nRefCount		DQ
+ENDS
+#ENDIF
+
+#IFNDEF DEBUGEXE
+	#DEFINE DEBUGEXE "\RadASM30\GoAsm\dbg\DbgWin.exe"
+#ENDIF
+
+DATA SECTION
+
+	RDBG_DbgWin					DB DEBUGEXE,0
+	RDBG_TRACECOUNT				DQ 50
+
+	ALIGN 16
+	RDBG_XMMSAVEAREA			DB 512 DUP (0)
+
+CODE SECTION
+
+#IF !X64
+	GOASM_ECHO Macros for 64 bit programs only !
+	GOASM_EXIT
+#ENDIF
+
+#dynamiclinkfile comdlg32.dll
+#dynamiclinkfile msvcrt.dll
+#dynamiclinkfile kernel32.dll
+#dynamiclinkfile user32.dll
+#dynamiclinkfile shlwapi.dll
+#dynamiclinkfile dbgeng.dll
+#dynamiclinkfile dbghelp.dll
+#dynamiclinkfile Psapi.dll
+#dynamiclinkfile ntdll.dll
+
+Disassemble(%pTarget,%nLines) macro
+	pushfq
+	push RAX,RCX,RDX,R8,R9,R10,R11
+	fxsave [RDBG_XMMSAVEAREA]
+	cld
+	invoke DBG64LIB:RDBGDisAssemble, %pTarget, %nLines
+	fxrstor [RDBG_XMMSAVEAREA]
+	pop R11,R10,R9,R8,RDX,RCX,RAX
+	popfq
+endm
+
+DumpHandles macro
+	pushfq
+	push RAX,RCX,RDX,R8,R9,R10,R11
+	fxsave [RDBG_XMMSAVEAREA]
+	cld
+	invoke RDBGShowHandlesThisProcess
+	fxrstor [RDBG_XMMSAVEAREA]
+	pop R11,R10,R9,R8,RDX,RCX,RAX
+	popfq
+endm
+
+Try(%1) macro
+	pushfq
+	push RAX,RCX,RDX,R8,R9,R10,R11
+	fxsave [RDBG_XMMSAVEAREA]
+	cld
+	#IF ARGCOUNT = 1
+		mov rax,%1
+	#ELSE
+		invoke DBG64LIB:RDBGGetHandler
+	#ENDIF
+	invoke AddVectoredExceptionHandler,1,rax
+	mov [RDBG_VEHANDLER],rax
+	fxrstor [RDBG_XMMSAVEAREA]
+	pop R11,R10,R9,R8,RDX,RCX,RAX
+	popfq
+endm
+
+EndTry macro
+	pushfq
+	push RAX,RCX,RDX,R8,R9,R10,R11
+	fxsave [RDBG_XMMSAVEAREA]
+	cld
+	invoke RemoveVectoredExceptionHandler,[RDBG_VEHANDLER]
+	mov Q[RDBG_VEHANDLER],-1
+	fxrstor [RDBG_XMMSAVEAREA]
+	pop R11,R10,R9,R8,RDX,RCX,RAX
+	popfq
+endm
+
+Spy(%Type,%Arg) macro
+	pushfq
+	push RAX,RCX,RDX,R8,R9,R10,R11
+	fxsave [RDBG_XMMSAVEAREA]
+	cld
+	#IF ARGCOUNT = 2
+		push offset %Arg
+		pop [RDBG_SPYVARADDR]
+		invoke lstrcpy,offset RDBG_SPYVARNAME,"%Arg"
+	#ELSE
+		invoke lstrcpy,offset RDBG_SPYVARNAME,"%Type"
+	#ENDIF
+	mov Q[RDBG_SPYLINENUM],@Line
+	mov Q[RDBG_SPYVARTYPE],%Type
+	invoke DBG64LIB:RDBGGetSpy
+	invoke AddVectoredExceptionHandler,1,RAX
+	mov [RDBG_SPYHANDLER],rax
+	fxrstor [RDBG_XMMSAVEAREA]
+	pop R11,R10,R9,R8,RDX,RCX,RAX
+	popfq
+	int3
+endm
+
+StopSpy macro
+	int3
+	push RAX,RCX,RDX,R8,R9,R10,R11
+	fxsave [RDBG_XMMSAVEAREA]
+	cld
+	invoke RemoveVectoredExceptionHandler,[RDBG_SPYHANDLER]
+	mov Q[RDBG_SPYHANDLER],-1
+	fxrstor [RDBG_XMMSAVEAREA]
+	pop R11,R10,R9,R8,RDX,RCX,RAX
+endm
+
+DumpSymbols macro
+	pushfq
+	push RAX,RCX,RDX,R8,R9,R10,R11
+	fxsave [RDBG_XMMSAVEAREA]
+	cld
+	invoke DBG64LIB:RDBGGetSymbols,1
+	fxrstor [RDBG_XMMSAVEAREA]
+	pop R11,R10,R9,R8,RDX,RCX,RAX
+	popfq
+endm
+
+DumpFPU macro
+	pushfq
+	push RAX,RCX,RDX,R8,R9,R10,R11
+	fxsave [RDBG_XMMSAVEAREA]
+	cld
+	invoke DBG64LIB:RDBGFPUDump,@Line
+	fxrstor [RDBG_XMMSAVEAREA]
+	pop R11,R10,R9,R8,RDX,RCX,RAX
+	popfq
+endm
+
+DumpMMX macro
+	pushfq
+	push RAX,RCX,RDX,R8,R9,R10,R11
+	fxsave [RDBG_XMMSAVEAREA]
+	cld
+	invoke DBG64LIB:RDBGMMXDump,@Line
+	fxrstor [RDBG_XMMSAVEAREA]
+	pop R11,R10,R9,R8,RDX,RCX,RAX
+	popfq
+endm
+
+PrintString(%ARG) MACRO
+	pushfq
+	push RAX,RCX,RDX,R8,R9,R10,R11
+	fxsave [RDBG_XMMSAVEAREA]
+	cld
+	#IFDEF UNICODE
+		invoke DBG64LIB:RDBGPrintString,@Line,offset %ARG, A"%ARG = ", 1
+	#ELSE
+		invoke DBG64LIB:RDBGPrintString,@Line,offset %ARG, A"%ARG = ", 0
+	#ENDIF
+	fxrstor [RDBG_XMMSAVEAREA]
+	pop R11,R10,R9,R8,RDX,RCX,RAX
+	popfq
+ENDM
+
+PrintStringByAddr(%ARG) MACRO
+	pushfq
+	push RAX,RCX,RDX,R8,R9,R10,R11
+	fxsave [RDBG_XMMSAVEAREA]
+	cld
+	#IFDEF UNICODE
+		invoke DBG64LIB:RDBGPrintString,@Line,%ARG, A"%ARG = ", 1
+	#ELSE
+		invoke DBG64LIB:RDBGPrintString,@Line,%ARG, A"%ARG = ", 0
+	#ENDIF
+	fxrstor [RDBG_XMMSAVEAREA]
+	pop R11,R10,R9,R8,RDX,RCX,RAX
+	popfq
+ENDM
+
+PrintText(%ARG) MACRO
+	pushfq
+	push RAX,RCX,RDX,R8,R9,R10,R11
+	fxsave [RDBG_XMMSAVEAREA]
+	cld
+	#IFDEF UNICODE
+		invoke DBG64LIB:RDBGPrintString,@Line,%ARG, A"", 1
+	#ELSE
+		invoke DBG64LIB:RDBGPrintString,@Line,%ARG, A"", 0
+	#ENDIF
+	fxrstor [RDBG_XMMSAVEAREA]
+	pop R11,R10,R9,R8,RDX,RCX,RAX
+	popfq
+ENDM
+
+PrintError MACRO
+	pushfq
+	push RAX,RCX,RDX,R8,R9,R10,R11
+	fxsave [RDBG_XMMSAVEAREA]
+	cld
+	invoke DBG64LIB:RDBGPrintError,@Line
+	fxrstor [RDBG_XMMSAVEAREA]
+	pop R11,R10,R9,R8,RDX,RCX,RAX
+	popfq
+endm
+
+DumpMem(%Start,%Length) MACRO
+	pushfq
+	push RAX,RCX,RDX,R8,R9,R10,R11
+	fxsave [RDBG_XMMSAVEAREA]
+	cld
+	invoke DBG64LIB:RDBGPrintSpacer
+	invoke DBG64LIB:RDBGDumpHex,%Start,%Length,@Line
+	invoke DBG64LIB:RDBGPrintSpacer
+	fxrstor [RDBG_XMMSAVEAREA]
+	pop R11,R10,R9,R8,RDX,RCX,RAX
+	popfq
+endm
+
+DbgDump(%Start,%Length) MACRO
+	pushfq
+	push RAX,RCX,RDX,R8,R9,R10,R11
+	fxsave [RDBG_XMMSAVEAREA]
+	cld
+	invoke DBG64LIB:RDBGPrintSpacer
+	invoke DBG64LIB:RDBGDumpHex,%Start,%Length,@Line
+	invoke DBG64LIB:RDBGPrintSpacer
+	fxrstor [RDBG_XMMSAVEAREA]
+	pop R11,R10,R9,R8,RDX,RCX,RAX
+	popfq
+endm
+
+PrintLine MACRO
+	pushfq
+	push RAX,RCX,RDX,R8,R9,R10,R11
+	fxsave [RDBG_XMMSAVEAREA]
+	cld
+	invoke DBG64LIB:RDBGPrintSpacer
+	fxrstor [RDBG_XMMSAVEAREA]
+	pop R11,R10,R9,R8,RDX,RCX,RAX
+	popfq
+endm
+
+PrintOleError(%Arg) MACRO
+	pushfq
+	push RAX,RCX,RDX,R8,R9,R10,R11
+	fxsave [RDBG_XMMSAVEAREA]
+	cld
+	invoke DBG64LIB:RDBGPrintErrorByNum,@Line,%Arg
+	fxrstor [RDBG_XMMSAVEAREA]
+	pop R11,R10,R9,R8,RDX,RCX,RAX
+	popfq
+endm
+
+PrintModMessage(%Arg1,%Arg2) MACRO
+	pushfq
+	push RAX,RCX,RDX,R8,R9,R10,R11
+	fxsave [RDBG_XMMSAVEAREA]
+	cld
+	invoke DBG64LIB:RDBGPrintModuleError,@Line,%Arg1,%Arg2
+	fxrstor [RDBG_XMMSAVEAREA]
+	pop R11,R10,R9,R8,RDX,RCX,RAX
+	popfq
+endm
+
+PrintQWORD(%Arg) Macro
+	pushfq
+	push RAX,RCX,RDX,R8,R9,R10,R11
+	fxsave [RDBG_XMMSAVEAREA]
+	cld
+	invoke DBG64LIB:RDBGPrintNumber,@Line,0,"%Arg = ",%Arg
+	fxrstor [RDBG_XMMSAVEAREA]
+	pop R11,R10,R9,R8,RDX,RCX,RAX
+	popfq
+endm
+
+PrintDec(%Arg) Macro
+	pushfq
+	push RAX,RCX,RDX,R8,R9,R10,R11
+	fxsave [RDBG_XMMSAVEAREA]
+	cld
+	invoke DBG64LIB:RDBGPrintNumber,@Line,0,"%Arg = ",%Arg
+	fxrstor [RDBG_XMMSAVEAREA]
+	pop R11,R10,R9,R8,RDX,RCX,RAX
+	popfq
+endm
+
+PrintQWORDHex(%Arg) Macro
+	pushfq
+	push RAX,RCX,RDX,R8,R9,R10,R11
+	fxsave [RDBG_XMMSAVEAREA]
+	cld
+	invoke DBG64LIB:RDBGPrintNumber,@Line,1,"%Arg = ",%Arg
+	fxrstor [RDBG_XMMSAVEAREA]
+	pop R11,R10,R9,R8,RDX,RCX,RAX
+	popfq
+endm
+
+PrintDWORD(%Arg) Macro
+	pushfq
+	push RAX,RCX,RDX,R8,R9,R10,R11
+	fxsave [RDBG_XMMSAVEAREA]
+	cld
+	invoke DBG64LIB:RDBGPrintNumber,@Line,4,"%Arg = ",%Arg
+	fxrstor [RDBG_XMMSAVEAREA]
+	pop R11,R10,R9,R8,RDX,RCX,RAX
+	popfq
+endm
+
+PrintDWORDHex(%Arg) Macro
+	pushfq
+	push RAX,RCX,RDX,R8,R9,R10,R11
+	fxsave [RDBG_XMMSAVEAREA]
+	cld
+	invoke DBG64LIB:RDBGPrintNumber,@Line,5,"%Arg = ",%Arg
+	fxrstor [RDBG_XMMSAVEAREA]
+	pop R11,R10,R9,R8,RDX,RCX,RAX
+	popfq
+endm
+
+PrintWORD(%Arg) Macro
+	pushfq
+	push RAX,RCX,RDX,R8,R9,R10,R11
+	fxsave [RDBG_XMMSAVEAREA]
+	cld
+	invoke RDBGPrintNumber,@Line,8,"%Arg = ",%Arg
+	fxrstor [RDBG_XMMSAVEAREA]
+	pop R11,R10,R9,R8,RDX,RCX,RAX
+	popfq
+endm
+
+PrintWORDHex(%Arg) Macro
+	pushfq
+	push RAX,RCX,RDX,R8,R9,R10,R11
+	fxsave [RDBG_XMMSAVEAREA]
+	cld
+	push %Arg
+	pop rax
+	and rax,0xFFFF
+	invoke RDBGPrintNumber,@Line,WORD_HEX,"%Arg = ",rax
+	fxrstor [RDBG_XMMSAVEAREA]
+	pop R11,R10,R9,R8,RDX,RCX,RAX
+	popfq
+endm
+
+PrintBYTE(%Arg) Macro
+	pushfq
+	push RAX,RCX,RDX,R8,R9,R10,R11
+	fxsave [RDBG_XMMSAVEAREA]
+	cld
+	push %Arg
+	pop rax
+	and rax,0xFFFF
+	invoke RDBGPrintNumber,@Line,BYTE_DEC,"%Arg = ",rax
+	fxrstor [RDBG_XMMSAVEAREA]
+	pop R11,R10,R9,R8,RDX,RCX,RAX
+	popfq
+endm
+
+PrintBYTEHex(%Arg) Macro
+	pushfq
+	push RAX,RCX,RDX,R8,R9,R10,R11
+	fxsave [RDBG_XMMSAVEAREA]
+	cld
+	push %Arg
+	pop rax
+	and rax,0xFFFF
+	invoke RDBGPrintNumber,@Line,BYTE_HEX,"%Arg = ",rax
+	fxrstor [RDBG_XMMSAVEAREA]
+	pop R11,R10,R9,R8,RDX,RCX,RAX
+	popfq
+endm
+
+PrintFloat(%Arg) Macro
+	pushfq
+	push RAX,RCX,RDX,R8,R9,R10,R11
+	fxsave [RDBG_XMMSAVEAREA]
+	cld
+	invoke DBG64LIB:RDBGPrintNumber,@Line,3,"%Arg = ",[%Arg]
+	fxrstor [RDBG_XMMSAVEAREA]
+	pop R11,R10,R9,R8,RDX,RCX,RAX
+	popfq
+endm
+
+PrintDouble(%Arg) Macro
+	pushfq
+	push RAX,RCX,RDX,R8,R9,R10,R11
+	fxsave [RDBG_XMMSAVEAREA]
+	cld
+	invoke DBG64LIB:RDBGPrintNumber,@Line,2,"%Arg = ",[%Arg]
+	fxrstor [RDBG_XMMSAVEAREA]
+	pop R11,R10,R9,R8,RDX,RCX,RAX
+	popfq
+endm
+
+DumpEFlags Macro
+	pushfq
+	push RAX,RCX,RDX,R8,R9,R10,R11
+	fxsave [RDBG_XMMSAVEAREA]
+	pushfq
+	pop rax
+	cld
+	invoke DBG64LIB:RDBGDumpEFlags,@Line,RAX
+	fxrstor [RDBG_XMMSAVEAREA]
+	pop R11,R10,R9,R8,RDX,RCX,RAX
+	popfq
+endm

@@ -1,0 +1,24 @@
+;-----------------------------------------------------------------------------------------------------
+; LTLT Treeview Additions 05/09/2014
+;
+; Paste this text at the end of \Radasm\Masm\masmApiCall.api to add these to Radasm
+;
+;-----------------------------------------------------------------------------------------------------
+TreeViewChildItemsCollapse,hTreeview,hItem
+TreeViewChildItemsExpand,hTreeview,hItem
+TreeViewChildItemsToggle,hTreeview,hItem
+TreeViewGetItemImage,hTreeview,hItem
+TreeViewGetItemParam,hTreeview,hItem
+TreeViewGetItemText,hTreeview,hItem,lpszTextBuffer,dwSizeTextBuffer
+TreeViewGetSelectedImage,hTreeview
+TreeViewGetSelectedItem,hTreeview
+TreeViewGetSelectedParam,hTreeview
+TreeViewGetSelectedText,hTreeview,lpszTextBuffer,dwSizeTextBuffer
+TreeViewInsertItem,hTreeview,hNodeParent,lpszNodeText,nNodeIndex,NodePosition,nImage,nImageSelected,dwParam
+TreeViewLinkImageList,hTreeview,hImagelist,ImagelistType
+TreeViewSetItemImage,hTreeview,hItem,nImageListIndex
+TreeViewSetItemParam,hTreeview,hItem,dwParam
+TreeViewSetItemText,hTreeview,hItem,lpszTextBuffer
+TreeViewSetSelectedItem,hTreeview,hItem
+TreeViewSubClassData,hTreeview,lpdwTVSubClassData
+TreeViewSubClassProc,hTreeview,lpdwTVSubClassProc

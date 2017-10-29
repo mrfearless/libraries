@@ -1,0 +1,4 @@
+#include "Res/DbgTestMnu.rc"
+#include "Res/DbgTestVer.rc"
+#include "Res/DbgTestDlg.rc"
+#include "Res/DbgTestRes.rc"
