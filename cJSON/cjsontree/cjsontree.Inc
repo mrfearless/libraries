@@ -24,8 +24,8 @@ includelib libcjson.lib
 ;-----------------------------------------------------------------------------------------
 ; cjsontree Prototypes
 ;-----------------------------------------------------------------------------------------
-WinMain					PROTO :DWORD,:DWORD,:DWORD,:DWORD
-WndProc					PROTO :DWORD,:DWORD,:DWORD,:DWORD
+WinMain                 PROTO :DWORD,:DWORD,:DWORD,:DWORD
+WndProc                 PROTO :DWORD,:DWORD,:DWORD,:DWORD
 InitGUI                 PROTO :DWORD
 InitJSONStatusbar       PROTO :DWORD
 InitJSONTreeview        PROTO :DWORD
@@ -33,30 +33,29 @@ OpenJSONFile            PROTO :DWORD
 CloseJSONFile           PROTO
 ProcessJSONFile         PROTO :DWORD, :DWORD
 
-
 IFNDEF BROWSEFILEINFO
 BROWSEFILEINFO struct 
-    lStructSize		DD		?
-    hwndOwner		HWND		?
-    hInstance		HINSTANCE	?
-    lpstrFilter		DD		?
-    lpstrCustomFilter	DD		?
-    nMaxCustFilter	DD		?
-    nFilterIndex		DD		?
-    lpstrFile		DD		?
-    nMaxFile		DD		?
-    lpstrFileTitle	DD		?
-    nMaxFileTitle		DD		?
-    lpstrInitialDir	DD		?
-    lpstrTitle		DD		?
-    Flags			DD		?
-    nFileOffset		DW		?
-    nFileExtension	DW		?
-    lpstrDefExt		DD		?
-    lCustData		DD		?
-    lpfnHook		DD		?
-    lpTemplateName	DD		?
-BROWSEFILEINFO	ends
+    lStructSize     DD      ?
+    hwndOwner       HWND        ?
+    hInstance       HINSTANCE   ?
+    lpstrFilter     DD      ?
+    lpstrCustomFilter   DD      ?
+    nMaxCustFilter  DD      ?
+    nFilterIndex        DD      ?
+    lpstrFile       DD      ?
+    nMaxFile        DD      ?
+    lpstrFileTitle  DD      ?
+    nMaxFileTitle       DD      ?
+    lpstrInitialDir DD      ?
+    lpstrTitle      DD      ?
+    Flags           DD      ?
+    nFileOffset     DW      ?
+    nFileExtension  DW      ?
+    lpstrDefExt     DD      ?
+    lCustData       DD      ?
+    lpfnHook        DD      ?
+    lpTemplateName  DD      ?
+BROWSEFILEINFO  ends
 ENDIF
 
 .CONST
@@ -99,33 +98,39 @@ IL_ICO_JSON_INVALID      EQU 12
 IL_ICO_JSON_LOGICAL      EQU 13   
 
 ; Main Dialog
-IDD_DIALOG				EQU 1000
-IDC_TV					equ 1001
-IDC_SB					equ 1002
+IDD_DIALOG              EQU 1000
+IDC_TV                  equ 1001
+IDC_SB                  equ 1002
 
 ; Main Menu 
-IDM_MENU				EQU 10000
-IDM_FILE_EXIT			EQU 10001
-IDM_FILE_OPEN			EQU 10002
-IDM_HELP_ABOUT			EQU 10101
-
+IDM_MENU                EQU 10000
+IDM_FILE_EXIT           EQU 10001
+IDM_FILE_OPEN           EQU 10002
+IDM_HELP_ABOUT          EQU 10101
 
 
 .DATA
 ;-----------------------------------------------------------------------------------------
 ; cjsontree Initialized Data
 ;-----------------------------------------------------------------------------------------
-ClassName				    DB 'DLGCLASS',0
-AppName					    DB 'LTLI Dialog',0
-AboutMsg				    DB 'www.LetTheLight.in',13,10,'Copyright © fearless 2017',0
+ClassName                   DB 'DLGCLASS',0
+AppName                     DB 'LTLI Dialog',0
+AboutMsg                    DB 'www.LetTheLight.in',13,10,'Copyright © fearless 2017',0
 
 
 szObject                    DB 'Object',0
 szTrue                      DB 'True',0
 szFalse                     DB 'False',0
-szArray                     DB 'Array {}',0
+szArray                     DB 'Array',0
 szNull                      DB 'Null',0
 szInvalid                   DB 'Invalid',0
+szNullString                DB '<String>',0
+szNullStringQuotes          DB '""',0
+szNullInteger               DB '<Number>',0
+szNullLogical               DB '<Logical>',0
+szNullArray                 DB '<Array>',0
+szNullNull                  DB '<Null>',0
+szNullInvalid               DB '<Invalid>',0
 
 lpszItemString              DD 0
 lpszItemStringValue         DD 0
@@ -134,7 +139,7 @@ LenItemString               DD 0
 LenItemStringValue          DD 0
 
 szItemIntValue              DB 64 DUP (0)
-szItemText                  DB 256 DUP (0)
+szItemText                  DB 2048 DUP (0)
 
 szJSONLoadingFile           DB 'Loading JSON File...',0
 szJSONErrorLoadingFile      DB 'Error loading JSON File: ',0
@@ -145,20 +150,22 @@ szJSONErrorEmptyFile        DB 'JSON file is empty: ',0
 
 szJSONErrorMessage          DB 512 dup (0)
 
-
+; Punctuation
 szSpace                     DB ' ',0
 szColon                     DB ':',0
+szLeftBracket               DB '{',0
+szRightBracket              DB '}',0
 
 
 ;------------------------------------------------------------------------
 ; Browse To Open Json File
 ;------------------------------------------------------------------------
-BrowseFile						BROWSEFILEINFO {}
-JsonBrowseFilename		        db 	MAX_PATH dup (0)
-JsonBrowseFilter				db	"JSON Files (*.json)",0,"*.json",0
+BrowseFile                      BROWSEFILEINFO {}
+JsonBrowseFilename              db  MAX_PATH dup (0)
+JsonBrowseFilter                db  "JSON Files (*.json)",0,"*.json",0
                                 db  "All Files (*.*)",0,"*.*",0,0
-JsonBrowseFileTitle	            db	"Open JSON File...",0
-JsonDefExt				        db  "json",0
+JsonBrowseFileTitle             db  "Open JSON File...",0
+JsonDefExt                      db  "json",0
 
 
 
@@ -166,10 +173,10 @@ JsonDefExt				        db  "json",0
 ;-----------------------------------------------------------------------------------------
 ; cjsontree Uninitialized Data
 ;-----------------------------------------------------------------------------------------
-icc 					INITCOMMONCONTROLSEX <>
-hInstance				DD ?
-CommandLine				DD ?
-hWnd					DD ?
+icc                     INITCOMMONCONTROLSEX <>
+hInstance               DD ?
+CommandLine             DD ?
+hWnd                    DD ?
 hWhiteBrush             DD ?
 hTV                     DD ?
 hSB                     DD ?
