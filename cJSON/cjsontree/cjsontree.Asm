@@ -6,14 +6,14 @@ option casemap:none
 include \masm32\macros\macros.asm
 
 ;DEBUG32 EQU 1
-;
-;IFDEF DEBUG32
-;    PRESERVEXMMREGS equ 1
-;    includelib M:\Masm32\lib\Debug32.lib
-;    DBG32LIB equ 1
-;    DEBUGEXE textequ <'M:\Masm32\DbgWin.exe'>
-;    include M:\Masm32\include\debug32.inc
-;ENDIF
+
+IFDEF DEBUG32
+    PRESERVEXMMREGS equ 1
+    includelib M:\Masm32\lib\Debug32.lib
+    DBG32LIB equ 1
+    DEBUGEXE textequ <'M:\Masm32\DbgWin.exe'>
+    include M:\Masm32\include\debug32.inc
+ENDIF
 
 include cjsontree.inc
 
@@ -29,6 +29,8 @@ start:
     mov icc.dwSize, sizeof INITCOMMONCONTROLSEX
     mov icc.dwICC, ICC_COOL_CLASSES or ICC_STANDARD_CLASSES or ICC_WIN95_CLASSES
     Invoke InitCommonControlsEx, offset icc
+    
+    Invoke ProcessCmdLine
     
     Invoke WinMain, hInstance, NULL, CommandLine, SW_SHOWDEFAULT
     Invoke ExitProcess, eax
@@ -58,15 +60,20 @@ WinMain proc hInst:HINSTANCE,hPrevInst:HINSTANCE,CmdLine:LPSTR,CmdShow:DWORD
     mov     wc.hCursor,eax
     Invoke RegisterClassEx, addr wc
     Invoke CreateDialogParam, hInstance, IDD_DIALOG, NULL, addr WndProc, NULL
+    mov hWnd, eax
     Invoke ShowWindow, hWnd, SW_SHOWNORMAL
     Invoke UpdateWindow, hWnd
-    .WHILE TRUE
-        invoke GetMessage, addr msg, NULL, 0, 0
-      .BREAK .if !eax
-        Invoke TranslateMessage, addr msg
-        Invoke DispatchMessage, addr msg
-    .ENDW
-    mov eax, msg.wParam
+	.WHILE TRUE
+		invoke GetMessage,addr msg,NULL,0,0
+        .BREAK .if !eax
+
+        Invoke IsDialogMessage, hWnd, addr msg
+        .IF eax == 0
+            invoke TranslateMessage,addr msg
+            invoke DispatchMessage,addr msg
+        .ENDIF
+	.ENDW
+	mov eax,msg.wParam
     ret
 WinMain endp
 
@@ -74,7 +81,7 @@ WinMain endp
 ;-------------------------------------------------------------------------------------
 ; WndProc - Main Window Message Loop
 ;-------------------------------------------------------------------------------------
-WndProc proc hWin:HWND,uMsg:UINT,wParam:WPARAM,lParam:LPARAM
+WndProc proc USES EBX ECX hWin:HWND,uMsg:UINT,wParam:WPARAM,lParam:LPARAM
     
     mov eax, uMsg
     .IF eax == WM_INITDIALOG
@@ -86,8 +93,13 @@ WndProc proc hWin:HWND,uMsg:UINT,wParam:WPARAM,lParam:LPARAM
         mov hJSONTreeRoot, NULL
         
         Invoke InitGUI, hWin
+        Invoke InitMenus, hWin
         Invoke InitJSONStatusbar, hWin
         Invoke InitJSONTreeview, hWin
+        
+        Invoke DragAcceptFiles, hWin, TRUE
+        
+        Invoke SetFocus, hTV
         
     .ELSEIF eax == WM_COMMAND
         mov eax, wParam
@@ -96,13 +108,57 @@ WndProc proc hWin:HWND,uMsg:UINT,wParam:WPARAM,lParam:LPARAM
             Invoke SendMessage,hWin,WM_CLOSE,0,0
 
         .ELSEIF eax == IDM_FILE_OPEN
-            Invoke OpenJSONFile, hWin
+            Invoke BrowseJSONFile, hWin
+            .IF eax == TRUE
+                Invoke OpenJSONFile, hWin, Addr JsonBrowseFilename
+                .IF eax == TRUE
+                    ; Start processing JSON file
+                    Invoke ProcessJSONFile, hWin, Addr JsonBrowseFilename
+                .ENDIF
+            .ENDIF
+          
+        .ELSEIF eax == IDM_FILE_CLOSE
+            Invoke CloseJSONFile
             
         .ELSEIF eax == IDM_HELP_ABOUT
             Invoke ShellAbout,hWin,addr AppName,addr AboutMsg,NULL
             
         .ENDIF
+    
+    .ELSEIF eax == WM_DROPFILES
+        mov eax, wParam
+        mov hDrop, eax
+        
+        Invoke DragQueryFile, hDrop, 0, Addr JsonBrowseFilename, SIZEOF JsonBrowseFilename
+        .IF eax != 0
+            Invoke OpenJSONFile, hWin, Addr JsonBrowseFilename
+            .IF eax == TRUE
+                ; Start processing JSON file
+                Invoke ProcessJSONFile, hWin, Addr JsonBrowseFilename
+            .ENDIF
+        .ENDIF
+        mov eax, 0
+        ret
 
+    .ELSEIF eax == WM_WINDOWPOSCHANGED
+        mov ebx, lParam
+        mov eax, (WINDOWPOS ptr [ebx]).flags
+        and eax, SWP_SHOWWINDOW
+        .IF eax == SWP_SHOWWINDOW && g_fShown == FALSE
+            mov g_fShown, TRUE
+            Invoke PostMessage, hWin, WM_APP, 0, 0
+        .ENDIF
+        Invoke DefWindowProc,hWin,uMsg,wParam,lParam
+        xor eax, eax
+        ret
+        
+    .ELSEIF eax == WM_APP
+        .IF CmdLineProcessFileFlag == 1
+            Invoke CmdLineOpenFile, hWin
+        .ENDIF
+        Invoke DefWindowProc,hWin,uMsg,wParam,lParam
+        ret      
+    
     .ELSEIF eax == WM_CTLCOLORDLG
         mov eax, hWhiteBrush
         ret
@@ -118,6 +174,40 @@ WndProc proc hWin:HWND,uMsg:UINT,wParam:WPARAM,lParam:LPARAM
         sub eax, 23d ; take away statusbar height
         Invoke SetWindowPos, hTV, HWND_TOP, 0,0, dwClientWidth, eax, SWP_NOZORDER
 
+
+	.ELSEIF eax==WM_NOTIFY
+		mov ecx,lParam
+		mov eax, (NMHDR PTR [ecx]).code
+		
+		.IF eax == NM_RCLICK
+
+		.ELSEIF eax == NM_DBLCLK
+		    Invoke TreeViewGetSelectedItem, hTV
+		    Invoke SendMessage, hTV, TVM_EDITLABEL, 0, eax
+		
+		.ELSEIF eax == NM_RETURN ; requires sublass of treeview with WM_GETDLGCODE DLGC_WANTALL
+	        Invoke TreeViewGetSelectedItem, hTV
+	        Invoke SendMessage, hTV, TVM_EDITLABEL, 0, eax
+		
+		.ELSEIF eax == TVN_KEYDOWN
+		    mov ecx, lParam
+		    movzx eax, (TV_KEYDOWN ptr [ecx]).wVKey
+		    .IF eax == VK_F2 
+		        Invoke TreeViewGetSelectedItem, hTV
+		        Invoke SendMessage, hTV, TVM_EDITLABEL, 0, eax
+		    .ENDIF
+		     
+	    .ELSEIF eax == TVN_BEGINLABELEDIT
+            mov eax, FALSE
+            ret
+            
+	    .ELSEIF eax == TVN_ENDLABELEDIT
+	        mov eax, TRUE
+	        ret
+	        
+	    .ENDIF
+
+
     .ELSEIF eax == WM_CLOSE
         Invoke DestroyWindow,hWin
         
@@ -131,6 +221,52 @@ WndProc proc hWin:HWND,uMsg:UINT,wParam:WPARAM,lParam:LPARAM
     xor    eax,eax
     ret
 WndProc endp
+
+
+;-------------------------------------------------------------------------------------
+; ProcessCmdLine - has user passed a file at the command line 
+;-------------------------------------------------------------------------------------
+ProcessCmdLine PROC
+	Invoke getcl_ex, 1, ADDR CmdLineFilename
+	.IF eax == 1
+        mov CmdLineProcessFileFlag, 1 ; filename specified, attempt to open it
+    .ELSE
+        mov CmdLineProcessFileFlag, 0 ; do nothing, continue as normal
+    .ENDIF
+    ret
+ProcessCmdLine endp
+
+
+;------------------------------------------------------------------------------
+; Opens a file from the command line or shell explorer call
+;------------------------------------------------------------------------------
+CmdLineOpenFile PROC hWin:DWORD
+
+    Invoke InString, 1, Addr CmdLineFilename, Addr szBackslash
+    .IF eax == 0
+        Invoke GetCurrentDirectory, MAX_PATH, Addr CmdLineFullPathFilename
+        Invoke szCatStr, Addr CmdLineFullPathFilename, Addr szBackslash
+        Invoke szCatStr, Addr CmdLineFullPathFilename, Addr CmdLineFilename
+    .ELSE
+        Invoke szCopy, Addr CmdLineFilename, Addr CmdLineFullPathFilename
+    .ENDIF
+    
+    Invoke exist, Addr CmdLineFullPathFilename
+    .IF eax == 0 ; does not exist
+        Invoke szCopy, Addr szCmdLineFilenameDoesNotExist, Addr szJSONErrorMessage
+        Invoke szCatStr, Addr szJSONErrorMessage, Addr CmdLineFullPathFilename
+        Invoke SendMessage, hSB, SB_SETTEXT, 1, Addr szJSONErrorMessage    
+        ret
+    .ENDIF
+
+    Invoke OpenJSONFile, hWin, Addr CmdLineFullPathFilename
+    .IF eax == TRUE
+        ; Start processing JSON file
+        Invoke ProcessJSONFile, hWin, Addr CmdLineFullPathFilename
+    .ENDIF
+
+    ret
+CmdLineOpenFile endp
 
 
 ;-------------------------------------------------------------------------------------
@@ -201,6 +337,21 @@ InitGUI ENDP
 
 
 ;-------------------------------------------------------------------------------------
+; InitMenus - Initialize menus
+;-------------------------------------------------------------------------------------
+InitMenus PROC hWin:DWORD
+    
+    ; Create right click treeview menu
+    ;Invoke CreatePopupMenu
+    ;mov hTVMenu, eax
+    
+    
+    ret
+
+InitMenus ENDP
+
+
+;-------------------------------------------------------------------------------------
 ; InitJSONTreeview - Initialize JSON Treeview
 ;-------------------------------------------------------------------------------------
 InitJSONTreeview PROC hWin:DWORD
@@ -233,10 +384,10 @@ InitJSONStatusbar ENDP
 
 
 ;-------------------------------------------------------------------------------------
-; OpenJSONFile - Open JSON file to process
+; BrowseJSONFile - Browse for JSON file to open
 ;-------------------------------------------------------------------------------------
-OpenJSONFile PROC hWin:DWORD
-
+BrowseJSONFile PROC hWin:DWORD
+    
     ; Browse for JSON file to open
     Invoke RtlZeroMemory, Addr JsonBrowseFilename, SIZEOF JsonBrowseFilename
     push hWin
@@ -252,55 +403,64 @@ OpenJSONFile PROC hWin:DWORD
 
     ; If user selected an JSON and didnt cancel browse operation...
     .IF eax !=0
-    
-        .IF hJSONFile != NULL
-            Invoke CloseJSONFile
-        .ENDIF
-        
-        Invoke SendMessage, hSB, SB_SETTEXT, 1, Addr szJSONLoadingFile
-        
-        Invoke CreateFile, Addr JsonBrowseFilename, GENERIC_READ + GENERIC_WRITE, FILE_SHARE_READ + FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL
-        .IF eax == INVALID_HANDLE_VALUE
-            ; Tell user via statusbar that JSON file did not load
-            Invoke szCopy, Addr szJSONErrorLoadingFile, Addr szJSONErrorMessage
-            Invoke szCatStr, Addr szJSONErrorMessage, Addr JsonBrowseFilename
-            Invoke SendMessage, hSB, SB_SETTEXT, 1, Addr szJSONErrorMessage
-            ret
-        .ENDIF
-        mov hJSONFile, eax
-
-        Invoke CreateFileMapping, hJSONFile, NULL, PAGE_READWRITE, 0, 0, NULL ; Create memory mapped file
-        .IF eax == NULL
-            ; Tell user via statusbar that JSON file did not map
-            Invoke szCopy, Addr szJSONErrorMappingFile, Addr szJSONErrorMessage
-            Invoke szCatStr, Addr szJSONErrorMessage, Addr JsonBrowseFilename
-            Invoke SendMessage, hSB, SB_SETTEXT, 1, Addr szJSONErrorMessage
-            Invoke CloseHandle, hJSONFile
-            ret
-        .ENDIF
-        mov JSONMemMapHandle, eax
-
-        Invoke MapViewOfFileEx, JSONMemMapHandle, FILE_MAP_ALL_ACCESS, 0, 0, 0, NULL
-        .IF eax == NULL
-            ; Tell user via statusbar that JSON file did not map
-            Invoke szCopy, Addr szJSONErrorMappingFile, Addr szJSONErrorMessage
-            Invoke szCatStr, Addr szJSONErrorMessage, Addr JsonBrowseFilename
-            Invoke SendMessage, hSB, SB_SETTEXT, 1, Addr szJSONErrorMessage
-            Invoke CloseHandle, JSONMemMapHandle
-            Invoke CloseHandle, hJSONFile
-            ret
-        .ENDIF
-        mov JSONMemMapPtr, eax  
-        
-        ; Tell user via statusbar that JSON file was successfully loaded
-        Invoke szCopy, Addr szJSONLoadedFile, Addr szJSONErrorMessage
-        Invoke szCatStr, Addr szJSONErrorMessage, Addr JsonBrowseFilename
-        Invoke SendMessage, hSB, SB_SETTEXT, 1, Addr szJSONErrorMessage     
-        
-        ; Start processing JSON file
-        Invoke ProcessJSONFile, hWin, Addr JsonBrowseFilename
+        mov eax, TRUE
+    .ELSE
+        mov eax, FALSE
     .ENDIF
+    ret
 
+BrowseJSONFile ENDP
+
+
+;-------------------------------------------------------------------------------------
+; OpenJSONFile - Open JSON file to process
+;-------------------------------------------------------------------------------------
+OpenJSONFile PROC hWin:DWORD, lpszJSONFile:DWORD
+    
+    .IF hJSONFile != NULL
+        Invoke CloseJSONFile
+    .ENDIF
+    
+    Invoke SendMessage, hSB, SB_SETTEXT, 1, lpszJSONFile
+    
+    Invoke CreateFile, lpszJSONFile, GENERIC_READ + GENERIC_WRITE, FILE_SHARE_READ + FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL
+    .IF eax == INVALID_HANDLE_VALUE
+        ; Tell user via statusbar that JSON file did not load
+        Invoke szCopy, Addr szJSONErrorLoadingFile, Addr szJSONErrorMessage
+        Invoke szCatStr, Addr szJSONErrorMessage, lpszJSONFile
+        Invoke SendMessage, hSB, SB_SETTEXT, 1, Addr szJSONErrorMessage
+        mov eax, FALSE
+        ret
+    .ENDIF
+    mov hJSONFile, eax
+
+    Invoke CreateFileMapping, hJSONFile, NULL, PAGE_READWRITE, 0, 0, NULL ; Create memory mapped file
+    .IF eax == NULL
+        ; Tell user via statusbar that JSON file did not map
+        Invoke szCopy, Addr szJSONErrorMappingFile, Addr szJSONErrorMessage
+        Invoke szCatStr, Addr szJSONErrorMessage, lpszJSONFile
+        Invoke SendMessage, hSB, SB_SETTEXT, 1, Addr szJSONErrorMessage
+        Invoke CloseHandle, hJSONFile
+        mov eax, FALSE
+        ret
+    .ENDIF
+    mov JSONMemMapHandle, eax
+
+    Invoke MapViewOfFileEx, JSONMemMapHandle, FILE_MAP_ALL_ACCESS, 0, 0, 0, NULL
+    .IF eax == NULL
+        ; Tell user via statusbar that JSON file did not map
+        Invoke szCopy, Addr szJSONErrorMappingFile, Addr szJSONErrorMessage
+        Invoke szCatStr, Addr szJSONErrorMessage, lpszJSONFile
+        Invoke SendMessage, hSB, SB_SETTEXT, 1, Addr szJSONErrorMessage
+        Invoke CloseHandle, JSONMemMapHandle
+        Invoke CloseHandle, hJSONFile
+        mov eax, FALSE
+        ret
+    .ENDIF
+    mov JSONMemMapPtr, eax  
+
+    mov eax, TRUE
+    
     ret
 
 OpenJSONFile ENDP
@@ -360,14 +520,14 @@ ProcessJSONFile PROC USES EBX hWin:DWORD, lpszJSONFile:DWORD
     .IF hJSON_Object_Root == NULL
         ; If empty then tell user some error about reading file
         Invoke szCopy, Addr szJSONErrorReadingFile, Addr szJSONErrorMessage
-        Invoke szCatStr, Addr szJSONErrorMessage, Addr JsonBrowseFilename
+        Invoke szCatStr, Addr szJSONErrorMessage, lpszJSONFile
         Invoke SendMessage, hSB, SB_SETTEXT, 1, Addr szJSONErrorMessage    
         ret        
     .ENDIF
 
     ; Treeview Root is created, save handle to it, specifically we will need hTVNode later for when inserting children to treeview
     mov nTVIndex, 0
-    Invoke TreeViewInsertItem, hTV, NULL, Addr JsonBrowseFilename, nTVIndex, TVI_ROOT, IL_ICO_MAIN, IL_ICO_MAIN, 0
+    Invoke TreeViewInsertItem, hTV, NULL, lpszJSONFile, nTVIndex, TVI_ROOT, IL_ICO_MAIN, IL_ICO_MAIN, 0
     mov hTVRoot, eax
     mov hTVNode, eax
     mov hTVCurrentNode, eax
@@ -380,7 +540,7 @@ ProcessJSONFile PROC USES EBX hWin:DWORD, lpszJSONFile:DWORD
     Invoke cJSON_GetArraySize, hJSON_Object_Root
     .IF eax == 0
         Invoke szCopy, Addr szJSONErrorEmptyFile, Addr szJSONErrorMessage
-        Invoke szCatStr, Addr szJSONErrorMessage, Addr JsonBrowseFilename
+        Invoke szCatStr, Addr szJSONErrorMessage, lpszJSONFile
         Invoke SendMessage, hSB, SB_SETTEXT, 1, Addr szJSONErrorMessage    
         ret
     .ENDIF
@@ -456,15 +616,16 @@ ProcessJSONFile PROC USES EBX hWin:DWORD, lpszJSONFile:DWORD
 
         .ELSEIF eax == cJSON_String
             .IF LenItemString == 0
-                Invoke szCopy, Addr szNullStringQuotes, Addr szItemText
+                .IF LenItemStringValue != 0
+                    Invoke szCopy, lpszItemStringValue, Addr szItemText 
+                .ENDIF                
             .ELSE
                 Invoke szCopy, lpszItemString, Addr szItemText
-            .ENDIF
-            
-            Invoke szCatStr, Addr szItemText, Addr szColon
-            .IF LenItemStringValue != 0
-                Invoke szCatStr, Addr szItemText, Addr szSpace
-                Invoke szCatStr, Addr szItemText, lpszItemStringValue
+                Invoke szCatStr, Addr szItemText, Addr szColon
+                .IF LenItemStringValue != 0
+                    Invoke szCatStr, Addr szItemText, Addr szSpace
+                    Invoke szCatStr, Addr szItemText, lpszItemStringValue
+                .ENDIF
             .ENDIF
             
             Invoke TreeViewInsertItem, hTV, hTVNode, Addr szItemText, nTVIndex, TVI_LAST, IL_ICO_JSON_STRING, IL_ICO_JSON_STRING, hJSON
@@ -638,6 +799,15 @@ ProcessJSONFile PROC USES EBX hWin:DWORD, lpszJSONFile:DWORD
     
     Invoke cJSON_free, hJSON_Object_Root ; Clear up the mem alloced by cJSON_Parse
 
+    ; Tell user via statusbar that JSON file was successfully loaded
+    Invoke szCopy, Addr szJSONLoadedFile, Addr szJSONErrorMessage
+    Invoke szCatStr, Addr szJSONErrorMessage, lpszJSONFile
+    Invoke SendMessage, hSB, SB_SETTEXT, 1, Addr szJSONErrorMessage     
+    
+    Invoke SetFocus, hTV
+    
+    mov eax, TRUE
+    
     ret
 ProcessJSONFile ENDP
 

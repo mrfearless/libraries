@@ -1,8 +1,6 @@
 #define MANIFEST 						24
 1						MANIFEST  DISCARDABLE "cjsontree.xml"
 100						ICON      DISCARDABLE "Images/class_module.ico"
-101						ICON      DISCARDABLE "Images/element.ico"
-102						ICON      DISCARDABLE "Images/attribute.ico"
 103						ICON      DISCARDABLE "Images/json_string.ico"
 104						ICON      DISCARDABLE "Images/json_integer.ico"
 105						ICON      DISCARDABLE "Images/json_float.ico"

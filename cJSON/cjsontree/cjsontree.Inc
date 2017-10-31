@@ -27,11 +27,20 @@ includelib libcjson.lib
 WinMain                 PROTO :DWORD,:DWORD,:DWORD,:DWORD
 WndProc                 PROTO :DWORD,:DWORD,:DWORD,:DWORD
 InitGUI                 PROTO :DWORD
+InitMenus               PROTO :DWORD
 InitJSONStatusbar       PROTO :DWORD
 InitJSONTreeview        PROTO :DWORD
-OpenJSONFile            PROTO :DWORD
+BrowseJSONFile          PROTO :DWORD
+OpenJSONFile            PROTO :DWORD, :DWORD
 CloseJSONFile           PROTO
 ProcessJSONFile         PROTO :DWORD, :DWORD
+ProcessCmdLine          PROTO
+CmdLineOpenFile         PROTO :DWORD
+
+
+
+
+
 
 IFNDEF BROWSEFILEINFO
 BROWSEFILEINFO struct 
@@ -106,6 +115,7 @@ IDC_SB                  equ 1002
 IDM_MENU                EQU 10000
 IDM_FILE_EXIT           EQU 10001
 IDM_FILE_OPEN           EQU 10002
+IDM_FILE_CLOSE          EQU 10003
 IDM_HELP_ABOUT          EQU 10101
 
 
@@ -117,30 +127,34 @@ ClassName                   DB 'DLGCLASS',0
 AppName                     DB 'LTLI Dialog',0
 AboutMsg                    DB 'www.LetTheLight.in',13,10,'Copyright © fearless 2017',0
 
-
+; JSON Types
 szObject                    DB 'Object',0
 szTrue                      DB 'True',0
 szFalse                     DB 'False',0
 szArray                     DB 'Array',0
 szNull                      DB 'Null',0
 szInvalid                   DB 'Invalid',0
-szNullString                DB '<String>',0
+szNullString                DB 0,0;'<String>',0
 szNullStringQuotes          DB '""',0
-szNullInteger               DB '<Number>',0
-szNullLogical               DB '<Logical>',0
+szNullInteger               DB 0,0;'<Number>',0
+szNullLogical               DB 0,0;'<Logical>',0
 szNullArray                 DB '<Array>',0
-szNullNull                  DB '<Null>',0
+szNullNull                  DB 0,0;'<Null>',0
 szNullInvalid               DB '<Invalid>',0
 
+; JSON pointers
 lpszItemString              DD 0
 lpszItemStringValue         DD 0
 dwItemIntValue              DD 0 
 LenItemString               DD 0
 LenItemStringValue          DD 0
 
+; JSON Text Buffers
 szItemIntValue              DB 64 DUP (0)
 szItemText                  DB 2048 DUP (0)
 
+
+; JSON Error messages
 szJSONLoadingFile           DB 'Loading JSON File...',0
 szJSONErrorLoadingFile      DB 'Error loading JSON File: ',0
 szJSONErrorMappingFile      DB 'Error mapping JSON File: ',0
@@ -155,7 +169,14 @@ szSpace                     DB ' ',0
 szColon                     DB ':',0
 szLeftBracket               DB '{',0
 szRightBracket              DB '}',0
+szBackslash                 DB '\',0
 
+; Command line processing stuff
+szCmdLineFilenameDoesNotExist   DB 'The filename specified on the command line does not exist: ',0
+CmdLineFilename                 DB 256 DUP (0)
+CmdLineFullPathFilename         DB 512 DUP (0)
+CmdLineProcessFileFlag          DD 0 ; 0 = no file to process (normal operation), 1 = file to open
+g_fShown                        DD FALSE
 
 ;------------------------------------------------------------------------
 ; Browse To Open Json File
@@ -178,6 +199,8 @@ hInstance               DD ?
 CommandLine             DD ?
 hWnd                    DD ?
 hWhiteBrush             DD ?
+hDrop                   DD ?
+hTVMenu                 DD ?
 hTV                     DD ?
 hSB                     DD ?
 hIL                     DD ?

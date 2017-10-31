@@ -1,7 +1,7 @@
 #define VERINF1 1
 VERINF1 VERSIONINFO
-FILEVERSION 1,0,0,1
-PRODUCTVERSION 1,0,0,1
+FILEVERSION 1,0,0,2
+PRODUCTVERSION 1,0,0,2
 FILEOS 0x00000004
 FILETYPE 0x00000001
 BEGIN
@@ -9,12 +9,12 @@ BEGIN
   BEGIN
     BLOCK "040904B0"
     BEGIN
-      VALUE "FileVersion", "1.0.0.1\0"
+      VALUE "FileVersion", "1.0.0.2\0"
       VALUE "FileDescription", "cjsontree\0"
       VALUE "InternalName", "cjsontree\0"
       VALUE "OriginalFilename", "cjsontree\0"
       VALUE "ProductName", "cjsontree\0"
-      VALUE "ProductVersion", "1.0.0.1\0"
+      VALUE "ProductVersion", "1.0.0.2\0"
     END
   END
   BLOCK "VarFileInfo"
