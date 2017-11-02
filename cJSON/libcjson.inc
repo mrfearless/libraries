@@ -22,8 +22,8 @@
 
 ; libcjson.inc converted from cJSON.h for masm by fearless 2017
 
-include msvcrt.inc
-includelib msvcrt.lib
+;include msvcrt.inc
+;includelib msvcrt.lib
 includelib msvcrt14.lib
 
 ; cJSON project version
@@ -79,6 +79,7 @@ cJSON_PrintBuffered             PROTO :DWORD, :DWORD, :DWORD ; (const cJSON *ite
 cJSON_PrintPreallocated         PROTO :DWORD, :DWORD, :DWORD, :DWORD ; (cJSON *item, char *buffer, const int length, const cJSON_bool format);
 cJSON_Delete                    PROTO :DWORD ; (cJSON *c);
 cJSON_GetArraySize              PROTO :DWORD ; (const cJSON *array);
+cJSON_GetArrayItem              PROTO :DWORD, :DWORD ; (const cJSON *array, int index);
 cJSON_GetObjectItem             PROTO :DWORD, :DWORD ; (const cJSON * const object, const char * const string);
 cJSON_GetObjectItemCaseSensitive PROTO :DWORD, :DWORD ; (const cJSON * const object, const char * const string);
 cJSON_HasObjectItem             PROTO :DWORD, :DWORD ; (const cJSON *object, const char *string);

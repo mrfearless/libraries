@@ -63,8 +63,8 @@ WinMain proc hInst:HINSTANCE,hPrevInst:HINSTANCE,CmdLine:LPSTR,CmdShow:DWORD
     mov hWnd, eax
     Invoke ShowWindow, hWnd, SW_SHOWNORMAL
     Invoke UpdateWindow, hWnd
-	.WHILE TRUE
-		invoke GetMessage,addr msg,NULL,0,0
+    .WHILE TRUE
+        invoke GetMessage,addr msg,NULL,0,0
         .BREAK .if !eax
 
         Invoke IsDialogMessage, hWnd, addr msg
@@ -72,8 +72,8 @@ WinMain proc hInst:HINSTANCE,hPrevInst:HINSTANCE,CmdLine:LPSTR,CmdShow:DWORD
             invoke TranslateMessage,addr msg
             invoke DispatchMessage,addr msg
         .ENDIF
-	.ENDW
-	mov eax,msg.wParam
+    .ENDW
+    mov eax,msg.wParam
     ret
 WinMain endp
 
@@ -175,37 +175,37 @@ WndProc proc USES EBX ECX hWin:HWND,uMsg:UINT,wParam:WPARAM,lParam:LPARAM
         Invoke SetWindowPos, hTV, HWND_TOP, 0,0, dwClientWidth, eax, SWP_NOZORDER
 
 
-	.ELSEIF eax==WM_NOTIFY
-		mov ecx,lParam
-		mov eax, (NMHDR PTR [ecx]).code
-		
-		.IF eax == NM_RCLICK
+    .ELSEIF eax==WM_NOTIFY
+        mov ecx,lParam
+        mov eax, (NMHDR PTR [ecx]).code
+        
+        .IF eax == NM_RCLICK
 
-		.ELSEIF eax == NM_DBLCLK
-		    Invoke TreeViewGetSelectedItem, hTV
-		    Invoke SendMessage, hTV, TVM_EDITLABEL, 0, eax
-		
-		.ELSEIF eax == NM_RETURN ; requires sublass of treeview with WM_GETDLGCODE DLGC_WANTALL
-	        Invoke TreeViewGetSelectedItem, hTV
-	        Invoke SendMessage, hTV, TVM_EDITLABEL, 0, eax
-		
-		.ELSEIF eax == TVN_KEYDOWN
-		    mov ecx, lParam
-		    movzx eax, (TV_KEYDOWN ptr [ecx]).wVKey
-		    .IF eax == VK_F2 
-		        Invoke TreeViewGetSelectedItem, hTV
-		        Invoke SendMessage, hTV, TVM_EDITLABEL, 0, eax
-		    .ENDIF
-		     
-	    .ELSEIF eax == TVN_BEGINLABELEDIT
+        .ELSEIF eax == NM_DBLCLK
+            Invoke TreeViewGetSelectedItem, hTV
+            Invoke SendMessage, hTV, TVM_EDITLABEL, 0, eax
+        
+        .ELSEIF eax == NM_RETURN ; requires sublass of treeview with WM_GETDLGCODE DLGC_WANTALL
+            Invoke TreeViewGetSelectedItem, hTV
+            Invoke SendMessage, hTV, TVM_EDITLABEL, 0, eax
+        
+        .ELSEIF eax == TVN_KEYDOWN
+            mov ecx, lParam
+            movzx eax, (TV_KEYDOWN ptr [ecx]).wVKey
+            .IF eax == VK_F2 
+                Invoke TreeViewGetSelectedItem, hTV
+                Invoke SendMessage, hTV, TVM_EDITLABEL, 0, eax
+            .ENDIF
+             
+        .ELSEIF eax == TVN_BEGINLABELEDIT
             mov eax, FALSE
             ret
             
-	    .ELSEIF eax == TVN_ENDLABELEDIT
-	        mov eax, TRUE
-	        ret
-	        
-	    .ENDIF
+        .ELSEIF eax == TVN_ENDLABELEDIT
+            mov eax, TRUE
+            ret
+            
+        .ENDIF
 
 
     .ELSEIF eax == WM_CLOSE
@@ -227,8 +227,8 @@ WndProc endp
 ; ProcessCmdLine - has user passed a file at the command line 
 ;-------------------------------------------------------------------------------------
 ProcessCmdLine PROC
-	Invoke getcl_ex, 1, ADDR CmdLineFilename
-	.IF eax == 1
+    Invoke getcl_ex, 1, ADDR CmdLineFilename
+    .IF eax == 1
         mov CmdLineProcessFileFlag, 1 ; filename specified, attempt to open it
     .ELSE
         mov CmdLineProcessFileFlag, 0 ; do nothing, continue as normal

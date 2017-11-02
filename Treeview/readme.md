@@ -1,3 +1,3 @@
 # Treeview
 
-Static assembler library for handling windows treeview controls
+Static assembler library (x86 and x64) for handling windows treeview controls

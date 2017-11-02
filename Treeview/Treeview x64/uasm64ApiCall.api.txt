@@ -1,0 +1,24 @@
+;-----------------------------------------------------------------------------------------------------
+; LTLT Treeview x64 Additions 02/11/2017
+;
+; Paste this text at the end of \Radasm\UASM64\uasm64ApiCall.api to add these to Radasm
+;
+;-----------------------------------------------------------------------------------------------------
+TreeViewChildItemsCollapse,hTreeview,hItem
+TreeViewChildItemsExpand,hTreeview,hItem
+TreeViewChildItemsToggle,hTreeview,hItem
+TreeViewGetItemImage,hTreeview,hItem
+TreeViewGetItemParam,hTreeview,hItem
+TreeViewGetItemText,hTreeview,hItem,lpszTextBuffer,dqSizeTextBuffer
+TreeViewGetSelectedImage,hTreeview
+TreeViewGetSelectedItem,hTreeview
+TreeViewGetSelectedParam,hTreeview
+TreeViewGetSelectedText,hTreeview,lpszTextBuffer,dqSizeTextBuffer
+TreeViewInsertItem,hTreeview,hNodeParent,lpszNodeText,nNodeIndex,NodePosition,nImage,nImageSelected,dqParam
+TreeViewLinkImageList,hTreeview,hImagelist,ImagelistType
+TreeViewSetItemImage,hTreeview,hItem,nImageListIndex
+TreeViewSetItemParam,hTreeview,hItem,dqParam
+TreeViewSetItemText,hTreeview,hItem,lpszTextBuffer
+TreeViewSetSelectedItem,hTreeview,hItem
+TreeViewSubClassData,hTreeview,lpdqTVSubClassData
+TreeViewSubClassProc,hTreeview,lpdqTVSubClassProc

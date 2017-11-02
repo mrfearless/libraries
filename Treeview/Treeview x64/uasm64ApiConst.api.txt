@@ -1,0 +1,8 @@
+;-----------------------------------------------------------------------------------------------------
+; LTLT Treeview x64 Additions 02/11/2017
+;
+; Paste this text at the end of \Radasm\UASM64\uasm64ApiConst.api to add these to Radasm
+;
+;-----------------------------------------------------------------------------------------------------
+3TreeViewLinkImageList,TVSIL_NORMAL,TVSIL_SMALL,TVSIL_STATE
+5TreeViewInsertItem,TVI_FIRST,TVI_LAST,TVI_SORT,TVI_ROOT
