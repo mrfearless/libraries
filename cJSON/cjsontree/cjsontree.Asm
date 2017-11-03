@@ -286,10 +286,6 @@ InitGUI PROC hWin:DWORD
     Invoke LoadIcon, hInstance, ICO_MAIN
     mov hICO_MAIN, eax
     
-    Invoke LoadIcon, hInstance, ICO_JSON_ELEMENT
-    mov hICO_JSON_ELEMENT, eax
-    Invoke LoadIcon, hInstance, ICO_JSON_ATTRIBUTE
-    mov hICO_JSON_ATTRIBUTE, eax
     Invoke LoadIcon, hInstance, ICO_JSON_STRING
     mov hICO_JSON_STRING, eax
     Invoke LoadIcon, hInstance, ICO_JSON_INTEGER
@@ -317,8 +313,6 @@ InitGUI PROC hWin:DWORD
     mov hIL, eax
     
     Invoke ImageList_AddIcon, hIL, hICO_MAIN
-    Invoke ImageList_AddIcon, hIL, hICO_JSON_ELEMENT
-    Invoke ImageList_AddIcon, hIL, hICO_JSON_ATTRIBUTE
     Invoke ImageList_AddIcon, hIL, hICO_JSON_STRING
     Invoke ImageList_AddIcon, hIL, hICO_JSON_INTEGER
     Invoke ImageList_AddIcon, hIL, hICO_JSON_FLOAT
