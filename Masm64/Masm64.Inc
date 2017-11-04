@@ -25,6 +25,7 @@
 qw2hex      PROTO :QWORD,:QWORD
 dw2hex      PROTO :DWORD,:QWORD
 dwtoa       PROTO :DWORD,:QWORD   ; value - buffer
+qwtoa       PROTO :QWORD,:QWORD
 
 a2qw        PROTO :QWORD
 atoqw       PROTO :QWORD
@@ -81,11 +82,10 @@ midstr  equ <szMid>
 ; ----------------------
 ; path, folder functions
 ; ----------------------
+ArgByNumber PROTO :QWORD,:QWORD,:QWORD,:QWORD
+getcl_ex    PROTO :QWORD,:QWORD
 exist       PROTO :QWORD
 GetPathOnly PROTO :QWORD,:QWORD
-
-
-ArgByNumber PROTO :QWORD,:QWORD,:QWORD,:QWORD
 
 
 
