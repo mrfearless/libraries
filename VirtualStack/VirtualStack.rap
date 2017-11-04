@@ -1,0 +1,113 @@
+[Project]
+Assembler=UASM64
+Type=LIB64 Project
+Description=VirtualStack
+Backup=$P\Bak\
+Group=1
+GroupExpand=1
+Debug=0
+[Files]
+1=VirtualStack.Asm
+2=VirtualStack.Inc
+[MakeFiles]
+0=VirtualStack.rap
+1=VirtualStack.rc
+2=VirtualStack.asm
+3=VirtualStack.obj
+4=VirtualStack.res
+5=VirtualStack.exe
+6=VirtualStack.def
+7=VirtualStack.dll
+8=VirtualStack.txt
+9=VirtualStack.lib
+10=VirtualStack.mak
+11=VirtualStack.hla
+12=VirtualStack.com
+13=VirtualStack.ocx
+14=VirtualStack.idl
+15=VirtualStack.tlb
+16=VirtualStack.sys
+17=VirtualStack.dp32
+18=VirtualStack.pdb
+19=VirtualStack.dp64
+[MakeDef]
+Menu=0,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0
+1=4,O,$B\RC.EXE /v,1
+2=3,O,$B\UASM64.exe /c -win64 -Zp8 /win64 /D_WIN64 /Cp /nologo /W2 /I"$I" *.asm
+3=9,O,$B\LIB.EXE *.obj /out:VirtualStack.lib
+4=0,0,,5
+5=rsrc.obj,O,$B\CVTRES.EXE,rsrc.res
+6=*.obj,O,$B\UASM64.exe /c -win64 -Zp8 /Zi /win64 /D_WIN64 /Cp /nologo /W2 /I"$I" *.asm
+7=0,0,"$E\x64\x64dbg",5
+11=4,O,$B\RC.EXE /v,1
+12=3,O,$B\UASM64.exe /c -win64 -Zp8 /Zi /win64 /D_WIN64 /Cp /nologo /W2 /Zi /Zd /nologo /I"$I" *.asm
+13=9,O,$B\LINK -lib *.obj /out:"$9" /LIBPATH:"$L"
+14=0,0,,5
+15=rsrc.obj,O,$B\CVTRES.EXE,rsrc.res
+16=*.obj,O,$B\UASM64.exe /c -win64 -Zp8 /Zi /win64 /D_WIN64 /Cp /nologo /W2 /I"$I" *.asm
+17=0,0,"$E\x64\x64dbg",5
+[Group]
+Group=Assembly,Resources,Misc
+1=1
+2=1
+[AutoLoad]
+AutoLoad=2,1
+[RADebugBP]
+2=
+1=
+[VersionControl]
+Settings=1278
+Milestones=129
+MilestoneEvery=10
+MilestoneEveryCurrent=0
+MilestoneOnBuild=0.0.0.0
+MilestoneOnTime=2
+MilestoneOnDate=0
+MilestoneOnDateWhen=1
+MilestoneOnDateStatus=0
+MilestoneOnDateDate=4
+MilestoneOnDateTimeYear=2017
+MilestoneOnDateTimeMonth=11
+MilestoneOnDateTimeDate=4
+MilestoneOnDateTimeHour=7
+MilestoneOnDateTimeMin=28
+MilestoneOnDateTimeSec=55
+MilestoneOnDateTimeStatus=0
+BackupLocation=M:\radasm\UASM64\Projects\VCBackups\
+CompressionLevel=0
+DefaultComment=Project $N, $Z, Backup Created On $D At $T.
+ExcludeExt1=\
+ExcludeExt2=\
+ExcludeExt3=\
+ExcludeExt4=\
+FileVerLength=4
+FileVer2Range=0
+FileVer3Range=0
+FileVer4Range=0
+ProductVerLength=4
+ProductVer2Range=0
+ProductVer3Range=0
+ProductVer4Range=0
+[PTimer]
+PTimer=9492442
+[Collapse]
+1=
+2=
+[Size]
+1=0,0,0,0,7754
+2=0,0,0,0,2330
+[GroupExpand]
+GroupExpand=1,0,0,0
+[BookMark]
+0=
+1=
+2=
+3=
+4=
+5=
+6=
+7=
+8=
+9=
+[BreakPoint]
+0=
