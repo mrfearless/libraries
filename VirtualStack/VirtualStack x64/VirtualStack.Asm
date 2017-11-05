@@ -15,8 +15,18 @@ include windows.inc
 includelib kernel32.lib
 includelib user32.lib
 
-;include masm64.inc
-;includelib masm64.lib
+;DEBUG64 EQU 1
+
+IFDEF DEBUG64
+    PRESERVEXMMREGS equ 1
+    includelib \UASM\lib\x64\Debug64.lib
+    DBG64LIB equ 1
+    DEBUGEXE textequ <'\UASM\bin\DbgWin.exe'>
+    include \UASM\include\debug64.inc
+    .DATA
+    RDBG_DbgWin	DB DEBUGEXE,0
+    .CODE
+ENDIF
 
 include VirtualStack.inc
 
@@ -31,17 +41,14 @@ STACK                       ENDS
 ENDIF
 
 
-.DATA
-
-
-
 .CODE
+
 
 ;-----------------------------------------------------------------------------------------
 ; VirtualStackCreate. Returns hVirtualStack in rax if succesful or NULL if failed. 
 ; dqStackSize is the size (max amount of stack items) to create on the virtual stack
 ;-----------------------------------------------------------------------------------------
-VirtualStackCreate PROC FRAME USES RBX dqStackSize:QWORD
+VirtualStackCreate PROC FRAME USES RBX qwStackSize:QWORD
     LOCAL nSize:QWORD
     LOCAL hStack:QWORD
     LOCAL hStackData:QWORD
@@ -54,10 +61,10 @@ VirtualStackCreate PROC FRAME USES RBX dqStackSize:QWORD
     mov hStack, rax
 
     ; Assign max height to virtual stack and calc space required for stack data size
-    .IF dqStackSize == NULL
+    .IF qwStackSize == NULL
         mov rbx, VIRTUALSTACK_SIZE_MEDIUM
     .ELSE
-        mov rbx, dqStackSize
+        mov rbx, qwStackSize
     .ENDIF
     mov [rax].STACK.StackMaxHeight, rbx    
     mov rax, SIZEOF QWORD
@@ -80,7 +87,6 @@ VirtualStackCreate PROC FRAME USES RBX dqStackSize:QWORD
     mov [rbx].STACK.StackNoItems, 0
     
     mov rax, hStack 
-
     ret
 VirtualStackCreate ENDP
 
@@ -100,17 +106,17 @@ VirtualStackDelete PROC FRAME USES RBX hVirtualStack:QWORD
     .ENDIF
     mov rax, hVirtualStack
     Invoke GlobalFree, rax
+    
     mov rax, TRUE
     ret
-
-VirtualStackDelete endp
+VirtualStackDelete ENDP
 
 
 ;-----------------------------------------------------------------------------------------
-; VirtualStackPush. rax returns TRUE if succesful or FALSE otherwise. dqPushValue is the 
+; VirtualStackPush. rax returns TRUE if succesful or FALSE otherwise. qwPushValue is the 
 ; value to 'push' onto the virtual stack
 ;-----------------------------------------------------------------------------------------
-VirtualStackPush PROC FRAME USES RBX hVirtualStack:QWORD, dqPushValue:QWORD
+VirtualStackPush PROC FRAME USES RBX hVirtualStack:QWORD, qwPushValue:QWORD
     LOCAL hStackData:QWORD
     LOCAL nStackNoItems:QWORD
     LOCAL nStackMaxHeight:QWORD
@@ -132,7 +138,7 @@ VirtualStackPush PROC FRAME USES RBX hVirtualStack:QWORD, dqPushValue:QWORD
     inc rax
     mov nStackNoItems, rax
     .IF rax >= nStackMaxHeight
-        xor eax, eax ; FALSE
+        mov rax, VIRTUALSTACK_STACKFULL
         ret
     .ENDIF
     
@@ -141,7 +147,7 @@ VirtualStackPush PROC FRAME USES RBX hVirtualStack:QWORD, dqPushValue:QWORD
     mov rbx, hStackData
     lea rax, [ebx+eax*8] ; current stack item address in eax
     mov rbx, rax
-    mov rax, dqPushValue
+    mov rax, qwPushValue
     mov [rbx], rax ; save value to stack item address
     
     ; save pointer and item count back to stack header
@@ -152,17 +158,16 @@ VirtualStackPush PROC FRAME USES RBX hVirtualStack:QWORD, dqPushValue:QWORD
     mov [rbx].STACK.StackNoItems, rax
 
     mov rax, TRUE
-
     ret
 VirtualStackPush ENDP
 
 
 ;-----------------------------------------------------------------------------------------
-; VirtualStackPop. rax returns TRUE if succesful and lpsqPopValue contains the 'popped'
+; VirtualStackPop. rax returns TRUE if succesful and lpqwPopValue contains the 'popped'
 ; value from the virtual stack, or FALSE otherwise. If stack is empty (no more items on it)
 ; then rax returns -1
 ;-----------------------------------------------------------------------------------------
-VirtualStackPop PROC FRAME USES RBX hVirtualStack:QWORD, lpdqPopValue:QWORD
+VirtualStackPop PROC FRAME USES RBX hVirtualStack:QWORD, lpqwPopValue:QWORD
     LOCAL hStackData:QWORD
     LOCAL nStackNoItems:QWORD
     LOCAL nStackPointer:QWORD
@@ -172,7 +177,7 @@ VirtualStackPop PROC FRAME USES RBX hVirtualStack:QWORD, lpdqPopValue:QWORD
         ret
     .ENDIF
 
-    .IF lpdqPopValue == NULL
+    .IF lpqwPopValue == NULL
         xor eax, eax ; FALSE
         ret
     .ENDIF
@@ -193,7 +198,7 @@ VirtualStackPop PROC FRAME USES RBX hVirtualStack:QWORD, lpdqPopValue:QWORD
     mov rax, nStackPointer
     mov rbx, hStackData
     mov rax, [ebx+eax*8] ; current stack item value in eax
-    mov rbx, lpdqPopValue
+    mov rbx, lpqwPopValue
     mov [rbx], rax ; save current stack item value to pop address variable
     
     ; save pointer and item count back to stack header
@@ -206,17 +211,16 @@ VirtualStackPop PROC FRAME USES RBX hVirtualStack:QWORD, lpdqPopValue:QWORD
     mov [rbx].STACK.StackNoItems, rax
 
     mov rax, TRUE
-    
     ret
 VirtualStackPop ENDP
 
 
 ;-----------------------------------------------------------------------------------------
-; VirtualStackPeek. rax returns TRUE if succesful and lpsqPeekValue contains the 'peeked'
+; VirtualStackPeek. rax returns TRUE if succesful and lpqwPeekValue contains the 'peeked'
 ; value from the virtual stack, or FALSE otherwise. If stack is empty (no more items on it)
 ; then rax returns -1
 ;-----------------------------------------------------------------------------------------
-VirtualStackPeek PROC FRAME USES RBX hVirtualStack:QWORD, lpdqPeekValue:QWORD
+VirtualStackPeek PROC FRAME USES RBX hVirtualStack:QWORD, lpqwPeekValue:QWORD
     LOCAL hStackData:QWORD
     LOCAL nStackNoItems:QWORD
     LOCAL nStackPointer:QWORD
@@ -226,7 +230,7 @@ VirtualStackPeek PROC FRAME USES RBX hVirtualStack:QWORD, lpdqPeekValue:QWORD
         ret
     .ENDIF
 
-    .IF lpdqPeekValue == NULL
+    .IF lpqwPeekValue == NULL
         xor eax, eax ; FALSE
         ret
     .ENDIF
@@ -247,14 +251,12 @@ VirtualStackPeek PROC FRAME USES RBX hVirtualStack:QWORD, lpdqPeekValue:QWORD
     mov rax, nStackPointer
     mov rbx, hStackData
     mov rax, [ebx+eax*8] ; current stack item value in eax
-    mov rbx, lpdqPeekValue
+    mov rbx, lpqwPeekValue
     mov [rbx], rax ; save current stack item value to pop address variable
 
     mov rax, TRUE
-
     ret
-
-VirtualStackPeek endp
+VirtualStackPeek ENDP
 
 
 ;-----------------------------------------------------------------------------------------
@@ -269,7 +271,6 @@ VirtualStackCount PROC FRAME USES RBX hVirtualStack:QWORD
     mov rax, [rbx].STACK.StackNoItems
     ret
 VirtualStackCount ENDP
-
 
 
 ;-----------------------------------------------------------------------------------------

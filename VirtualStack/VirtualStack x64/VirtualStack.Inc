@@ -39,25 +39,13 @@
 ;-----------------------------------------------------------------------------------------
 ; VirtualStack Prototypes
 ;-----------------------------------------------------------------------------------------
-VirtualStackCreate          PROTO :QWORD            ; dqStackSize. Returns in rax hVirtualStack or NULL if error
+VirtualStackCreate          PROTO :QWORD            ; qwStackSize. Returns in rax hVirtualStack or NULL if error
 VirtualStackDelete          PROTO :QWORD            ; hVirtualStack. Returns in rax TRUE or FALSE
-VirtualStackPush            PROTO :QWORD, :QWORD    ; hVirtualStack, dqPushValue. Returns in rax TRUE or FALSE
-VirtualStackPop             PROTO :QWORD, :QWORD    ; hVirtualStack, lpdqPopValue. Returns in rax TRUE or FALSE or -1 for empty stack
-VirtualStackPeek            PROTO :QWORD, :QWORD    ; hVirtualStack, lpdqPeekValue. Returns in rax TRUE or FALSE or -1 for empty stack
+VirtualStackPush            PROTO :QWORD, :QWORD    ; hVirtualStack, qwPushValue. Returns in rax TRUE or FALSE
+VirtualStackPop             PROTO :QWORD, :QWORD    ; hVirtualStack, lpqwPopValue. Returns in rax TRUE or FALSE or -1 for empty stack
+VirtualStackPeek            PROTO :QWORD, :QWORD    ; hVirtualStack, lpqwPeekValue. Returns in rax TRUE or FALSE or -1 for empty stack
 VirtualStackCount           PROTO :QWORD            ; hVirtualStack. Returns in rax number of items on stack
 VirtualStackSize            PROTO :QWORD            ; hVirtualStack. Returns in rax max size of stack
-
-;-----------------------------------------------------------------------------------------
-; VirtualStack Structures
-;-----------------------------------------------------------------------------------------
-IFNDEF STACK
-STACK                       STRUCT
-    StackMaxHeight          DQ 0
-    StackPointer            DQ 0
-    StackNoItems            DQ 0
-    StackData               DQ 0
-STACK                       ENDS
-ENDIF
 
 
 .CONST
@@ -65,11 +53,16 @@ ENDIF
 ; VirtualStack Constants
 ;-----------------------------------------------------------------------------------------
 
+; Virtual Stack Sizes:
 VIRTUALSTACK_SIZE_SMALL     EQU 16d
 VIRTUALSTACK_SIZE_MEDIUM    EQU 256d
 VIRTUALSTACK_SIZE_LARGE     EQU 1024d
-VIRTUALSTACK_MAXSTACKHEIGHT EQU 1024d
 
+; Virtual Stack Error Return Values
+VIRTUALSTACK_STACKFULL      EQU -2  ; Stack pointer is already at max size. No more items can be 'pushed' to this stack
+VIRTUALSTACK_STACKEMPTY     EQU -1  ; Stack pointer is already at 0. No more items can be 'popped' from this stack
+VIRTUALSTACK_FAILURE        EQU 0   ; Stack operation error
+VIRTUALSTACK_SUCCESS        EQU 1   ; Stack operation success
 
 
 
