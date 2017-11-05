@@ -1,0 +1,24 @@
+# cJSON - libcjson x64
+
+libcjson static library compiled for x64 uasm assembler
+
+cJSON: https://github.com/DaveGamble/cJSON
+
+> Ultralightweight JSON parser in ANSI C
+
+From a post on tuts4you.com: https://forum.tuts4you.com/topic/39996-how-to-read-json-correctly/
+
+Includes x64 cjsontree - a demo program created to show the usage of the libcjson library
+
+## Usage
+
+* Copy `libcjson_x64.inc` to your `uasm\include` folder (or wherever your includes are located)
+* Copy `libcjson_x64.lib` to your `uasm\lib\x64` folder (or wherever your 64bit libraries are located)
+* Add the following to your project:
+```assembly
+include libcjson_x64.inc
+includelib libcjson_x64.lib
+```
+
+## RadASM Autocomplete
+Additional RadASM autocomplete / intellisense type files are also included for ease of use. Each .api.txt file contains instructions as to where to paste their contents to add this feature to RadASM for using this library.
