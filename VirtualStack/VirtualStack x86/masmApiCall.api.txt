@@ -1,5 +1,5 @@
 ;-----------------------------------------------------------------------------------------------------
-; ; VirtualStack x86 Library Additions 05/11/2017
+; VirtualStack x86 Library Additions 05/11/2017
 ;
 ; Paste this text at the end of \Radasm\Masm\masmApiCall.api to add these to Radasm
 ;
