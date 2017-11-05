@@ -53,6 +53,14 @@ includelib VirtualStack.lib
 
 *Returns*: `eax` contains `TRUE` if successful or `FALSE` otherwise. Additionally returns `-1` if stack is empty (no more items on stack)
 
+### VirtualStackZero
+
+*Description*: Zeros the entire virtual stack and resets it back to 0, clearing all data
+
+*Parameters*: `hVirtualStack`
+
+*Returns*: `eax` contains `TRUE` if successful or `FALSE` otherwise
+
 ### VirtualStackCount
 
 *Description*: Returns the total number of items on a virtual stack
