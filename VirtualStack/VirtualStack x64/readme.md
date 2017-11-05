@@ -59,7 +59,7 @@ includelib VirtualStack.lib
 
 *Parameters*: `hVirtualStack`
 
-*Returns*: `eax` contains `TRUE` if successful or `FALSE` otherwise
+*Returns*: `rax` contains `TRUE` if successful or `FALSE` otherwise
 
 ### VirtualStackCount
 
