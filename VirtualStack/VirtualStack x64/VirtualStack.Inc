@@ -46,6 +46,7 @@ VirtualStackPop             PROTO :QWORD, :QWORD    ; hVirtualStack, lpqwPopValu
 VirtualStackPeek            PROTO :QWORD, :QWORD    ; hVirtualStack, lpqwPeekValue. Returns in rax TRUE or FALSE or -1 for empty stack
 VirtualStackCount           PROTO :QWORD            ; hVirtualStack. Returns in rax number of items on stack
 VirtualStackSize            PROTO :QWORD            ; hVirtualStack. Returns in rax max size of stack
+VirtualStackZero            PROTO :QWORD            ; hVirtualStack. Returns in rax TRUE or FALSE
 
 
 .CONST

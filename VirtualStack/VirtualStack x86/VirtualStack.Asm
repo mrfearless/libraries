@@ -130,7 +130,7 @@ VirtualStackPush PROC USES EBX hVirtualStack:DWORD, dwPushValue:DWORD
     mov eax, [ebx].STACK.StackNoItems
     inc eax
     mov nStackNoItems, eax
-    .IF eax >= nStackMaxHeight
+    .IF eax > nStackMaxHeight
         mov eax, VIRTUALSTACK_STACKFULL
         ret
     .ENDIF
@@ -254,6 +254,46 @@ VirtualStackPeek PROC USES EBX hVirtualStack:DWORD, lpdwPeekValue:DWORD
     ret
 
 VirtualStackPeek endp
+
+
+;-----------------------------------------------------------------------------------------
+; VirtualStackZero. Zeros the entire stack and resets it back to 0, clearing all data
+;-----------------------------------------------------------------------------------------
+VirtualStackZero PROC USES EBX hVirtualStack:DWORD
+    LOCAL hStackData:DWORD
+    LOCAL nSize:DWORD
+    
+    .IF hVirtualStack == NULL
+        xor eax, eax ; FALSE
+        ret
+    .ENDIF
+    
+    mov ebx, hVirtualStack
+    mov eax, [ebx].STACK.StackNoItems
+    .IF eax == 0 ; nStackNoItems
+        mov eax, TRUE ; stack already empty
+        ret
+    .ENDIF
+
+    mov eax, [ebx].STACK.StackData
+    mov hStackData, eax
+
+    mov eax, [ebx].STACK.StackMaxHeight    
+    mov ebx, SIZEOF DWORD
+    mul ebx
+    mov nSize, eax
+    
+    .IF nSize != 0
+        Invoke RtlZeroMemory, hStackData, nSize
+    .ENDIF
+
+    mov ebx, hVirtualStack
+    mov [ebx].STACK.StackPointer, -1
+    mov [ebx].STACK.StackNoItems, 0
+    
+    mov eax, TRUE
+    ret
+VirtualStackZero ENDP
 
 
 ;-----------------------------------------------------------------------------------------

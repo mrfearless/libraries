@@ -137,7 +137,7 @@ VirtualStackPush PROC FRAME USES RBX hVirtualStack:QWORD, qwPushValue:QWORD
     mov rax, [rbx].STACK.StackNoItems
     inc rax
     mov nStackNoItems, rax
-    .IF rax >= nStackMaxHeight
+    .IF rax > nStackMaxHeight
         mov rax, VIRTUALSTACK_STACKFULL
         ret
     .ENDIF
@@ -257,6 +257,46 @@ VirtualStackPeek PROC FRAME USES RBX hVirtualStack:QWORD, lpqwPeekValue:QWORD
     mov rax, TRUE
     ret
 VirtualStackPeek ENDP
+
+
+;-----------------------------------------------------------------------------------------
+; VirtualStackZero. Zeros the entire stack and resets it back to 0, clearing all data
+;-----------------------------------------------------------------------------------------
+VirtualStackZero PROC FRAME USES RBX hVirtualStack:QWORD
+    LOCAL hStackData:QWORD
+    LOCAL nSize:QWORD
+    
+    .IF hVirtualStack == NULL
+        xor eax, eax ; FALSE
+        ret
+    .ENDIF
+    
+    mov rbx, hVirtualStack
+    mov rax, [rbx].STACK.StackNoItems
+    .IF rax == 0 ; nStackNoItems
+        mov rax, TRUE ; stack already empty
+        ret
+    .ENDIF
+
+    mov rax, [rbx].STACK.StackData
+    mov hStackData, rax
+
+    mov rax, [rbx].STACK.StackMaxHeight    
+    mov rbx, SIZEOF QWORD
+    mul rbx
+    mov nSize, rax
+    
+    .IF nSize != 0
+        Invoke RtlZeroMemory, hStackData, nSize
+    .ENDIF
+
+    mov rbx, hVirtualStack
+    mov [rbx].STACK.StackPointer, -1
+    mov [rbx].STACK.StackNoItems, 0
+    
+    mov rax, TRUE
+    ret
+VirtualStackZero ENDP
 
 
 ;-----------------------------------------------------------------------------------------

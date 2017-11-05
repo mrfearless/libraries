@@ -1,0 +1,14 @@
+;-----------------------------------------------------------------------------------------------------
+; ; VirtualStack x86 Library Additions 05/11/2017
+;
+; Paste this text at the end of \Radasm\Masm\masmApiCall.api to add these to Radasm
+;
+;-----------------------------------------------------------------------------------------------------
+VirtualStackCreate,dwStackSize
+VirtualStackDelete,hVirtualStack
+VirtualStackPush,hVirtualStack,dwPushValue
+VirtualStackPop,hVirtualStack,lpdwPopValue
+VirtualStackPeek,hVirtualStack,lpdwPeekValue
+VirtualStackCount,hVirtualStack
+VirtualStackSize,hVirtualStack
+VirtualStackZero,hVirtualStack

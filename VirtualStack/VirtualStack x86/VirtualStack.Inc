@@ -46,6 +46,7 @@ VirtualStackPop             PROTO :DWORD, :DWORD    ; hVirtualStack, lpdwPopValu
 VirtualStackPeek            PROTO :DWORD, :DWORD    ; hVirtualStack, lpdwPeekValue. Returns in eax TRUE or FALSE or -1 for empty stack
 VirtualStackCount           PROTO :DWORD            ; hVirtualStack. Returns in eax number of items on stack
 VirtualStackSize            PROTO :DWORD            ; hVirtualStack. Returns in eax max size of stack
+VirtualStackZero            PROTO :DWORD            ; hVirtualStack. Returns in eax TRUE or FALSE
 
 
 .CONST

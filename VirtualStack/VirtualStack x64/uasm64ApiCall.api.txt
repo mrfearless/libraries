@@ -1,0 +1,14 @@
+;-----------------------------------------------------------------------------------------------------
+; ; VirtualStack x64 Library Additions 05/11/2017
+;
+; Paste this text at the end of \Radasm\UASM64\uasm64ApiCall.api to add these to Radasm
+;
+;-----------------------------------------------------------------------------------------------------
+VirtualStackCreate,qwStackSize
+VirtualStackDelete,hVirtualStack
+VirtualStackPush,hVirtualStack,qwPushValue
+VirtualStackPop,hVirtualStack,lpqwPopValue
+VirtualStackPeek,hVirtualStack,lpqwPeekValue
+VirtualStackCount,hVirtualStack
+VirtualStackSize,hVirtualStack
+VirtualStackZero,hVirtualStack
