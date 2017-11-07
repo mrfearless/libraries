@@ -21,51 +21,35 @@ includelib TreeView.lib
 include libcjson.inc
 includelib libcjson.lib
 
+include VirtualStack.inc
+includelib VirtualStack.lib
+
 ;-----------------------------------------------------------------------------------------
 ; cjsontree Prototypes
 ;-----------------------------------------------------------------------------------------
-WinMain                 PROTO :DWORD,:DWORD,:DWORD,:DWORD
-WndProc                 PROTO :DWORD,:DWORD,:DWORD,:DWORD
-InitGUI                 PROTO :DWORD
-InitMenus               PROTO :DWORD
-InitJSONStatusbar       PROTO :DWORD
-InitJSONTreeview        PROTO :DWORD
-BrowseJSONFile          PROTO :DWORD
-OpenJSONFile            PROTO :DWORD, :DWORD
-CloseJSONFile           PROTO
-ProcessJSONFile         PROTO :DWORD, :DWORD
-ProcessCmdLine          PROTO
-CmdLineOpenFile         PROTO :DWORD
+WinMain                     PROTO :DWORD,:DWORD,:DWORD,:DWORD
+WndProc                     PROTO :DWORD,:DWORD,:DWORD,:DWORD
 
+ProcessCmdLine              PROTO
+CmdLineOpenFile             PROTO :DWORD
 
+InitGUI                     PROTO :DWORD
+InitMenus                   PROTO :DWORD
+InitJSONStatusbar           PROTO :DWORD
+InitJSONTreeview            PROTO :DWORD
 
+BrowseJSONFile              PROTO :DWORD
+OpenJSONFile                PROTO :DWORD, :DWORD
+CloseJSONFile               PROTO
+ProcessJSONFile             PROTO :DWORD, :DWORD
 
+CreateJSONStackItem         PROTO :DWORD
+FreeJSONStackItem           PROTO :DWORD
+GetJSONStackItemCount       PROTO :DWORD
+SetJSONStackItemCount       PROTO :DWORD, :DWORD
+IncJSONStackItemCount       PROTO :DWORD
+CreateJSONArrayIteratorName PROTO :DWORD, :DWORD
 
-
-IFNDEF BROWSEFILEINFO
-BROWSEFILEINFO struct 
-    lStructSize     DD      ?
-    hwndOwner       HWND        ?
-    hInstance       HINSTANCE   ?
-    lpstrFilter     DD      ?
-    lpstrCustomFilter   DD      ?
-    nMaxCustFilter  DD      ?
-    nFilterIndex        DD      ?
-    lpstrFile       DD      ?
-    nMaxFile        DD      ?
-    lpstrFileTitle  DD      ?
-    nMaxFileTitle       DD      ?
-    lpstrInitialDir DD      ?
-    lpstrTitle      DD      ?
-    Flags           DD      ?
-    nFileOffset     DW      ?
-    nFileExtension  DW      ?
-    lpstrDefExt     DD      ?
-    lCustData       DD      ?
-    lpfnHook        DD      ?
-    lpTemplateName  DD      ?
-BROWSEFILEINFO  ends
-ENDIF
 
 .CONST
 ;-----------------------------------------------------------------------------------------
@@ -148,16 +132,16 @@ LenItemStringValue          DD 0
 ; JSON Text Buffers
 szItemIntValue              DB 64 DUP (0)
 szItemText                  DB 2048 DUP (0)
-
+szItemTextValue             DB 1024 DUP (0)
+szItemTextArrayName         DB 64 DUP (0)
 
 ; JSON Error messages
-szJSONLoadingFile           DB 'Loading JSON File...',0
+szJSONLoadingFile           DB 'Loading JSON File: ',0
 szJSONErrorLoadingFile      DB 'Error loading JSON File: ',0
 szJSONErrorMappingFile      DB 'Error mapping JSON File: ',0
 szJSONErrorReadingFile      DB 'Error reading JSON File: ',0
 szJSONLoadedFile            DB 'Loaded JSON File: ',0
 szJSONErrorEmptyFile        DB 'JSON file is empty: ',0
-
 szJSONErrorMessage          DB 512 dup (0)
 
 ; Punctuation
@@ -166,6 +150,8 @@ szColon                     DB ':',0
 szLeftBracket               DB '{',0
 szRightBracket              DB '}',0
 szBackslash                 DB '\',0
+szLeftSquareBracket         DB '[',0
+szRightSquareBracket        DB ']',0
 
 ; Command line processing stuff
 szCmdLineFilenameDoesNotExist   DB 'The filename specified on the command line does not exist: ',0
@@ -174,10 +160,13 @@ CmdLineFullPathFilename         DB 512 DUP (0)
 CmdLineProcessFileFlag          DD 0 ; 0 = no file to process (normal operation), 1 = file to open
 g_fShown                        DD FALSE
 
+
+g_ShowJsonType              DD FALSE ;TRUE ; shows ': Object' or ': Array' after object / array iterator items 
+
 ;------------------------------------------------------------------------
 ; Browse To Open Json File
 ;------------------------------------------------------------------------
-BrowseFile                      BROWSEFILEINFO {}
+BrowseFile                      OPENFILENAME {}
 JsonBrowseFilename              db  MAX_PATH dup (0)
 JsonBrowseFilter                db  "JSON Files (*.json)",0,"*.json",0
                                 db  "All Files (*.*)",0,"*.*",0,0
@@ -185,6 +174,12 @@ JsonBrowseFileTitle             db  "Open JSON File...",0
 JsonDefExt                      db  "json",0
 
 
+IFDEF CJSONARRAYS_ITERATE
+JSONSTACKITEM                   STRUCT
+    szItemName                  DB 64 DUP (0) 
+    dwItemCount                 DD 0
+JSONSTACKITEM                   ENDS
+ENDIF
 
 .DATA?
 ;-----------------------------------------------------------------------------------------
@@ -201,8 +196,6 @@ hTV                     DD ?
 hSB                     DD ?
 hIL                     DD ?
 hICO_MAIN               DD ?
-hICO_JSON_ELEMENT       DD ?
-hICO_JSON_ATTRIBUTE     DD ?
 hICO_JSON_STRING        DD ?
 hICO_JSON_INTEGER       DD ?
 hICO_JSON_FLOAT         DD ?
@@ -224,5 +217,9 @@ hJSONTreeRoot           DD ?
 hJSON_Object_Root       DD ?
 dwClientHeight          DD ?
 dwClientWidth           DD ?
-
-
+hVirtualStack           DD ?
+VSValue                 DD ?
+IFDEF CJSONARRAYS_ITERATE
+hArray                  DD ?
+hCurrentArray           DD ?
+ENDIF

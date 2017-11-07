@@ -15,6 +15,8 @@ IFDEF DEBUG32
     include M:\Masm32\include\debug32.inc
 ENDIF
 
+CJSONARRAYS_ITERATE EQU 1
+
 include cjsontree.inc
 
 .code
@@ -98,7 +100,6 @@ WndProc proc USES EBX ECX hWin:HWND,uMsg:UINT,wParam:WPARAM,lParam:LPARAM
         Invoke InitJSONTreeview, hWin
         
         Invoke DragAcceptFiles, hWin, TRUE
-        
         Invoke SetFocus, hTV
         
     .ELSEIF eax == WM_COMMAND
@@ -174,7 +175,6 @@ WndProc proc USES EBX ECX hWin:HWND,uMsg:UINT,wParam:WPARAM,lParam:LPARAM
         sub eax, 23d ; take away statusbar height
         Invoke SetWindowPos, hTV, HWND_TOP, 0,0, dwClientWidth, eax, SWP_NOZORDER
 
-
     .ELSEIF eax==WM_NOTIFY
         mov ecx,lParam
         mov eax, (NMHDR PTR [ecx]).code
@@ -206,7 +206,6 @@ WndProc proc USES EBX ECX hWin:HWND,uMsg:UINT,wParam:WPARAM,lParam:LPARAM
             ret
             
         .ENDIF
-
 
     .ELSEIF eax == WM_CLOSE
         Invoke DestroyWindow,hWin
@@ -415,7 +414,11 @@ OpenJSONFile PROC hWin:DWORD, lpszJSONFile:DWORD
         Invoke CloseJSONFile
     .ENDIF
     
-    Invoke SendMessage, hSB, SB_SETTEXT, 1, lpszJSONFile
+    ; Tell user we are loading file
+    Invoke szCopy, Addr szJSONLoadingFile, Addr szJSONErrorMessage
+    Invoke szCatStr, Addr szJSONErrorMessage, lpszJSONFile
+    Invoke SendMessage, hSB, SB_SETTEXT, 1, Addr szJSONErrorMessage
+    ;Invoke SendMessage, hSB, SB_SETTEXT, 1, lpszJSONFile
     
     Invoke CreateFile, lpszJSONFile, GENERIC_READ + GENERIC_WRITE, FILE_SHARE_READ + FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL
     .IF eax == INVALID_HANDLE_VALUE
@@ -484,6 +487,7 @@ CloseJSONFile PROC
     .ENDIF
     
     Invoke TreeViewDeleteAll, hTV
+    Invoke SendMessage, hSB, SB_SETTEXT, 1, Addr szSpace
     
     ret
 
@@ -542,13 +546,26 @@ ProcessJSONFile PROC USES EBX hWin:DWORD, lpszJSONFile:DWORD
     mov level, -1000d ; hack to force our while loop below, only used for possibly debugging/tracking indented levels (children)
     mov eax, hJSON_Object_Root 
     mov hJSON, eax ; use hJSON as variable to process in our loop
-    push hJSON ; push hJSON, then hTVNode. NOTE: we must pop these in reverse order to retrieve them when we fall back up the tree
-    push hTVNode 
+    
+    IFDEF CJSONARRAYS_ITERATE
+    Invoke VirtualStackCreate, VIRTUALSTACK_SIZE_LARGE
+    mov hVirtualStack, eax
+    mov hArray, NULL
+    mov hCurrentArray, NULL
+    ENDIF
+    
+    ;PrintDec hJSON
+    ;PrintDec hTVNode
 
     .WHILE level != 0
 
         .IF level == -1000d
             mov level, 1 ; set our level to 1, useful for debugging and checking we havnt push/popd too much
+            push hJSON ; push hJSON, then hTVNode. NOTE: we must pop these in reverse order to retrieve them when we fall back up the tree
+            push hTVNode
+            IFDEF CJSONARRAYS_ITERATE
+            Invoke VirtualStackPush, hVirtualStack, NULL
+            ENDIF
         .ENDIF
         
         mov ebx, hJSON ; get our cJSON object (first time in loop is the hJSON_Object_Root, subsequent times it will be the next or child item
@@ -587,26 +604,81 @@ ProcessJSONFile PROC USES EBX hWin:DWORD, lpszJSONFile:DWORD
         ; Determine the type of cJSON object, so we can decide what to do with it
         mov eax, jsontype
         .IF eax == cJSON_Object
-            .IF LenItemString == 0
-                Invoke TreeViewInsertItem, hTV, hTVNode, Addr szObject, nTVIndex, TVI_LAST, IL_ICO_JSON_OBJECT, IL_ICO_JSON_OBJECT, hJSON
-                mov hTVCurrentNode, eax
-                inc nTVIndex
-                ;Invoke TreeViewChildItemsExpand, hTV, eax
-            .ELSE
+        
+            IFDEF CJSONARRAYS_ITERATE
                 
-                Invoke szCopy, lpszItemString, Addr szItemText
-                Invoke szCatStr, Addr szItemText, Addr szColon
-                .IF LenItemStringValue != 0
-                    Invoke szCatStr, Addr szItemText, Addr szSpace
-                    Invoke szCatStr, Addr szItemText, lpszItemStringValue
+                .IF hArray != NULL
+                    
+                    Invoke CreateJSONArrayIteratorName, hArray, Addr szItemTextArrayName
+                    Invoke IncJSONStackItemCount, hArray
+                    
+                    IFDEF DEBUG32
+                    PrintString szItemTextArrayName
+                    ENDIF
+                    
+                    .IF LenItemString == 0
+                        .IF g_ShowJsonType == TRUE
+                            ;Invoke szCatStr, Addr szItemTextArrayName, Addr szSpace
+                            Invoke szCatStr, Addr szItemTextArrayName, Addr szColon
+                            Invoke szCatStr, Addr szItemTextArrayName, Addr szSpace
+                            Invoke szCatStr, Addr szItemTextArrayName, Addr szObject                    
+                        .ENDIF
+                        Invoke TreeViewInsertItem, hTV, hTVNode, Addr szItemTextArrayName, nTVIndex, TVI_LAST, IL_ICO_JSON_OBJECT, IL_ICO_JSON_OBJECT, hJSON
+                        mov hTVCurrentNode, eax
+                        inc nTVIndex
+                    .ELSE
+                        
+                        Invoke szCopy, Addr szItemTextArrayName, Addr szItemText
+                        Invoke szCatStr, Addr szItemText, Addr szSpace
+                        Invoke szCatStr, Addr szItemText, lpszItemString
+                        Invoke szCatStr, Addr szItemText, Addr szColon
+                        .IF LenItemStringValue != 0
+                            Invoke szCatStr, Addr szItemText, Addr szSpace
+                            Invoke szCatStr, Addr szItemText, lpszItemStringValue
+                        .ENDIF
+                    
+                        Invoke TreeViewInsertItem, hTV, hTVNode, Addr szItemText, nTVIndex, TVI_LAST, IL_ICO_JSON_OBJECT, IL_ICO_JSON_OBJECT, hJSON
+                        mov hTVCurrentNode, eax
+                        inc nTVIndex
+                    .ENDIF
+                    
+                .ELSE
+                    .IF LenItemString == 0
+                        Invoke TreeViewInsertItem, hTV, hTVNode, Addr szObject, nTVIndex, TVI_LAST, IL_ICO_JSON_OBJECT, IL_ICO_JSON_OBJECT, hJSON
+                        mov hTVCurrentNode, eax
+                        inc nTVIndex
+                    .ELSE
+                        
+                        Invoke szCopy, lpszItemString, Addr szItemText
+                        Invoke szCatStr, Addr szItemText, Addr szColon
+                        .IF LenItemStringValue != 0
+                            Invoke szCatStr, Addr szItemText, Addr szSpace
+                            Invoke szCatStr, Addr szItemText, lpszItemStringValue
+                        .ENDIF
+                        Invoke TreeViewInsertItem, hTV, hTVNode, Addr szItemText, nTVIndex, TVI_LAST, IL_ICO_JSON_OBJECT, IL_ICO_JSON_OBJECT, hJSON
+                        mov hTVCurrentNode, eax
+                        inc nTVIndex
+                    .ENDIF
                 .ENDIF
-            
-                Invoke TreeViewInsertItem, hTV, hTVNode, Addr szItemText, nTVIndex, TVI_LAST, IL_ICO_JSON_OBJECT, IL_ICO_JSON_OBJECT, hJSON
-                mov hTVCurrentNode, eax
-                inc nTVIndex
-                ;Invoke TreeViewChildItemsExpand, hTV, eax
-            .ENDIF
-            ;Invoke TreeViewChildItemsExpand, hTV, hTVNode
+                
+            ELSE
+                .IF LenItemString == 0
+                    Invoke TreeViewInsertItem, hTV, hTVNode, Addr szObject, nTVIndex, TVI_LAST, IL_ICO_JSON_OBJECT, IL_ICO_JSON_OBJECT, hJSON
+                    mov hTVCurrentNode, eax
+                    inc nTVIndex
+                .ELSE
+                    
+                    Invoke szCopy, lpszItemString, Addr szItemText
+                    Invoke szCatStr, Addr szItemText, Addr szColon
+                    .IF LenItemStringValue != 0
+                        Invoke szCatStr, Addr szItemText, Addr szSpace
+                        Invoke szCatStr, Addr szItemText, lpszItemStringValue
+                    .ENDIF
+                    Invoke TreeViewInsertItem, hTV, hTVNode, Addr szItemText, nTVIndex, TVI_LAST, IL_ICO_JSON_OBJECT, IL_ICO_JSON_OBJECT, hJSON
+                    mov hTVCurrentNode, eax
+                    inc nTVIndex
+                .ENDIF
+            ENDIF
 
         .ELSEIF eax == cJSON_String
             .IF LenItemString == 0
@@ -616,18 +688,21 @@ ProcessJSONFile PROC USES EBX hWin:DWORD, lpszJSONFile:DWORD
             .ELSE
                 Invoke szCopy, lpszItemString, Addr szItemText
                 Invoke szCatStr, Addr szItemText, Addr szColon
-                .IF LenItemStringValue != 0
+                .IF LenItemStringValue > SIZEOF szItemTextValue ;!= 0
+                    Invoke lstrcpyn, Addr szItemTextValue, lpszItemStringValue, SIZEOF szItemTextValue
                     Invoke szCatStr, Addr szItemText, Addr szSpace
-                    Invoke szCatStr, Addr szItemText, lpszItemStringValue
+                    Invoke szCatStr, Addr szItemText, Addr szItemTextValue
+                .ELSE
+                    .IF LenItemStringValue != 0
+                        Invoke szCatStr, Addr szItemText, Addr szSpace
+                        Invoke szCatStr, Addr szItemText, lpszItemStringValue
+                    .ENDIF
                 .ENDIF
             .ENDIF
-            
             Invoke TreeViewInsertItem, hTV, hTVNode, Addr szItemText, nTVIndex, TVI_LAST, IL_ICO_JSON_STRING, IL_ICO_JSON_STRING, hJSON
             mov hTVCurrentNode, eax
             inc nTVIndex
-            ;Invoke TreeViewChildItemsExpand, hTV, eax
-            ;Invoke TreeViewChildItemsExpand, hTV, hTVNode
-            
+
         .ELSEIF eax == cJSON_Number
             .IF LenItemString == 0
                 Invoke szCopy, Addr szNullInteger, Addr szItemText
@@ -638,13 +713,10 @@ ProcessJSONFile PROC USES EBX hWin:DWORD, lpszJSONFile:DWORD
             Invoke szCatStr, Addr szItemText, Addr szSpace
             Invoke dwtoa, dwItemIntValue, Addr szItemIntValue
             Invoke szCatStr, Addr szItemText, Addr szItemIntValue
-        
             Invoke TreeViewInsertItem, hTV, hTVNode, Addr szItemText, nTVIndex, TVI_LAST, IL_ICO_JSON_INTEGER, IL_ICO_JSON_INTEGER, hJSON
             mov hTVCurrentNode, eax
             inc nTVIndex
-            ;Invoke TreeViewChildItemsExpand, hTV, eax
-            ;Invoke TreeViewChildItemsExpand, hTV, hTVNode            
-            
+        
         .ELSEIF eax == cJSON_True
             .IF LenItemString == 0
                 Invoke szCopy, Addr szNullLogical, Addr szItemText
@@ -654,13 +726,10 @@ ProcessJSONFile PROC USES EBX hWin:DWORD, lpszJSONFile:DWORD
             Invoke szCatStr, Addr szItemText, Addr szColon
             Invoke szCatStr, Addr szItemText, Addr szSpace
             Invoke szCatStr, Addr szItemText, Addr szTrue
-        
             Invoke TreeViewInsertItem, hTV, hTVNode, Addr szItemText, nTVIndex, TVI_LAST, IL_ICO_JSON_LOGICAL, IL_ICO_JSON_LOGICAL, hJSON
             mov hTVCurrentNode, eax
             inc nTVIndex
-            ;Invoke TreeViewChildItemsExpand, hTV, eax
-            ;Invoke TreeViewChildItemsExpand, hTV, hTVNode  
-                        
+
         .ELSEIF eax == cJSON_False
             .IF LenItemString == 0
                 Invoke szCopy, Addr szNullLogical, Addr szItemText
@@ -670,37 +739,46 @@ ProcessJSONFile PROC USES EBX hWin:DWORD, lpszJSONFile:DWORD
             Invoke szCatStr, Addr szItemText, Addr szColon
             Invoke szCatStr, Addr szItemText, Addr szSpace
             Invoke szCatStr, Addr szItemText, Addr szFalse
-        
             Invoke TreeViewInsertItem, hTV, hTVNode, Addr szItemText, nTVIndex, TVI_LAST, IL_ICO_JSON_LOGICAL, IL_ICO_JSON_LOGICAL, hJSON
             mov hTVCurrentNode, eax
             inc nTVIndex
-            ;Invoke TreeViewChildItemsExpand, hTV, eax
-            ;Invoke TreeViewChildItemsExpand, hTV, hTVNode              
-            
+
         .ELSEIF eax == cJSON_Array
             .IF LenItemString == 0
                 Invoke szCopy, Addr szNullArray, Addr szItemText
             .ELSE
                 Invoke szCopy, lpszItemString, Addr szItemText
             .ENDIF
-            Invoke szCatStr, Addr szItemText, Addr szColon
-            Invoke szCatStr, Addr szItemText, Addr szSpace
-            Invoke szCatStr, Addr szItemText, Addr szArray
-            
             Invoke cJSON_GetArraySize, hJSON
             mov dwArrayCount, eax
             Invoke dwtoa, dwArrayCount, Addr szItemIntValue
-            Invoke szCatStr, Addr szItemText, Addr szSpace
-            Invoke szCatStr, Addr szItemText, Addr szLeftBracket
+            Invoke szCatStr, Addr szItemText, Addr szLeftSquareBracket
             Invoke szCatStr, Addr szItemText, Addr szItemIntValue
-            Invoke szCatStr, Addr szItemText, Addr szRightBracket
+            Invoke szCatStr, Addr szItemText, Addr szRightSquareBracket
+            .IF g_ShowJsonType == TRUE
+                ;Invoke szCatStr, Addr szItemText, Addr szSpace
+                Invoke szCatStr, Addr szItemText, Addr szColon
+                Invoke szCatStr, Addr szItemText, Addr szSpace
+                Invoke szCatStr, Addr szItemText, Addr szArray
+            .ENDIF
+            
+            IFDEF CJSONARRAYS_ITERATE
+                .IF LenItemString == 0
+                    Invoke szCopy, Addr szNullArray, Addr szItemTextArrayName
+                .ELSE
+                    Invoke szCopy, lpszItemString, Addr szItemTextArrayName
+                .ENDIF
+                Invoke CreateJSONStackItem, Addr szItemTextArrayName
+                mov hCurrentArray, eax
+                IFDEF DEBUG32
+                PrintString szItemTextArrayName
+                ENDIF
+            ENDIF
         
             Invoke TreeViewInsertItem, hTV, hTVNode, Addr szItemText, nTVIndex, TVI_LAST, IL_ICO_JSON_ARRAY, IL_ICO_JSON_ARRAY, hJSON
             mov hTVCurrentNode, eax
             inc nTVIndex
-            ;Invoke TreeViewChildItemsExpand, hTV, eax
-            ;Invoke TreeViewChildItemsExpand, hTV, hTVNode   
-            
+
         .ELSEIF eax == cJSON_NULL
             .IF LenItemString == 0
                 Invoke szCopy, Addr szNullNull, Addr szItemText
@@ -710,13 +788,10 @@ ProcessJSONFile PROC USES EBX hWin:DWORD, lpszJSONFile:DWORD
             Invoke szCatStr, Addr szItemText, Addr szColon
             Invoke szCatStr, Addr szItemText, Addr szSpace
             Invoke szCatStr, Addr szItemText, Addr szNull
-        
             Invoke TreeViewInsertItem, hTV, hTVNode, Addr szItemText, nTVIndex, TVI_LAST, IL_ICO_JSON_NULL, IL_ICO_JSON_NULL, hJSON
             mov hTVCurrentNode, eax
             inc nTVIndex
-            ;Invoke TreeViewChildItemsExpand, hTV, eax
-            ;Invoke TreeViewChildItemsExpand, hTV, hTVNode               
-            
+
         .ELSEIF eax == cJSON_Invalid
             .IF LenItemString == 0
                 Invoke szCopy, Addr szNullInvalid, Addr szItemText
@@ -726,13 +801,10 @@ ProcessJSONFile PROC USES EBX hWin:DWORD, lpszJSONFile:DWORD
             Invoke szCatStr, Addr szItemText, Addr szColon
             Invoke szCatStr, Addr szItemText, Addr szSpace
             Invoke szCatStr, Addr szItemText, Addr szInvalid
-        
             Invoke TreeViewInsertItem, hTV, hTVNode, Addr szItemText, nTVIndex, TVI_LAST, IL_ICO_JSON_INVALID, IL_ICO_JSON_INVALID, hJSON
             mov hTVCurrentNode, eax
             inc nTVIndex
-            ;Invoke TreeViewChildItemsExpand, hTV, eax
-            ;Invoke TreeViewChildItemsExpand, hTV, hTVNode               
-            
+
         .ELSEIF eax == cJSON_Raw
 
         .ENDIF
@@ -750,11 +822,54 @@ ProcessJSONFile PROC USES EBX hWin:DWORD, lpszJSONFile:DWORD
             mov eax, hTVCurrentNode ; set currently inserted treeview item as hTVNode, so next one will be inserted as a child of this one.
             mov hTVNode, eax
             
+            IFDEF CJSONARRAYS_ITERATE
+                mov eax, jsontype
+                .IF eax == cJSON_Array
+                    ;.IF hCurrentArray != NULL && hArray == NULL
+                        Invoke VirtualStackPush, hVirtualStack, hCurrentArray
+                        mov eax, hCurrentArray
+                        mov hArray, eax
+                        IFDEF DEBUG32
+                        PrintText 'VirtualStackPush'
+                        PrintText 'cJSON_Array'
+                        PrintDec hCurrentArray
+                        PrintDec hArray
+                        ENDIF
+                .ELSE
+                    IFDEF DEBUG32
+                    PrintText 'VirtualStackPush'
+                    PrintDec hArray
+                    ENDIF
+                    Invoke VirtualStackPush, hVirtualStack, hArray
+                    mov hArray, NULL
+                .ENDIF    
+            ENDIF
+            
         .ELSE ; No child cJSON object, so look for siblings
             .IF next != 0 ; we have a sibling
                 mov eax, next ; set next cJSON object as the cJSON object to process in our loop
                 mov hJSON, eax
             .ELSE ; No child or siblings, so must be at the last sibling, so here is the fun stuff
+            
+                IFDEF CJSONARRAYS_ITERATE
+                    Invoke VirtualStackPop, hVirtualStack, Addr VSValue
+                    .IF eax == TRUE
+                        mov eax, VSValue
+                        mov hArray, eax
+                    .ELSEIF eax == FALSE
+                        IFDEF DEBUG32
+                        PrintText 'VirtualStackPop Error'
+                        ENDIF
+                    .ELSE
+                        IFDEF DEBUG32
+                        PrintText 'VirtualStackPop End of Stack'
+                        ENDIF
+                    .ENDIF
+                    IFDEF DEBUG32
+                    PrintText 'VirtualStackPop'
+                    PrintDec hArray
+                    ENDIF
+                ENDIF
             
                 pop hTVNode ; pop hTVNode before hJSON (reverse of what we pushed previously)
                 pop hJSON ; we now have the last levels cJSON object and the parent of the last inserted treeview item
@@ -764,6 +879,27 @@ ProcessJSONFile PROC USES EBX hWin:DWORD, lpszJSONFile:DWORD
                 mov eax, [ebx].cJSON.next
                 
                 .WHILE eax == 0 && level != 1 ; if next is 0 and we are still a level greater than 1 we loop, restoring previous cJSON objects and hTVNodes
+                
+                    IFDEF CJSONARRAYS_ITERATE
+                        Invoke VirtualStackPop, hVirtualStack, Addr VSValue
+                        .IF eax == TRUE
+                            mov eax, VSValue
+                            mov hArray, eax
+                        .ELSEIF eax == FALSE
+                            IFDEF DEBUG32
+                            PrintText 'VirtualStackPop Error'
+                            ENDIF
+                        .ELSE
+                            IFDEF DEBUG32
+                            PrintText 'VirtualStackPop End of Stack'
+                            ENDIF
+                        .ENDIF
+                        IFDEF DEBUG32
+                        PrintText 'VirtualStackPop'
+                        PrintDec hArray
+                        ENDIF                            
+                    ENDIF
+
                     pop hTVNode
                     dec level
                     pop hJSON
@@ -781,12 +917,18 @@ ProcessJSONFile PROC USES EBX hWin:DWORD, lpszJSONFile:DWORD
 
         .ENDIF
     
-        Invoke TreeViewChildItemsExpand, hTV, hTVCurrentNode
+        ;Invoke TreeViewChildItemsExpand, hTV, hTVCurrentNode
         Invoke TreeViewChildItemsExpand, hTV, hTVNode
 
     .ENDW
     
     Invoke TreeViewChildItemsExpand, hTV, hTVRoot
+    
+    ;PrintDec hTVNode
+    ;PrintDec hJSON
+    IFDEF CJSONARRAYS_ITERATE
+    Invoke VirtualStackDelete, hVirtualStack
+    ENDIF
     
     ; we have finished processing the cJSON objects, following children then following siblings, then moving back up the list/level, getting next object and 
     ; repeating till no more objects where left to process and all treeview items have been inserted at the correct 'level' indentation or whatever.
@@ -806,4 +948,149 @@ ProcessJSONFile PROC USES EBX hWin:DWORD, lpszJSONFile:DWORD
 ProcessJSONFile ENDP
 
 
+
+
+
+IFDEF JSONSTACKITEM
+;-------------------------------------------------------------------------------------
+; CreateJSONStackItem - Creates a json stack item
+;-------------------------------------------------------------------------------------
+CreateJSONStackItem PROC USES EBX lpszJsonItemName:DWORD
+    LOCAL ptrJsonStackItem:DWORD
+    
+    .IF lpszJsonItemName == NULL
+        mov eax, NULL
+        ret
+    .ENDIF
+    
+    Invoke szLen, lpszJsonItemName
+    .IF eax == 0
+        mov eax, NULL
+        ret
+    .ENDIF
+    
+    Invoke GlobalAlloc, GMEM_FIXED or GMEM_ZEROINIT, SIZEOF JSONSTACKITEM
+    .IF eax == NULL
+        ret
+    .ENDIF
+    mov ptrJsonStackItem, eax
+    mov ebx, eax
+    lea eax, [ebx].JSONSTACKITEM.szItemName
+    Invoke lstrcpyn, eax, lpszJsonItemName, 64d
+    
+    mov ebx, ptrJsonStackItem
+    mov [ebx].JSONSTACKITEM.dwItemCount, 0
+    
+    mov eax, ptrJsonStackItem
+    ret
+
+CreateJSONStackItem ENDP
+
+
+;-------------------------------------------------------------------------------------
+; FreeJSONStackItem
+;-------------------------------------------------------------------------------------
+FreeJSONStackItem PROC ptrJsonStackItem:DWORD
+    mov eax, ptrJsonStackItem
+    .IF eax != NULL
+        Invoke GlobalFree, eax
+    .ENDIF
+    xor eax, eax
+    ret
+FreeJSONStackItem ENDP
+
+
+;-------------------------------------------------------------------------------------
+; GetJSONStackItemCount
+;-------------------------------------------------------------------------------------
+GetJSONStackItemCount PROC USES EBX ptrJsonStackItem:DWORD
+    .IF ptrJsonStackItem == NULL
+        mov eax, 0
+        ret
+    .ENDIF
+    mov ebx, ptrJsonStackItem
+    mov eax, [ebx].JSONSTACKITEM.dwItemCount
+    ret
+GetJSONStackItemCount ENDP
+
+
+;-------------------------------------------------------------------------------------
+; SetJSONStackItemCount
+;-------------------------------------------------------------------------------------
+SetJSONStackItemCount PROC USES EBX ptrJsonStackItem:DWORD, dwCountValue:DWORD
+    .IF ptrJsonStackItem == NULL
+        mov eax, 0
+        ret
+    .ENDIF
+    mov ebx, ptrJsonStackItem
+    mov eax, dwCountValue
+    mov [ebx].JSONSTACKITEM.dwItemCount, eax
+    ret
+SetJSONStackItemCount ENDP
+
+
+;-------------------------------------------------------------------------------------
+; IncJSONStackItemCount
+;-------------------------------------------------------------------------------------
+IncJSONStackItemCount PROC USES EBX ptrJsonStackItem:DWORD
+    .IF ptrJsonStackItem == NULL
+        mov eax, 0
+        ret
+    .ENDIF
+    mov ebx, ptrJsonStackItem
+    mov eax, [ebx].JSONSTACKITEM.dwItemCount
+    inc eax
+    mov [ebx].JSONSTACKITEM.dwItemCount, eax
+    ret
+IncJSONStackItemCount ENDP
+
+
+;-------------------------------------------------------------------------------------
+; CreateJSONArrayIteratorName
+;-------------------------------------------------------------------------------------
+CreateJSONArrayIteratorName PROC USES EBX ptrJsonStackItem:DWORD, lpszNameBuffer:DWORD
+    LOCAL dwCount:DWORD
+    LOCAL szCount[16]:BYTE
+
+    .IF ptrJsonStackItem == NULL
+        mov eax, FALSE
+        ret
+    .ENDIF
+    
+    .IF lpszNameBuffer == NULL
+        mov eax, FALSE
+        ret
+    .ENDIF
+    
+    mov ebx, ptrJsonStackItem
+    mov eax, [ebx].JSONSTACKITEM.dwItemCount
+    mov dwCount, eax
+    lea eax, [ebx].JSONSTACKITEM.szItemName
+    Invoke lstrcpyn, lpszNameBuffer, eax, 64d
+    
+    Invoke dwtoa, dwCount, Addr szCount
+    Invoke szCatStr, lpszNameBuffer, Addr szLeftSquareBracket
+    Invoke szCatStr, lpszNameBuffer, Addr szCount
+    Invoke szCatStr, lpszNameBuffer, Addr szRightSquareBracket
+    mov eax, TRUE
+    ret
+CreateJSONArrayIteratorName ENDP
+ENDIF
+
 end start
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
