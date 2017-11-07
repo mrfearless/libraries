@@ -1,4 +1,4 @@
-.686
+.686 
 .MMX
 .XMM
 .model flat,stdcall
