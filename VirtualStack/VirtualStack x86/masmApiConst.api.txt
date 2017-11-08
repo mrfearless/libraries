@@ -1,7 +1,8 @@
 ;-----------------------------------------------------------------------------------------------------
-; VirtualStack x86 Library Additions 05/11/2017
+; ; VirtualStack x86 Library Additions 05/11/2017
 ;
 ; Paste this text at the end of \Radasm\Masm\masmApiConst.api to add these to Radasm
 ;
 ;-----------------------------------------------------------------------------------------------------
-1VirtualStackCreate,VIRTUALSTACK_SIZE_SMALL,VIRTUALSTACK_SIZE_MEDIUM,VIRTUALSTACK_SIZE_LARGE
+1VirtualStackCreate,VIRTUALSTACK_SIZE_TINY,VIRTUALSTACK_SIZE_SMALL,VIRTUALSTACK_SIZE_MEDIUM,VIRTUALSTACK_SIZE_LARGE
+2VirtualStackCreate,VIRTUALSTACK_OPTION_DEFAULT,VIRTUALSTACK_OPTION_UNIQUE

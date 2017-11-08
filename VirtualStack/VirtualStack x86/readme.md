@@ -17,7 +17,7 @@ includelib VirtualStack.lib
 
 *Description*: Creates a virtual size. dwStackSize indicates the size (max amount of stack items) that can be created on the virtual stack
 
-*Parameters*: `dwStackSize`
+*Parameters*: `dwStackSize`, `dwStackOptions`
 
 *Returns*: `eax` contains handle to the virtual stack (hVirtualStack) or `NULL` if an error occured
 
@@ -25,7 +25,7 @@ includelib VirtualStack.lib
 
 *Description*: Deletes a virtual stack
 
-*Parameters*: `hVirtualStack`
+*Parameters*: `hVirtualStack`, `lpdwVirtualDeleteCallbackProc`
 
 *Returns*: `eax` contains `TRUE` if successful or `FALSE` otherwise
 
@@ -47,9 +47,17 @@ includelib VirtualStack.lib
 
 ### VirtualStackPeek
 
-*Description*: Peeks (reads) a value from a virtual stack and returns it in the dword value pointed to by lpdwPeekValue. VIrtualStackPeek does not 'pop' the virtual stack, only reads the stack
+*Description*: Peeks (reads) a value from a virtual stack and returns it in the dword value pointed to by lpdwPeekValue. VirtualStackPeek does not 'pop' the virtual stack, only reads the stack
 
 *Parameters*: `hVirtualStack`, `lpdwPeekValue`
+
+*Returns*: `eax` contains `TRUE` if successful or `FALSE` otherwise. Additionally returns `-1` if stack is empty (no more items on stack)
+
+### VirtualStackPeer
+
+*Description*: Peers (Similar to VirtualStackPeek, but reads stack+1) a value from a virtual stack and returns it in the dword value pointed to by lpdwPeerValue. VirtualStackPeer does not 'pop' the virtual stack, only reads the stack
+
+*Parameters*: `hVirtualStack`, `lpdwPeerValue`
 
 *Returns*: `eax` contains `TRUE` if successful or `FALSE` otherwise. Additionally returns `-1` if stack is empty (no more items on stack)
 
@@ -77,3 +85,26 @@ includelib VirtualStack.lib
 
 *Returns*: `eax` contains the maximum no of items that can be on the virtual stack
 
+### VirtualStackDepth
+
+*Description*: Returns the maximum no of items that was ever on the virtual stack
+
+*Parameters*: `hVirtualStack`
+
+*Returns*: `eax` contains the maximum no of items that was ever on the virtual stack
+
+### VirtualStackData
+
+*Description*: Returns a pointer to stack data
+
+*Parameters*: `hVirtualStack`
+
+*Returns*: `eax` contains the pointer to the stack data
+
+### VirtualStackUniqueCount
+
+*Description*: Returns number of unique items placed on stack
+
+*Parameters*: `hVirtualStack`
+
+*Returns*: `eax` contains the number of unique items placed on stack
