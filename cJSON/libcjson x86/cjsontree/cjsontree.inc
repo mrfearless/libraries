@@ -1,4 +1,4 @@
-include windows.inc 
+include windows.inc
 include user32.inc
 include kernel32.inc
 include gdi32.inc
@@ -49,6 +49,15 @@ GetJSONStackItemCount       PROTO :DWORD
 SetJSONStackItemCount       PROTO :DWORD, :DWORD
 IncJSONStackItemCount       PROTO :DWORD
 CreateJSONArrayIteratorName PROTO :DWORD, :DWORD
+DeleteStackItemsCallback    PROTO :DWORD, :DWORD
+
+;-----------------------------------------------------------------------------------------
+; cjsontree Structures
+;-----------------------------------------------------------------------------------------
+JSONSTACKITEM                   STRUCT
+    szItemName                  DB 64 DUP (?) 
+    dwItemCount                 DD ?
+JSONSTACKITEM                   ENDS
 
 
 .CONST
@@ -163,6 +172,9 @@ g_fShown                        DD FALSE
 
 g_ShowJsonType              DD FALSE ;TRUE ; shows ': Object' or ': Array' after object / array iterator items 
 
+nStackDepth                 DD 0
+nUniqueCount                DD 0
+
 ;------------------------------------------------------------------------
 ; Browse To Open Json File
 ;------------------------------------------------------------------------
@@ -173,13 +185,6 @@ JsonBrowseFilter                db  "JSON Files (*.json)",0,"*.json",0
 JsonBrowseFileTitle             db  "Open JSON File...",0
 JsonDefExt                      db  "json",0
 
-
-IFDEF CJSONARRAYS_ITERATE
-JSONSTACKITEM                   STRUCT
-    szItemName                  DB 64 DUP (0) 
-    dwItemCount                 DD 0
-JSONSTACKITEM                   ENDS
-ENDIF
 
 .DATA?
 ;-----------------------------------------------------------------------------------------
@@ -219,7 +224,18 @@ dwClientHeight          DD ?
 dwClientWidth           DD ?
 hVirtualStack           DD ?
 VSValue                 DD ?
-IFDEF CJSONARRAYS_ITERATE
 hArray                  DD ?
 hCurrentArray           DD ?
-ENDIF
+pStackData              DD ?
+pArrayName              DD ?
+
+
+
+
+
+
+
+
+
+
+
