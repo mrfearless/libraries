@@ -31,14 +31,14 @@ _VirtualStackAddToUniqueList        PROTO :DWORD, :DWORD
 
 IFNDEF STACK
 STACK                       STRUCT
-    StackMaxHeight          DD 0
-    StackMaxDepth           DD 0
-    StackPointer            DD 0
-    StackNoItems            DD 0
-    StackData               DD 0
-    StackUniqueMaxHeight    DD 0
-    StackUniqueNoItems      DD 0
-    StackUniqueData         DD 0
+    StackMaxHeight          DD 0    ; Max size of entire stack.
+    StackMaxDepth           DD 0    ; Max depth (max items ever on stack)
+    StackPointer            DD 0    ; Current stack item pointer
+    StackNoItems            DD 0    ; Number of items currently in the stack
+    StackData               DD 0    ; ptr to stack data
+    StackUniqueMaxHeight    DD 0    ; Max size of entire unique stack. (size auto grows)
+    StackUniqueNoItems      DD 0    ; Number of unique items currently in the stack
+    StackUniqueData         DD 0    ; ptr to unique stack data
 STACK                       ENDS
 ENDIF
 
@@ -132,31 +132,12 @@ VirtualStackDelete PROC USES EBX hVirtualStack:DWORD, lpdwVirtualDeleteCallbackP
     LOCAL hStackUniqueItem:DWORD
     LOCAL nStackUniqueItem:DWORD
     
-    ;LOCAL nChkStackItem:DWORD
-    ;LOCAL bUniqueStackItem:DWORD
-    
     .IF hVirtualStack == NULL
         xor eax, eax ; FALSE
         ret
     .ENDIF
     
-    .IF lpdwVirtualDeleteCallbackProc == NULL    
-    
-        mov ebx, hVirtualStack
-        mov eax, [ebx].STACK.StackData
-        .IF eax != NULL
-            Invoke GlobalFree, eax
-        .ENDIF
-        mov eax, [ebx].STACK.StackUniqueData
-        .IF eax != NULL
-            Invoke GlobalFree, eax
-        .ENDIF        
-        mov eax, hVirtualStack
-        Invoke GlobalFree, eax
-        
-    .ELSE    
-        
-        
+    .IF lpdwVirtualDeleteCallbackProc != NULL    
         ; load up unique list if its not 0 and loop through items
         mov ebx, hVirtualStack
         mov eax, [ebx].STACK.StackUniqueNoItems
@@ -164,7 +145,6 @@ VirtualStackDelete PROC USES EBX hVirtualStack:DWORD, lpdwVirtualDeleteCallbackP
             mov nStackUniqueNoItems, eax
             mov eax, [ebx].STACK.StackUniqueData
             mov hStackUniqueData, eax        
-            
             mov nStackUniqueItem, 0
             mov eax, 0
             .WHILE eax < nStackUniqueNoItems
@@ -176,26 +156,24 @@ VirtualStackDelete PROC USES EBX hVirtualStack:DWORD, lpdwVirtualDeleteCallbackP
                     push hVirtualStack
                     call lpdwVirtualDeleteCallbackProc
                 .ENDIF
-                
                 inc nStackUniqueItem
                 mov eax, nStackUniqueItem
             .ENDW
         .ENDIF
-        
-        mov ebx, hVirtualStack
-        mov eax, [ebx].STACK.StackData
-        .IF eax != NULL
-            Invoke GlobalFree, eax
-        .ENDIF
-        mov eax, [ebx].STACK.StackUniqueData
-        .IF eax != NULL
-            Invoke GlobalFree, eax
-        .ENDIF        
-        mov eax, hVirtualStack
-        Invoke GlobalFree, eax      
-        
     .ENDIF
-    
+        
+    mov ebx, hVirtualStack
+    mov eax, [ebx].STACK.StackData
+    .IF eax != NULL
+        Invoke GlobalFree, eax
+    .ENDIF
+    mov eax, [ebx].STACK.StackUniqueData
+    .IF eax != NULL
+        Invoke GlobalFree, eax
+    .ENDIF        
+    mov eax, hVirtualStack
+    Invoke GlobalFree, eax
+
     mov eax, TRUE
     ret
 
