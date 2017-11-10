@@ -65,7 +65,7 @@ MilestoneOnTime=2
 MilestoneOnDate=0
 MilestoneOnDateWhen=1
 MilestoneOnDateStatus=0
-MilestoneOnDateDate=5
+MilestoneOnDateDate=10
 MilestoneOnDateTimeYear=2017
 MilestoneOnDateTimeMonth=11
 MilestoneOnDateTimeDate=4
@@ -89,13 +89,13 @@ ProductVer2Range=0
 ProductVer3Range=0
 ProductVer4Range=0
 [PTimer]
-PTimer=11948990
+PTimer=29276973
 [Collapse]
-1=2132106
+1=283904,4104
 2=
 [Size]
-1=0,0,0,0,3667
-2=0,0,0,0,2676
+1=0,0,0,0,20527
+2=0,0,0,0,647
 [GroupExpand]
 GroupExpand=1,0,0,0
 [BookMark]
@@ -111,3 +111,7 @@ GroupExpand=1,0,0,0
 9=
 [BreakPoint]
 0=
+[Find]
+1="[rbx+rax*4]"
+2="[ebx+eax*4]"
+3="ebx"

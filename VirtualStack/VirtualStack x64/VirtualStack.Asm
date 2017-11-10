@@ -30,13 +30,19 @@ ENDIF
 
 include VirtualStack.inc
 
+_VirtualStackAddToUniqueList        PROTO :QWORD, :QWORD
+
 
 IFNDEF STACK
 STACK                       STRUCT
-    StackMaxHeight          DQ 0
-    StackPointer            DQ 0
-    StackNoItems            DQ 0
-    StackData               DQ 0
+    StackMaxHeight          DQ 0    ; Max size of entire stack.
+    StackMaxDepth           DQ 0    ; Max depth (max items ever on stack)
+    StackPointer            DQ 0    ; Current stack item pointer
+    StackNoItems            DQ 0    ; Number of items currently in the stack
+    StackData               DQ 0    ; ptr to stack data
+    StackUniqueMaxHeight    DQ 0    ; Max size of entire unique stack. (size auto grows)
+    StackUniqueNoItems      DQ 0    ; Number of unique items currently in the stack
+    StackUniqueData         DQ 0    ; ptr to unique stack data
 STACK                       ENDS
 ENDIF
 
@@ -46,9 +52,9 @@ ENDIF
 
 ;-----------------------------------------------------------------------------------------
 ; VirtualStackCreate. Returns hVirtualStack in rax if succesful or NULL if failed. 
-; dqStackSize is the size (max amount of stack items) to create on the virtual stack
+; qwStackSize is the size (max amount of stack items) to create on the virtual stack
 ;-----------------------------------------------------------------------------------------
-VirtualStackCreate PROC FRAME USES RBX qwStackSize:QWORD
+VirtualStackCreate PROC FRAME USES RBX qwStackSize:QWORD, qwStackOptions:QWORD
     LOCAL nSize:QWORD
     LOCAL hStack:QWORD
     LOCAL hStackData:QWORD
@@ -85,6 +91,27 @@ VirtualStackCreate PROC FRAME USES RBX qwStackSize:QWORD
     mov [rbx].STACK.StackData, rax
     mov [rbx].STACK.StackPointer, -1
     mov [rbx].STACK.StackNoItems, 0
+    mov [rbx].STACK.StackMaxDepth, 0
+    mov [rbx].STACK.StackUniqueMaxHeight, 0 ; use StackUniqueSize to check if user specified this option later in VirtualStackPush (>0)
+
+    ; Create unique list of stack items if option is specified
+    mov rax, qwStackOptions
+    .IF rax == VIRTUALSTACK_OPTION_UNIQUE
+        mov rax, nSize
+        shl rax, 4d ; x16
+        ;mov rbx, 2d ; set size of unique list to 2 x existing virtual stack size
+        ;mul rbx
+        mov nSize, rax
+        Invoke GlobalAlloc, GMEM_FIXED+GMEM_ZEROINIT, nSize
+        .IF rax != NULL
+            mov rbx, hStack
+            mov [rbx].STACK.StackUniqueData, rax
+            ;mov eax, nSize
+            mov rax, [rbx].STACK.StackMaxHeight
+            shl rax, 4d ; x16
+            mov [rbx].STACK.StackUniqueMaxHeight, rax
+        .ENDIF
+    .ENDIF
     
     mov rax, hStack 
     ret
@@ -93,20 +120,64 @@ VirtualStackCreate ENDP
 
 ;-----------------------------------------------------------------------------------------
 ; VirtualStackDelete. Deletes a virtual stack
+; lpqwVirtualDeleteCallbackProc is address of callback (optional)
+; Callback is defined as having following parameters:
+; <VirtualDeleteCallbackProc> hVirtualStack:QWORD, ptrStackItem:QWORD
+; Consider the callback experimental for the moment.
+; Calls VirtualDeleteCallbackProc with only unique items in stack
+; so user can free up resources allocated
 ;-----------------------------------------------------------------------------------------
-VirtualStackDelete PROC FRAME USES RBX hVirtualStack:QWORD
+VirtualStackDelete PROC FRAME USES RBX RCX RDX hVirtualStack:QWORD, lpqwVirtualDeleteCallbackProc:QWORD
+    LOCAL nStackMaxDepth:QWORD
+    LOCAL hStackData:QWORD
+    LOCAL hStackUniqueData:QWORD
+    LOCAL nStackUniqueNoItems:QWORD
+    LOCAL hStackUniqueItem:QWORD
+    LOCAL nStackUniqueItem:QWORD
+    
     .IF hVirtualStack == NULL
         xor eax, eax ; FALSE
         ret
     .ENDIF
+    
+    .IF lpqwVirtualDeleteCallbackProc != NULL
+        ; load up unique list if its not 0 and loop through items
+        mov rbx, hVirtualStack
+        mov rax, [rbx].STACK.StackUniqueNoItems
+        .IF sqword ptr rax > 0 ; if there is unique stack items to process
+            mov nStackUniqueNoItems, rax
+            mov rax, [rbx].STACK.StackUniqueData
+            mov hStackUniqueData, rax        
+            mov nStackUniqueItem, 0
+            mov rax, 0
+            .WHILE rax < nStackUniqueNoItems
+                mov rax, nStackUniqueItem
+                mov rbx, hStackUniqueData
+                mov rax, [rbx+rax*8]
+                .IF rax != NULL
+                    mov rdx, rax
+                    mov rcx, hVirtualStack
+                    mov rax, lpqwVirtualDeleteCallbackProc
+                    call rax                     
+                .ENDIF
+                inc nStackUniqueItem
+                mov rax, nStackUniqueItem
+            .ENDW
+        .ENDIF
+    .ENDIF
+    
     mov rbx, hVirtualStack
     mov rax, [rbx].STACK.StackData
     .IF rax != NULL
         Invoke GlobalFree, rax
     .ENDIF
+    mov rax, [rbx].STACK.StackUniqueData
+    .IF rax != NULL
+        Invoke GlobalFree, rax
+    .ENDIF
     mov rax, hVirtualStack
     Invoke GlobalFree, rax
-    
+
     mov rax, TRUE
     ret
 VirtualStackDelete ENDP
@@ -120,6 +191,7 @@ VirtualStackPush PROC FRAME USES RBX hVirtualStack:QWORD, qwPushValue:QWORD
     LOCAL hStackData:QWORD
     LOCAL nStackNoItems:QWORD
     LOCAL nStackMaxHeight:QWORD
+    LOCAL nStackMaxDepth:QWORD
     LOCAL nStackPointer:QWORD
     
     .IF hVirtualStack == NULL
@@ -134,6 +206,8 @@ VirtualStackPush PROC FRAME USES RBX hVirtualStack:QWORD, qwPushValue:QWORD
     mov nStackPointer, rax    
     mov rax, [rbx].STACK.StackMaxHeight
     mov nStackMaxHeight, rax
+    mov rax, [rbx].STACK.StackMaxDepth
+    mov nStackMaxDepth, rax    
     mov rax, [rbx].STACK.StackNoItems
     inc rax
     mov nStackNoItems, rax
@@ -145,10 +219,17 @@ VirtualStackPush PROC FRAME USES RBX hVirtualStack:QWORD, qwPushValue:QWORD
     inc nStackPointer
     mov rax, nStackPointer
     mov rbx, hStackData
-    lea rax, [ebx+eax*8] ; current stack item address in eax
+    lea rax, [rbx+rax*8] ; current stack item address in eax
     mov rbx, rax
     mov rax, qwPushValue
     mov [rbx], rax ; save value to stack item address
+
+    ; Add value to unique list
+    Invoke _VirtualStackAddToUniqueList, hVirtualStack, qwPushValue
+    .IF rax == VIRTUALSTACK_UNIQUEFULL
+        mov rax, VIRTUALSTACK_UNIQUEFULL
+        ret
+    .ENDIF
     
     ; save pointer and item count back to stack header
     mov rbx, hVirtualStack
@@ -156,7 +237,9 @@ VirtualStackPush PROC FRAME USES RBX hVirtualStack:QWORD, qwPushValue:QWORD
     mov [rbx].STACK.StackPointer, rax
     mov rax, nStackNoItems   
     mov [rbx].STACK.StackNoItems, rax
-
+    .IF rax > nStackMaxDepth
+        mov [rbx].STACK.StackMaxDepth, rax
+    .ENDIF
     mov rax, TRUE
     ret
 VirtualStackPush ENDP
@@ -177,10 +260,10 @@ VirtualStackPop PROC FRAME USES RBX hVirtualStack:QWORD, lpqwPopValue:QWORD
         ret
     .ENDIF
 
-    .IF lpqwPopValue == NULL
-        xor eax, eax ; FALSE
-        ret
-    .ENDIF
+;    .IF lpqwPopValue == NULL
+;        xor eax, eax ; FALSE
+;        ret
+;    .ENDIF
 
     mov rbx, hVirtualStack
     mov rax, [rbx].STACK.StackData
@@ -191,15 +274,17 @@ VirtualStackPop PROC FRAME USES RBX hVirtualStack:QWORD, lpqwPopValue:QWORD
     mov nStackNoItems, rax
     
     .IF nStackNoItems == 0
-        mov rax, -1 ; stack empty    
+        mov rax, VIRTUALSTACK_STACKEMPTY ; stack empty 
         ret
     .ENDIF
 
-    mov rax, nStackPointer
-    mov rbx, hStackData
-    mov rax, [ebx+eax*8] ; current stack item value in eax
-    mov rbx, lpqwPopValue
-    mov [rbx], rax ; save current stack item value to pop address variable
+    .IF lpqwPopValue != NULL ; in case user wants to pop stack and not care about value ?
+        mov rax, nStackPointer
+        mov rbx, hStackData
+        mov rax, [rbx+rax*8] ; current stack item value in eax
+        mov rbx, lpqwPopValue
+        mov [rbx], rax ; save current stack item value to pop address variable
+    .ENDIF
     
     ; save pointer and item count back to stack header
     dec nStackPointer
@@ -244,13 +329,13 @@ VirtualStackPeek PROC FRAME USES RBX hVirtualStack:QWORD, lpqwPeekValue:QWORD
     mov nStackNoItems, rax
     
     .IF nStackNoItems == 0
-        mov rax, -1 ; stack empty    
+        mov rax, VIRTUALSTACK_STACKEMPTY ; stack empty   
         ret
     .ENDIF
 
     mov rax, nStackPointer
     mov rbx, hStackData
-    mov rax, [ebx+eax*8] ; current stack item value in eax
+    mov rax, [rbx+rax*8] ; current stack item value in eax
     mov rbx, lpqwPeekValue
     mov [rbx], rax ; save current stack item value to pop address variable
 
@@ -260,10 +345,75 @@ VirtualStackPeek ENDP
 
 
 ;-----------------------------------------------------------------------------------------
+; VirtualStackPeer. rax returns TRUE if succesful and lpdwPeerValue contains the 'peered'
+; value (peek +1 stack item), from the virtual stack, or FALSE otherwise. 
+; If stack is empty (no more items on it) then rax returns -1
+;-----------------------------------------------------------------------------------------
+VirtualStackPeer PROC FRAME USES RBX hVirtualStack:QWORD, lpqwPeerValue:QWORD
+    LOCAL hStackData:QWORD
+    LOCAL nStackNoItems:QWORD
+    LOCAL nStackPointer:QWORD
+    LOCAL nStackMaxHeight:QWORD
+    
+    .IF hVirtualStack == NULL
+        xor eax, eax ; FALSE
+        ret
+    .ENDIF
+
+    .IF lpqwPeerValue == NULL
+        xor eax, eax ; FALSE
+        ret
+    .ENDIF
+
+    mov rbx, hVirtualStack
+    mov rax, [rbx].STACK.StackData
+    mov hStackData, rax
+    mov rax, [rbx].STACK.StackPointer
+    mov nStackPointer, rax
+    mov rax, [rbx].STACK.StackMaxHeight
+    mov nStackMaxHeight, rax
+    mov rax, [rbx].STACK.StackNoItems
+    mov nStackNoItems, rax
+    
+    .IF nStackNoItems == 0
+        mov rax, VIRTUALSTACK_STACKEMPTY ; stack empty    
+        ret
+    .ELSE
+        mov rax, nStackNoItems
+        inc rax
+        .IF rax > nStackMaxHeight
+            mov rax, VIRTUALSTACK_STACKFULL
+            ret
+        .ENDIF        
+    .ENDIF
+
+;    mov eax, nStackPointer
+;    mov rbx, SIZEOF DWORD
+;    mul rbx
+;    mov rbx, hStackData
+;    add rbx, eax    
+;    mov eax, [rbx]
+;    mov rbx, lpdwPeerValue
+;    mov [rbx], eax ; save current stack item value to pop address variable
+    
+    mov rax, nStackPointer
+    inc rax ; peer = peek plus one
+    mov rbx, hStackData
+    mov rax, [rbx+rax*8] ; current stack item value in eax
+    mov rbx, lpqwPeerValue
+    mov [rbx], rax ; save current stack item value to pop address variable
+
+    mov rax, TRUE
+
+    ret
+
+VirtualStackPeer endp
+
+
+;-----------------------------------------------------------------------------------------
 ; VirtualStackZero. Zeros the entire stack and resets it back to 0, clearing all data
 ;-----------------------------------------------------------------------------------------
 VirtualStackZero PROC FRAME USES RBX hVirtualStack:QWORD
-    LOCAL hStackData:QWORD
     LOCAL nSize:QWORD
     
     .IF hVirtualStack == NULL
@@ -278,21 +428,41 @@ VirtualStackZero PROC FRAME USES RBX hVirtualStack:QWORD
         ret
     .ENDIF
 
-    mov rax, [rbx].STACK.StackData
-    mov hStackData, rax
-
-    mov rax, [rbx].STACK.StackMaxHeight    
-    mov rbx, SIZEOF QWORD
-    mul rbx
-    mov nSize, rax
-    
-    .IF nSize != 0
-        Invoke RtlZeroMemory, hStackData, nSize
+    mov rbx, hVirtualStack
+    mov rax, [rbx].STACK.StackMaxHeight 
+    .IF sqword ptr rax > 0
+        mov rbx, SIZEOF QWORD
+        mul rbx
+        mov nSize, rax
+        
+        mov rbx, hVirtualStack
+        mov rax, [rbx].STACK.StackData
+        
+        .IF nSize != 0 && rax != NULL
+            Invoke RtlZeroMemory, rax, nSize
+        .ENDIF
     .ENDIF
 
     mov rbx, hVirtualStack
+    mov rax, [rbx].STACK.StackUniqueMaxHeight
+    .IF sqword ptr rax > 0
+        mov rbx, SIZEOF DWORD
+        mul rbx
+        mov nSize, rax
+        
+        mov rbx, hVirtualStack
+        mov rax, [rbx].STACK.StackUniqueData
+
+        .IF nSize != 0 && rax != NULL
+            Invoke RtlZeroMemory, rax, nSize
+        .ENDIF        
+    .ENDIF
+    
+    mov rbx, hVirtualStack
     mov [rbx].STACK.StackPointer, -1
     mov [rbx].STACK.StackNoItems, 0
+    mov [rbx].STACK.StackMaxDepth, 0
+    mov [rbx].STACK.StackUniqueNoItems, 0
     
     mov rax, TRUE
     ret
@@ -314,6 +484,21 @@ VirtualStackCount ENDP
 
 
 ;-----------------------------------------------------------------------------------------
+; VirtualStackUniqueCount. rax returns number of unique items on the stack
+;-----------------------------------------------------------------------------------------
+VirtualStackUniqueCount PROC FRAME USES RBX hVirtualStack:QWORD
+    .IF hVirtualStack == NULL
+        xor eax, eax ; 0
+        ret
+    .ENDIF
+    mov rbx, hVirtualStack
+    mov rax, [rbx].STACK.StackUniqueNoItems
+    dec rax ; as unique is
+    ret
+VirtualStackUniqueCount ENDP
+
+
+;-----------------------------------------------------------------------------------------
 ; VirtualStackCount. rax returns size of virtual stack (max number of items) on the stack
 ;-----------------------------------------------------------------------------------------
 VirtualStackSize PROC FRAME USES RBX hVirtualStack:QWORD
@@ -327,6 +512,143 @@ VirtualStackSize PROC FRAME USES RBX hVirtualStack:QWORD
 VirtualStackSize ENDP
 
 
+;-----------------------------------------------------------------------------------------
+; VirtualStackDepth. rax returns max depth of virtual stack (max number of items ever) on the stack
+;-----------------------------------------------------------------------------------------
+VirtualStackDepth PROC FRAME USES RBX hVirtualStack:QWORD
+    .IF hVirtualStack == NULL
+        xor eax, eax ; FALSE
+        ret
+    .ENDIF
+    mov rbx, hVirtualStack
+    mov rax, [rbx].STACK.StackMaxDepth
+    ret
+VirtualStackDepth ENDP
+
+
+;-----------------------------------------------------------------------------------------
+; VirtualStackData. rax returns pointer to StackData
+;-----------------------------------------------------------------------------------------
+VirtualStackData PROC FRAME USES RBX hVirtualStack:QWORD
+    LOCAL hStackData:DWORD
+    .IF hVirtualStack == NULL
+        xor eax, eax ; FALSE
+        ret
+    .ENDIF
+    mov rbx, hVirtualStack
+    mov rax, [rbx].STACK.StackData
+    ret
+VirtualStackData ENDP
+
+
+;-----------------------------------------------------------------------------------------
+; _VirtualStackAddToUniqueList. True if unique, False if not unique, or rax contains
+; VIRTUALSTACK_UNIQUEFULL if GlobalRealloc failed and unique list is at max capacity now
+;-----------------------------------------------------------------------------------------
+_VirtualStackAddToUniqueList PROC FRAME USES RBX hVirtualStack:QWORD, qwUniqueValue:QWORD
+    LOCAL hStackUniqueData:QWORD
+    LOCAL nStackUniqueMaxHeight:QWORD
+    LOCAL nStackUniqueNoItems:QWORD
+    LOCAL nStackUniqueItem:QWORD
+    LOCAL bUnique:QWORD
+    LOCAL nSize:QWORD
+    
+    .IF hVirtualStack == NULL
+        xor eax, eax ; FALSE
+        ret
+    .ENDIF
+    
+    mov rbx, hVirtualStack
+    mov rax, [rbx].STACK.StackUniqueMaxHeight
+    .IF sqword ptr rax > 0
+        mov nStackUniqueMaxHeight, rax
+        mov rax, [rbx].STACK.StackUniqueData
+        mov hStackUniqueData, rax
+        mov rax, [rbx].STACK.StackUniqueNoItems
+        mov nStackUniqueNoItems, rax
+        
+        ; check if dwUniqueValue is actually unique and hasnt been stored before in list
+        mov bUnique, TRUE
+        mov nStackUniqueItem, 0
+        mov rax, 0
+        .WHILE rax < nStackUniqueNoItems
+            
+            mov rax, nStackUniqueItem
+            mov rbx, hStackUniqueData
+            mov rax, [rbx+rax*8] ; current stack item value in eax
+            .IF rax == qwUniqueValue || qwUniqueValue == NULL
+                mov bUnique, FALSE
+                .BREAK
+            .ENDIF
+            
+            inc nStackUniqueItem
+            mov rax, nStackUniqueItem
+        .ENDW
+        
+        ; if unique we then add it to our list
+        .IF bUnique == TRUE
+            
+            mov rax, nStackUniqueNoItems
+            .IF rax == nStackUniqueMaxHeight ; realloc memory if we are at max of list
+                
+                mov rbx, hVirtualStack
+                mov rax, [rbx].STACK.StackMaxHeight
+                shl rax, 4d ; x16
+                .IF nStackUniqueMaxHeight > rax
+                    Invoke GlobalUnlock, hStackUniqueData
+                .ENDIF
+                mov rax, nStackUniqueMaxHeight
+                add rax, nStackUniqueMaxHeight
+                mov nStackUniqueMaxHeight, rax
+                mov rbx, SIZEOF DWORD
+                mul rbx
+                mov nSize, rax
+                
+                Invoke GlobalReAlloc, hStackUniqueData, nSize, GMEM_ZEROINIT + GMEM_MOVEABLE ; resize memory for structure
+                .IF rax == NULL
+                    mov rax, VIRTUALSTACK_UNIQUEFULL
+                    ret
+                .ENDIF
+                
+                ; save realloc data and updated max height back
+                Invoke GlobalLock, rax
+                mov hStackUniqueData, rax
+                mov rbx, hVirtualStack
+                mov [rbx].STACK.StackUniqueData, rax
+                mov rax, nStackUniqueMaxHeight
+                mov [rbx].STACK.StackUniqueMaxHeight, rax
+            .ENDIF
+            
+            ; save data to list
+            mov rax, nStackUniqueNoItems
+            mov rbx, hStackUniqueData
+            lea rax, [rbx+rax*8] ; current stack item address in eax
+            mov rbx, rax
+            mov rax, qwUniqueValue
+            mov [rbx], rax ; save value to stack item address        
+            
+            ; Update unique items count
+            inc nStackUniqueNoItems
+            mov rbx, hVirtualStack
+            mov rax, nStackUniqueNoItems
+            mov [rbx].STACK.StackUniqueNoItems, rax
+            
+            mov rax, TRUE
+            ret
+            
+        .ELSE
+            xor eax, eax ; FALSE
+            ret
+        .ENDIF
+        
+    .ELSE
+        xor eax, eax ; FALSE
+        ret
+    .ENDIF
+    
+    ret
+
+_VirtualStackAddToUniqueList ENDP
 
 
 
