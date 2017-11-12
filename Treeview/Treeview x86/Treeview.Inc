@@ -58,6 +58,9 @@ TreeViewSetItemText         PROTO :DWORD, :DWORD, :DWORD
 TreeViewSetItemImage        PROTO :DWORD, :DWORD, :DWORD
 TreeViewSetItemParam        PROTO :DWORD, :DWORD, :DWORD
 
+TreeViewItemExpand          PROTO :DWORD, :DWORD
+TreeViewItemCollapse        PROTO :DWORD, :DWORD
+TreeViewItemToggle          PROTO :DWORD, :DWORD
 TreeViewChildItemsExpand    PROTO :DWORD, :DWORD
 TreeViewChildItemsCollapse  PROTO :DWORD, :DWORD
 TreeViewChildItemsToggle    PROTO :DWORD, :DWORD
