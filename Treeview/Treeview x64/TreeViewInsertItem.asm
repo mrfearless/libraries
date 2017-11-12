@@ -18,6 +18,9 @@ includelib user32.lib
 
 include TreeView.inc
 
+;.data
+;TVIS            TV_INSERTSTRUCT <>
+
 .code
 ;======================================================================
 ; Insert Root or Child Node into Treeview

@@ -4,6 +4,11 @@
 ; Paste this text at the end of \Radasm\UASM64\uasm64ApiCall.api to add these to Radasm
 ;
 ;-----------------------------------------------------------------------------------------------------
+TreeViewClearAll,hTreeview
+TreeViewDeleteAll,hTreeview
+TreeViewItemExpand,hTreeview,hItem
+TreeViewItemCollapse,hTreeview,hItem
+TreeViewItemToggle,hTreeview,hItem
 TreeViewChildItemsCollapse,hTreeview,hItem
 TreeViewChildItemsExpand,hTreeview,hItem
 TreeViewChildItemsToggle,hTreeview,hItem

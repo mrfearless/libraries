@@ -24,7 +24,20 @@ include TreeView.inc
 ; 
 ;**************************************************************************
 TreeViewChildItemsCollapse PROC FRAME hTreeview:QWORD, hItem:QWORD
-    Invoke SendMessage, hTreeview, TVM_EXPAND, TVE_COLLAPSE, hItem  
+    LOCAL hCurrentChild:QWORD
+    mov rax, hItem
+    mov hCurrentChild, rax
+    
+    Invoke SendMessage, hTreeview, WM_SETREDRAW, FALSE, 0
+    Invoke SendMessage, hTreeview, TVM_GETNEXTITEM, TVGN_CHILD, hCurrentChild
+    .WHILE rax != NULL
+        mov hCurrentChild, rax
+        Invoke SendMessage, hTreeview, TVM_EXPAND, TVE_COLLAPSE, hCurrentChild
+        Invoke SendMessage, hTreeview, TVM_GETNEXTITEM, TVGN_NEXT, hCurrentChild
+    .ENDW
+    Invoke SendMessage, hTreeview, TVM_GETNEXTITEM, TVGN_CARET, hItem
+    Invoke SendMessage, hTreeview, TVM_SELECTITEM, TVGN_FIRSTVISIBLE, hItem
+    Invoke SendMessage, hTreeview, WM_SETREDRAW, TRUE, 0
     ret
 TreeViewChildItemsCollapse endp
 
