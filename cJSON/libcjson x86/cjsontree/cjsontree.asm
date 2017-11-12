@@ -5,7 +5,7 @@
 option casemap:none
 include \masm32\macros\macros.asm
 
-;DEBUG32 EQU 1
+DEBUG32 EQU 1
 
 IFDEF DEBUG32
     PRESERVEXMMREGS equ 1
@@ -83,6 +83,7 @@ WinMain endp
 ; WndProc - Main Window Message Loop
 ;-------------------------------------------------------------------------------------
 WndProc proc USES EBX ECX hWin:HWND,uMsg:UINT,wParam:WPARAM,lParam:LPARAM
+    LOCAL tvhi:TV_HITTESTINFO
     
     mov eax, uMsg
     .IF eax == WM_INITDIALOG
@@ -113,7 +114,7 @@ WndProc proc USES EBX ECX hWin:HWND,uMsg:UINT,wParam:WPARAM,lParam:LPARAM
                 Invoke OpenJSONFile, hWin, Addr JsonBrowseFilename
                 .IF eax == TRUE
                     ; Start processing JSON file
-                    Invoke ProcessJSONFile, hWin, Addr JsonBrowseFilename
+                    Invoke ProcessJSONData, hWin, Addr JsonBrowseFilename, NULL
                 .ENDIF
             .ENDIF
           
@@ -122,7 +123,26 @@ WndProc proc USES EBX ECX hWin:HWND,uMsg:UINT,wParam:WPARAM,lParam:LPARAM
             
         .ELSEIF eax == IDM_HELP_ABOUT
             Invoke ShellAbout,hWin,addr AppName,addr AboutMsg,NULL
+        
+        .ELSEIF eax == IDM_EDIT_PASTE
+            Invoke PasteJSON, hWin
+        
+        .ELSEIF eax == IDM_CMD_COLLAPSE_BRANCH
+            Invoke TreeViewGetSelectedItem, hTV
+            Invoke TreeViewItemCollapse, hTV, eax
             
+        .ELSEIF eax == IDM_CMD_EXPAND_BRANCH
+            Invoke TreeViewGetSelectedItem, hTV
+            Invoke TreeViewItemExpand, hTV, eax
+
+        .ELSEIF eax == IDM_CMD_COLLAPSE_CHILDREN
+            Invoke TreeViewGetSelectedItem, hTV
+            Invoke TreeViewChildItemsCollapse, hTV, eax
+            
+        .ELSEIF eax == IDM_CMD_EXPAND_CHILDREN
+            Invoke TreeViewGetSelectedItem, hTV
+            Invoke TreeViewChildItemsExpand, hTV, eax
+        
         .ENDIF
     
     .ELSEIF eax == WM_DROPFILES
@@ -134,7 +154,7 @@ WndProc proc USES EBX ECX hWin:HWND,uMsg:UINT,wParam:WPARAM,lParam:LPARAM
             Invoke OpenJSONFile, hWin, Addr JsonBrowseFilename
             .IF eax == TRUE
                 ; Start processing JSON file
-                Invoke ProcessJSONFile, hWin, Addr JsonBrowseFilename
+                Invoke ProcessJSONData, hWin, Addr JsonBrowseFilename, NULL
             .ENDIF
         .ENDIF
         mov eax, 0
@@ -179,6 +199,27 @@ WndProc proc USES EBX ECX hWin:HWND,uMsg:UINT,wParam:WPARAM,lParam:LPARAM
         mov eax, (NMHDR PTR [ecx]).code
         
         .IF eax == NM_RCLICK
+            
+	        invoke GetCursorPos, Addr tvhi.pt
+	        invoke ScreenToClient, hTV, addr tvhi.pt
+	        invoke SendMessage, hTV, TVM_HITTEST, 0, Addr tvhi
+	        Invoke SendMessage, hTV, TVM_SELECTITEM, TVGN_CARET, tvhi.hItem
+	        ;Invoke TreeViewSetSelectedItem, hTV, tvhi.hItem
+	        
+	        ;PrintDec eax
+	        ;PrintDec tvhi.hItem
+	        ;PrintDec tvhi.flags
+	        .IF eax != 0 && tvhi.flags == TVHT_ONITEMLABEL
+	            Invoke UpdateMenus, hWin, TRUE
+	        .ELSE
+	            Invoke UpdateMenus, hWin, FALSE
+	        .ENDIF
+			Invoke GetCursorPos, addr TVRCMenuPoint
+			; Focus Main Window - ; Fix for shortcut menu not popping up right
+			Invoke SetForegroundWindow, hWin
+			
+			Invoke TrackPopupMenu, hTVMenu, TPM_LEFTALIGN+TPM_LEFTBUTTON, TVRCMenuPoint.x, TVRCMenuPoint.y, NULL, hWin, NULL
+			Invoke PostMessage, hWin, WM_NULL, 0, 0 ; Fix for shortcut menu not popping up right        
 
         .ELSEIF eax == NM_DBLCLK
             Invoke TreeViewGetSelectedItem, hTV
@@ -194,6 +235,13 @@ WndProc proc USES EBX ECX hWin:HWND,uMsg:UINT,wParam:WPARAM,lParam:LPARAM
             .IF eax == VK_F2 
                 Invoke TreeViewGetSelectedItem, hTV
                 Invoke SendMessage, hTV, TVM_EDITLABEL, 0, eax
+            
+            .ELSEIF eax == VK_V
+                Invoke GetAsyncKeyState, VK_CONTROL
+                ;PrintText 'Control+V'
+                .IF eax != 0
+                    Invoke PasteJSON, hWin
+                .ENDIF
             .ENDIF
              
         .ELSEIF eax == TVN_BEGINLABELEDIT
@@ -260,7 +308,7 @@ CmdLineOpenFile PROC hWin:DWORD
     Invoke OpenJSONFile, hWin, Addr CmdLineFullPathFilename
     .IF eax == TRUE
         ; Start processing JSON file
-        Invoke ProcessJSONFile, hWin, Addr CmdLineFullPathFilename
+        Invoke ProcessJSONData, hWin, Addr CmdLineFullPathFilename, NULL
     .ENDIF
 
     ret
@@ -332,15 +380,87 @@ InitGUI ENDP
 ; InitMenus - Initialize menus
 ;-------------------------------------------------------------------------------------
 InitMenus PROC hWin:DWORD
-    
     ; Create right click treeview menu
-    ;Invoke CreatePopupMenu
-    ;mov hTVMenu, eax
+    Invoke CreatePopupMenu
+    mov hTVMenu, eax
     
+    Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_COLLAPSE_BRANCH, Addr szTVRCMenuCollapseBranch
+    Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_EXPAND_BRANCH, Addr szTVRCMenuExpandBranch
+    invoke AppendMenu, hTVMenu, MF_SEPARATOR, 0, 0
+    Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_COLLAPSE_CHILDREN, Addr szTVRCMenuCollapseChildren
+    Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_EXPAND_CHILDREN, Addr szTVRCMenuExpandChildren
+    
+    ret
+InitMenus ENDP
+
+
+;-------------------------------------------------------------------------------------
+; UpdateMenus - Initialize menus
+;-------------------------------------------------------------------------------------
+UpdateMenus PROC USES EBX hWin:DWORD, dwInTV:DWORD
+    LOCAL hItem:DWORD
+    LOCAL hJSON:DWORD
+    LOCAL mi:MENUITEMINFO
+    
+    mov mi.cbSize, SIZEOF MENUITEMINFO
+    mov mi.fMask, MIIM_STATE
+    mov mi.fState, MFS_GRAYED
+
+    .IF dwInTV == TRUE
+        
+        Invoke TreeViewGetSelectedItem, hTV
+        mov hItem, eax
+        Invoke TreeViewGetItemParam, hTV, hItem
+        Invoke TreeViewGetSelectedParam, hTV
+        mov hJSON, eax
+        
+        .IF hJSON != NULL
+            Invoke cJSON_GetArraySize, hJSON
+            .IF eax != 0
+                mov mi.fState, MFS_ENABLED
+            .ENDIF 
+        .ENDIF
+    .ENDIF
+
+    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_COLLAPSE_BRANCH, FALSE, Addr mi
+    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_EXPAND_BRANCH, FALSE, Addr mi
+    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_COLLAPSE_CHILDREN, FALSE, Addr mi
+    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_EXPAND_CHILDREN, FALSE, Addr mi
+    
+    ret
+UpdateMenus ENDP
+
+
+;-------------------------------------------------------------------------------------
+; PasteJSON - paste json from clipboard to create a tree
+;-------------------------------------------------------------------------------------
+PasteJSON PROC USES EBX hWin:DWORD
+    LOCAL ptrClipData:DWORD
+    
+    Invoke IsClipboardFormatAvailable, CF_TEXT
+    .IF eax == FALSE
+        ret
+    .ENDIF
+    
+    Invoke OpenClipboard, hWin
+    
+    Invoke GetClipboardData, CF_TEXT
+    .IF eax == NULL
+        Invoke CloseClipboard
+        xor eax, eax
+        ret
+    .ENDIF
+    mov ptrClipData, eax
+    
+    Invoke TreeViewDeleteAll, hTV
+    
+    Invoke ProcessJSONData, hWin, NULL, ptrClipData
+    
+    Invoke CloseClipboard
     
     ret
 
-InitMenus ENDP
+PasteJSON ENDP
 
 
 ;-------------------------------------------------------------------------------------
@@ -496,7 +616,7 @@ CloseJSONFile ENDP
 ;-------------------------------------------------------------------------------------
 ; ProcessJSONFile - Process JSON file and load data into treeview
 ;-------------------------------------------------------------------------------------
-ProcessJSONFile PROC USES EBX hWin:DWORD, lpszJSONFile:DWORD
+ProcessJSONData PROC USES EBX hWin:DWORD, lpszJSONFile:DWORD, lpdwJSONData:DWORD
     LOCAL nTVIndex:DWORD
     LOCAL next:DWORD
     LOCAL prev:DWORD
@@ -510,21 +630,34 @@ ProcessJSONFile PROC USES EBX hWin:DWORD, lpszJSONFile:DWORD
     
     ; JSONMemMapPtr is pointer to file in memory, mapped previously in OpenJSONFile
     ; Parse this with cJSON library cJSON_Parse function, returns root handle to JSON stuff
-
-    Invoke cJSON_Parse, JSONMemMapPtr
+    
+    .IF lpdwJSONData == NULL
+        Invoke cJSON_Parse, JSONMemMapPtr
+    .ELSE
+        Invoke cJSON_Parse, lpdwJSONData
+    .ENDIF
     mov hJSON_Object_Root, eax
 
-    .IF hJSON_Object_Root == NULL
+    .IF hJSON_Object_Root == NULL && lpdwJSONData == NULL
         ; If empty then tell user some error about reading file
         Invoke szCopy, Addr szJSONErrorReadingFile, Addr szJSONErrorMessage
         Invoke szCatStr, Addr szJSONErrorMessage, lpszJSONFile
         Invoke SendMessage, hSB, SB_SETTEXT, 1, Addr szJSONErrorMessage    
         ret        
+    .ELSEIF hJSON_Object_Root == NULL && lpdwJSONData != NULL
+         ; If empty then tell user some error about reading clipboard data
+        Invoke szCopy, Addr szJSONErrorClipData, Addr szJSONErrorMessage
+        Invoke SendMessage, hSB, SB_SETTEXT, 1, Addr szJSONErrorMessage    
+        ret  
     .ENDIF
 
     ; Treeview Root is created, save handle to it, specifically we will need hTVNode later for when inserting children to treeview
     mov nTVIndex, 0
-    Invoke TreeViewInsertItem, hTV, NULL, lpszJSONFile, nTVIndex, TVI_ROOT, IL_ICO_MAIN, IL_ICO_MAIN, 0
+    .IF lpdwJSONData == NULL
+        Invoke TreeViewInsertItem, hTV, NULL, lpszJSONFile, nTVIndex, TVI_ROOT, IL_ICO_MAIN, IL_ICO_MAIN, 0
+    .ELSE
+        Invoke TreeViewInsertItem, hTV, NULL, Addr szJSONClipboard, nTVIndex, TVI_ROOT, IL_ICO_MAIN, IL_ICO_MAIN, 0
+    .ENDIF
     mov hTVRoot, eax
     mov hTVNode, eax
     mov hTVCurrentNode, eax
@@ -536,8 +669,12 @@ ProcessJSONFile PROC USES EBX hWin:DWORD, lpszJSONFile:DWORD
     ; Just a check to make sure JSON has some stuff to process
     Invoke cJSON_GetArraySize, hJSON_Object_Root
     .IF eax == 0
-        Invoke szCopy, Addr szJSONErrorEmptyFile, Addr szJSONErrorMessage
-        Invoke szCatStr, Addr szJSONErrorMessage, lpszJSONFile
+        .IF lpdwJSONData == NULL
+            Invoke szCopy, Addr szJSONErrorEmptyFile, Addr szJSONErrorMessage
+            Invoke szCatStr, Addr szJSONErrorMessage, lpszJSONFile
+        .ELSE
+            Invoke szCopy, Addr szJSONErrorEmptyClipData, Addr szJSONErrorMessage
+        .ENDIF
         Invoke SendMessage, hSB, SB_SETTEXT, 1, Addr szJSONErrorMessage    
         ret
     .ENDIF
@@ -614,6 +751,10 @@ ProcessJSONFile PROC USES EBX hWin:DWORD, lpszJSONFile:DWORD
                     Invoke TreeViewInsertItem, hTV, hTVNode, Addr szItemTextArrayName, nTVIndex, TVI_LAST, IL_ICO_JSON_OBJECT, IL_ICO_JSON_OBJECT, hJSON
                     mov hTVCurrentNode, eax
                     inc nTVIndex
+                    
+                    Invoke TreeViewGetItemParam, hTV, hTVCurrentNode
+                    ;PrintDec eax
+                    ;PrintDec hTVCurrentNode
                 .ELSE
                     
                     Invoke szCopy, Addr szItemTextArrayName, Addr szItemText
@@ -867,7 +1008,7 @@ ProcessJSONFile PROC USES EBX hWin:DWORD, lpszJSONFile:DWORD
 
         .ENDIF
 
-        Invoke TreeViewChildItemsExpand, hTV, hTVNode
+        Invoke TreeViewItemExpand, hTV, hTVNode
 
     .ENDW
 
@@ -889,8 +1030,9 @@ ProcessJSONFile PROC USES EBX hWin:DWORD, lpszJSONFile:DWORD
         DbgDump pStackData, eax
     ENDIF
     
-    Invoke TreeViewChildItemsExpand, hTV, hTVRoot
-
+    Invoke TreeViewItemExpand, hTV, hTVRoot
+    Invoke TreeViewSetSelectedItem, hTV, hTVRoot
+    
     Invoke VirtualStackDelete, hVirtualStack, Addr DeleteStackItemsCallback
     
     ; we have finished processing the cJSON objects, following children then following siblings, then moving back up the list/level, getting next object and 
@@ -899,8 +1041,12 @@ ProcessJSONFile PROC USES EBX hWin:DWORD, lpszJSONFile:DWORD
     Invoke cJSON_free, hJSON_Object_Root ; Clear up the mem alloced by cJSON_Parse
 
     ; Tell user via statusbar that JSON file was successfully loaded
-    Invoke szCopy, Addr szJSONLoadedFile, Addr szJSONErrorMessage
-    Invoke szCatStr, Addr szJSONErrorMessage, lpszJSONFile
+    .IF lpdwJSONData == NULL
+        Invoke szCopy, Addr szJSONLoadedFile, Addr szJSONErrorMessage
+        Invoke szCatStr, Addr szJSONErrorMessage, lpszJSONFile
+    .ELSE
+        Invoke szCopy, Addr szJSONLoadedClipData, Addr szJSONErrorMessage
+    .ENDIF
     Invoke SendMessage, hSB, SB_SETTEXT, 1, Addr szJSONErrorMessage     
     
     Invoke SetFocus, hTV
@@ -908,7 +1054,7 @@ ProcessJSONFile PROC USES EBX hWin:DWORD, lpszJSONFile:DWORD
     mov eax, TRUE
     
     ret
-ProcessJSONFile ENDP
+ProcessJSONData ENDP
 
 
 ;-------------------------------------------------------------------------------------

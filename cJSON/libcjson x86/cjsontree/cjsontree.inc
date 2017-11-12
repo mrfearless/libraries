@@ -37,11 +37,13 @@ InitGUI                     PROTO :DWORD
 InitMenus                   PROTO :DWORD
 InitJSONStatusbar           PROTO :DWORD
 InitJSONTreeview            PROTO :DWORD
+UpdateMenus                 PROTO :DWORD, :DWORD
+PasteJSON                   PROTO :DWORD
 
 BrowseJSONFile              PROTO :DWORD
 OpenJSONFile                PROTO :DWORD, :DWORD
 CloseJSONFile               PROTO
-ProcessJSONFile             PROTO :DWORD, :DWORD
+ProcessJSONData             PROTO :DWORD, :DWORD, :DWORD
 
 CreateJSONStackItem         PROTO :DWORD
 FreeJSONStackItem           PROTO :DWORD
@@ -105,7 +107,14 @@ IDM_MENU                EQU 10000
 IDM_FILE_EXIT           EQU 10001
 IDM_FILE_OPEN           EQU 10002
 IDM_FILE_CLOSE          EQU 10003
+IDM_EDIT_PASTE          EQU 10201
 IDM_HELP_ABOUT          EQU 10101
+
+; Treeview Right Click Menu
+IDM_CMD_COLLAPSE_BRANCH EQU 11000
+IDM_CMD_EXPAND_BRANCH   EQU 11001
+IDM_CMD_COLLAPSE_CHILDREN EQU 11002
+IDM_CMD_EXPAND_CHILDREN EQU 11003
 
 
 .DATA
@@ -130,6 +139,7 @@ szNullLogical               DB 0,0;'<Logical>',0
 szNullArray                 DB '<Array>',0
 szNullNull                  DB 0,0;'<Null>',0
 szNullInvalid               DB '<Invalid>',0
+szJSONClipboard             DB 'JSON source from clipboard',0
 
 ; JSON pointers
 lpszItemString              DD 0
@@ -146,11 +156,14 @@ szItemTextArrayName         DB 64 DUP (0)
 
 ; JSON Error messages
 szJSONLoadingFile           DB 'Loading JSON File: ',0
+szJSONErrorClipData         DB 'Clipboard data does not contain valid JSON data',0
 szJSONErrorLoadingFile      DB 'Error loading JSON File: ',0
 szJSONErrorMappingFile      DB 'Error mapping JSON File: ',0
 szJSONErrorReadingFile      DB 'Error reading JSON File: ',0
 szJSONLoadedFile            DB 'Loaded JSON File: ',0
+szJSONLoadedClipData        DB 'Loaded JSON data from clipboard',0
 szJSONErrorEmptyFile        DB 'JSON file is empty: ',0
+szJSONErrorEmptyClipData    DB 'JSON clipboard data is empty',0
 szJSONErrorMessage          DB 512 dup (0)
 
 ; Punctuation
@@ -161,6 +174,12 @@ szRightBracket              DB '}',0
 szBackslash                 DB '\',0
 szLeftSquareBracket         DB '[',0
 szRightSquareBracket        DB ']',0
+
+; Treeview right click menu
+szTVRCMenuCollapseBranch    DB 'Collapse Branch',0
+szTVRCMenuExpandBranch      DB 'Expand Branch',0
+szTVRCMenuCollapseChildren  DB 'Collapse Children',0
+szTVRCMenuExpandChildren    DB 'Expand Children',0
 
 ; Command line processing stuff
 szCmdLineFilenameDoesNotExist   DB 'The filename specified on the command line does not exist: ',0
@@ -184,7 +203,7 @@ JsonBrowseFilter                db  "JSON Files (*.json)",0,"*.json",0
                                 db  "All Files (*.*)",0,"*.*",0,0
 JsonBrowseFileTitle             db  "Open JSON File...",0
 JsonDefExt                      db  "json",0
-
+hTestItem               TV_ITEM <>
 
 .DATA?
 ;-----------------------------------------------------------------------------------------
@@ -197,6 +216,7 @@ hWnd                    DD ?
 hWhiteBrush             DD ?
 hDrop                   DD ?
 hTVMenu                 DD ?
+TVRCMenuPoint           POINT <?>
 hTV                     DD ?
 hSB                     DD ?
 hIL                     DD ?
