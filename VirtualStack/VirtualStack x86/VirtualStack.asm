@@ -643,14 +643,14 @@ _VirtualStackAddToUniqueList PROC PRIVATE USES EBX hVirtualStack:DWORD, dwUnique
             mov eax, nStackUniqueNoItems
             .IF eax == nStackUniqueMaxHeight ; realloc memory if we are at max of list
                 
-                mov ebx, hVirtualStack
-                mov eax, [ebx].STACK.StackMaxHeight
-                shl eax, 4d ; x16
-                .IF nStackUniqueMaxHeight > eax
+                ;mov ebx, hVirtualStack
+                ;mov eax, [ebx].STACK.StackMaxHeight
+                ;shl eax, 4d ; x16
+                ;.IF nStackUniqueMaxHeight > eax
                     Invoke GlobalUnlock, hStackUniqueData
-                .ENDIF
+                ;.ENDIF
                 mov eax, nStackUniqueMaxHeight
-                add eax, nStackUniqueMaxHeight
+                add eax, VIRTUALSTACK_SIZE_SMALL ;nStackUniqueMaxHeight
                 mov nStackUniqueMaxHeight, eax
                 mov ebx, SIZEOF DWORD
                 mul ebx
