@@ -38,12 +38,23 @@ InitMenus                   PROTO :DWORD
 InitJSONStatusbar           PROTO :DWORD
 InitJSONTreeview            PROTO :DWORD
 UpdateMenus                 PROTO :DWORD, :DWORD
+ShowAddSubmenu              PROTO :DWORD
+ShowRightClickMenu          PROTO :DWORD
+
 PasteJSON                   PROTO :DWORD
+CopyToClipboard             PROTO :DWORD, :DWORD
+CopyBranchToClipboard       PROTO :DWORD
 
 BrowseJSONFile              PROTO :DWORD
 OpenJSONFile                PROTO :DWORD, :DWORD
 CloseJSONFile               PROTO
 ProcessJSONData             PROTO :DWORD, :DWORD, :DWORD
+
+
+AddJSONItem                 PROTO :DWORD, :DWORD
+DelJSONItem                 PROTO :DWORD
+EditJSONItem                PROTO :DWORD
+NewJSON                     PROTO :DWORD
 
 CreateJSONStackItem         PROTO :DWORD
 FreeJSONStackItem           PROTO :DWORD
@@ -62,15 +73,25 @@ JSONSTACKITEM                   STRUCT
 JSONSTACKITEM                   ENDS
 
 
+
+
 .CONST
 ;-----------------------------------------------------------------------------------------
 ; cjsontree Constants
 ;-----------------------------------------------------------------------------------------
 
+ACCTABLE                        EQU 300
+ACC_FILE_OPEN					EQU 301
+ACC_FILE_CLOSE					EQU 302
+ACC_FILE_NEW					EQU 303
+ACC_EDIT_COPY_BRANCH            EQU 304
+
+
 ; Icon Resource IDs
 ICO_MAIN                EQU 100
 ICO_JSON_STRING         EQU 103
 ICO_JSON_INTEGER        EQU 104
+ICO_JSON_NUMBER         EQU ICO_JSON_INTEGER
 ICO_JSON_FLOAT          EQU 105
 ICO_JSON_CUSTOM         EQU 106
 ICO_JSON_TRUE           EQU 107
@@ -87,6 +108,7 @@ ICO_JSON_LOGICAL        EQU 113
 IL_ICO_MAIN              EQU 0
 IL_ICO_JSON_STRING       EQU 1
 IL_ICO_JSON_INTEGER      EQU 2
+IL_ICO_JSON_NUMBER       EQU IL_ICO_JSON_INTEGER
 IL_ICO_JSON_FLOAT        EQU 3
 IL_ICO_JSON_CUSTOM       EQU 4
 IL_ICO_JSON_TRUE         EQU 5
@@ -96,6 +118,30 @@ IL_ICO_JSON_OBJECT       EQU 8
 IL_ICO_JSON_NULL         EQU 9
 IL_ICO_JSON_INVALID      EQU 10
 IL_ICO_JSON_LOGICAL      EQU 11   
+
+
+; Menu bitmaps
+IMG_CMD_COLLAPSE_BRANCH     EQU 201
+IMG_CMD_EXPAND_BRANCH       EQU 202
+IMG_CMD_COLLAPSE_CHILDREN   EQU 203
+IMG_CMD_EXPAND_CHILDREN     EQU 204
+IMG_CMD_COPY                EQU 205
+IMG_CMD_COPY_VALUE          EQU 206
+IMG_CMD_COPY_BRANCH         EQU 207
+IMG_CMD_PASTE_JSON          EQU 208
+IMG_CMD_ADD_ITEM            EQU 209
+IMG_CMD_DEL_ITEM            EQU 210
+IMG_CMD_ADD_ITEM_STRING     EQU 211
+IMG_CMD_ADD_ITEM_NUMBER     EQU 212
+IMG_CMD_ADD_ITEM_TRUE       EQU 213
+IMG_CMD_ADD_ITEM_FALSE      EQU 214
+IMG_CMD_ADD_ITEM_ARRAY      EQU 215
+IMG_CMD_ADD_ITEM_OBJECT     EQU 216
+IMG_CMD_OPEN_JSON_FILE      EQU 217
+IMG_CMD_CLOSE_JSON_FILE     EQU 218
+IMG_CMD_EDIT_ITEM           EQU 219
+IMG_CMD_NEW_JSON_FILE       EQU 220
+IMG_CMD_EXIT                EQU 221
 
 ; Main Dialog
 IDD_DIALOG              EQU 1000
@@ -107,7 +153,11 @@ IDM_MENU                EQU 10000
 IDM_FILE_EXIT           EQU 10001
 IDM_FILE_OPEN           EQU 10002
 IDM_FILE_CLOSE          EQU 10003
-IDM_EDIT_PASTE          EQU 10201
+IDM_FILE_NEW            EQU 10004
+IDM_EDIT_COPY			equ 10204
+IDM_EDIT_COPY_VALUE		equ 10205
+IDM_EDIT_COPY_BRANCH	equ 10206
+IDM_EDIT_PASTE_JSON     EQU 10201
 IDM_HELP_ABOUT          EQU 10101
 
 ; Treeview Right Click Menu
@@ -115,6 +165,21 @@ IDM_CMD_COLLAPSE_BRANCH EQU 11000
 IDM_CMD_EXPAND_BRANCH   EQU 11001
 IDM_CMD_COLLAPSE_CHILDREN EQU 11002
 IDM_CMD_EXPAND_CHILDREN EQU 11003
+IDM_CMD_COPY            EQU 11004
+IDM_CMD_COPY_VALUE      EQU 11005
+IDM_CMD_COPY_BRANCH     EQU 11006
+IDM_CMD_PASTE_JSON      EQU 11007
+IDM_CMD_ADD_ITEM        EQU 11008
+IDM_CMD_DEL_ITEM        EQU 11009
+IDM_CMD_EDIT_ITEM       EQU 11010
+
+
+IDM_CMD_ADD_ITEM_STRING EQU 11050
+IDM_CMD_ADD_ITEM_NUMBER EQU 11051
+IDM_CMD_ADD_ITEM_TRUE   EQU 11052
+IDM_CMD_ADD_ITEM_FALSE  EQU 11053
+IDM_CMD_ADD_ITEM_ARRAY  EQU 11054
+IDM_CMD_ADD_ITEM_OBJECT EQU 11055
 
 
 .DATA
@@ -140,6 +205,11 @@ szNullArray                 DB '<Array>',0
 szNullNull                  DB 0,0;'<Null>',0
 szNullInvalid               DB '<Invalid>',0
 szJSONClipboard             DB 'JSON source from clipboard',0
+szNewItem                   DB 'New Item: ',0
+szNewTrue                   DB 'New item: true',0
+szNewFalse                  DB 'New item: false',0
+szNewNumber                 DB 'New item: 0',0
+
 
 ; JSON pointers
 lpszItemString              DD 0
@@ -153,6 +223,7 @@ szItemIntValue              DB 64 DUP (0)
 szItemText                  DB 2048 DUP (0)
 szItemTextValue             DB 1024 DUP (0)
 szItemTextArrayName         DB 64 DUP (0)
+szSelectedTreeviewText      DB 1024 DUP (0)
 
 ; JSON Error messages
 szJSONLoadingFile           DB 'Loading JSON File: ',0
@@ -162,11 +233,15 @@ szJSONErrorMappingFile      DB 'Error mapping JSON File: ',0
 szJSONErrorReadingFile      DB 'Error reading JSON File: ',0
 szJSONLoadedFile            DB 'Loaded JSON File: ',0
 szJSONLoadedClipData        DB 'Loaded JSON data from clipboard',0
+szJSONCreatedNewData        DB 'New JSON data started',0
+szJSONNewData               DB 'JSON data',0
 szJSONErrorEmptyFile        DB 'JSON file is empty: ',0
 szJSONErrorEmptyClipData    DB 'JSON clipboard data is empty',0
+szJSONCopiedDataToClipboard DB 'Copied data to clipboard',0
 szJSONErrorMessage          DB 512 dup (0)
 
 ; Punctuation
+szComma                     DB ',',0
 szSpace                     DB ' ',0
 szColon                     DB ':',0
 szLeftBracket               DB '{',0
@@ -174,12 +249,26 @@ szRightBracket              DB '}',0
 szBackslash                 DB '\',0
 szLeftSquareBracket         DB '[',0
 szRightSquareBracket        DB ']',0
+szQuote                     DB '"',0
 
 ; Treeview right click menu
 szTVRCMenuCollapseBranch    DB 'Collapse Branch',0
 szTVRCMenuExpandBranch      DB 'Expand Branch',0
 szTVRCMenuCollapseChildren  DB 'Collapse Children',0
 szTVRCMenuExpandChildren    DB 'Expand Children',0
+szTVRCMenuCopy              DB 'Copy',0
+szTVRCMenuCopyValue         DB 'Copy Value',0
+szTVRCMenuCopyBranch        DB 'Copy Branch',0
+szTVRCMenuPasteJSON         DB 'Paste JSON',0
+szTVRCMenuAddItem           DB 'Add Item',0
+szTVRCMenuDelItem           DB 'Delete Item',0
+szTVRCMenuEditItem          DB 'Edit Item',0
+szTVRCMenuAddItemString     DB 'Add String',0
+szTVRCMenuAddItemNumber     DB 'Add Number',0
+szTVRCMenuAddItemTrue       DB 'Add True',0
+szTVRCMenuAddItemFalse      DB 'Add False',0
+szTVRCMenuAddItemArray      DB 'Add Array',0
+szTVRCMenuAddItemObject     DB 'Add Object',0
 
 ; Command line processing stuff
 szCmdLineFilenameDoesNotExist   DB 'The filename specified on the command line does not exist: ',0
@@ -193,6 +282,22 @@ g_ShowJsonType              DD FALSE ;TRUE ; shows ': Object' or ': Array' after
 
 nStackDepth                 DD 0
 nUniqueCount                DD 0
+
+; JSON Export / Copy
+szJSONExportStart           DB '{',13,10,0
+szJSONExportEnd             DB '}',13,10,0
+szJSONExportObjectStart     DB '{',13,10,0
+szJSONExportObjectEnd       DB '}',13,10,0
+szJSONExportObjectCommaEnd  DB '},',13,10,0
+szJSONExportArrayStart      DB '[',13,10,0
+szJSONExportArrayEnd        DB ']',13,10,0
+szJSONExportArrayEmpty      DB '[]',13,10,0
+szJSONExportCRLF            DB 13,10,0
+szJSONExportCommaCRLF       DB ',',13,10,0
+szJSONExportMiddleString    DB '": "',0
+szJSONExportMiddleOther     DB '": ',0
+szJSONExportIndentSpaces    DB 32 DUP (32d)
+szJSONExportSpacesBuffer    DB 32 DUP (0)
 
 ;------------------------------------------------------------------------
 ; Browse To Open Json File
@@ -213,9 +318,11 @@ icc                     INITCOMMONCONTROLSEX <>
 hInstance               DD ?
 CommandLine             DD ?
 hWnd                    DD ?
+hAcc                    DD ?
 hWhiteBrush             DD ?
 hDrop                   DD ?
 hTVMenu                 DD ?
+hTVAddMenu              DD ?
 TVRCMenuPoint           POINT <?>
 hTV                     DD ?
 hSB                     DD ?

@@ -1,3 +1,4 @@
+#include "Res/cjsontreeAcl.rc"
 #include "Res/cjsontreeMnu.rc"
 #include "Res/cjsontreeVer.rc"
 #include "Res/cjsontreeDlg.rc"

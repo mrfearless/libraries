@@ -5,7 +5,7 @@
 option casemap:none
 include \masm32\macros\macros.asm
 
-DEBUG32 EQU 1
+;DEBUG32 EQU 1
 
 IFDEF DEBUG32
     PRESERVEXMMREGS equ 1
@@ -24,6 +24,8 @@ start:
 
     Invoke GetModuleHandle,NULL
     mov hInstance, eax
+    invoke LoadAccelerators, hInstance, ACCTABLE
+    mov hAcc, eax    
     Invoke GetCommandLine
     mov CommandLine, eax
     Invoke InitCommonControls
@@ -65,13 +67,16 @@ WinMain proc hInst:HINSTANCE,hPrevInst:HINSTANCE,CmdLine:LPSTR,CmdShow:DWORD
     Invoke ShowWindow, hWnd, SW_SHOWNORMAL
     Invoke UpdateWindow, hWnd
     .WHILE TRUE
-        invoke GetMessage,addr msg,NULL,0,0
+        invoke GetMessage, addr msg, NULL, 0, 0
         .BREAK .if !eax
 
-        Invoke IsDialogMessage, hWnd, addr msg
+        Invoke TranslateAccelerator, hWnd, hAcc, addr msg
         .IF eax == 0
-            invoke TranslateMessage,addr msg
-            invoke DispatchMessage,addr msg
+            Invoke IsDialogMessage, hWnd, addr msg
+            .IF eax == 0
+                Invoke TranslateMessage, addr msg
+                Invoke DispatchMessage, addr msg
+            .ENDIF
         .ENDIF
     .ENDW
     mov eax,msg.wParam
@@ -84,6 +89,7 @@ WinMain endp
 ;-------------------------------------------------------------------------------------
 WndProc proc USES EBX ECX hWin:HWND,uMsg:UINT,wParam:WPARAM,lParam:LPARAM
     LOCAL tvhi:TV_HITTESTINFO
+    ;LOCAL hItem:DWORD
     
     mov eax, uMsg
     .IF eax == WM_INITDIALOG
@@ -108,7 +114,7 @@ WndProc proc USES EBX ECX hWin:HWND,uMsg:UINT,wParam:WPARAM,lParam:LPARAM
         .IF eax == IDM_FILE_EXIT
             Invoke SendMessage,hWin,WM_CLOSE,0,0
 
-        .ELSEIF eax == IDM_FILE_OPEN
+        .ELSEIF eax == IDM_FILE_OPEN || eax == ACC_FILE_OPEN
             Invoke BrowseJSONFile, hWin
             .IF eax == TRUE
                 Invoke OpenJSONFile, hWin, Addr JsonBrowseFilename
@@ -118,15 +124,28 @@ WndProc proc USES EBX ECX hWin:HWND,uMsg:UINT,wParam:WPARAM,lParam:LPARAM
                 .ENDIF
             .ENDIF
           
-        .ELSEIF eax == IDM_FILE_CLOSE
+        .ELSEIF eax == IDM_FILE_CLOSE || eax == ACC_FILE_CLOSE
             Invoke CloseJSONFile
+        
+        .ELSEIF eax == IDM_FILE_NEW || eax == ACC_FILE_NEW
+            Invoke NewJSON, hWin
             
         .ELSEIF eax == IDM_HELP_ABOUT
             Invoke ShellAbout,hWin,addr AppName,addr AboutMsg,NULL
         
-        .ELSEIF eax == IDM_EDIT_PASTE
+        .ELSEIF eax == IDM_EDIT_PASTE_JSON || eax == IDM_CMD_PASTE_JSON
+            Invoke TreeViewDeleteAll, hTV
             Invoke PasteJSON, hWin
         
+        .ELSEIF eax == IDM_EDIT_COPY || eax == IDM_CMD_COPY
+            Invoke CopyToClipboard, hWin, FALSE
+        
+        .ELSEIF eax == IDM_EDIT_COPY_VALUE || eax == IDM_CMD_COPY_VALUE
+            Invoke CopyToClipboard, hWin, TRUE
+        
+        .ELSEIF eax == IDM_EDIT_COPY_BRANCH || eax == IDM_CMD_COPY_BRANCH || eax == ACC_EDIT_COPY_BRANCH
+            Invoke CopyBranchToClipboard, hWin
+            
         .ELSEIF eax == IDM_CMD_COLLAPSE_BRANCH
             Invoke TreeViewGetSelectedItem, hTV
             Invoke TreeViewItemCollapse, hTV, eax
@@ -143,6 +162,33 @@ WndProc proc USES EBX ECX hWin:HWND,uMsg:UINT,wParam:WPARAM,lParam:LPARAM
             Invoke TreeViewGetSelectedItem, hTV
             Invoke TreeViewChildItemsExpand, hTV, eax
         
+        .ELSEIF eax == IDM_CMD_ADD_ITEM
+            ; submenu is processed
+        
+        .ELSEIF eax == IDM_CMD_DEL_ITEM
+            Invoke DelJSONItem, hWin
+        
+        .ELSEIF eax == IDM_CMD_EDIT_ITEM
+            Invoke EditJSONItem, hWin
+            
+        .ELSEIF eax == IDM_CMD_ADD_ITEM_STRING
+            Invoke AddJSONItem, hWin, cJSON_String
+            
+        .ELSEIF eax == IDM_CMD_ADD_ITEM_NUMBER
+            Invoke AddJSONItem, hWin, cJSON_Number
+            
+        .ELSEIF eax == IDM_CMD_ADD_ITEM_TRUE
+            Invoke AddJSONItem, hWin, cJSON_True
+            
+        .ELSEIF eax == IDM_CMD_ADD_ITEM_FALSE
+            Invoke AddJSONItem, hWin, cJSON_False
+            
+        .ELSEIF eax == IDM_CMD_ADD_ITEM_ARRAY
+            Invoke AddJSONItem, hWin, cJSON_Array
+            
+        .ELSEIF eax == IDM_CMD_ADD_ITEM_OBJECT           
+            Invoke AddJSONItem, hWin, cJSON_Object
+            
         .ENDIF
     
     .ELSEIF eax == WM_DROPFILES
@@ -204,44 +250,46 @@ WndProc proc USES EBX ECX hWin:HWND,uMsg:UINT,wParam:WPARAM,lParam:LPARAM
 	        invoke ScreenToClient, hTV, addr tvhi.pt
 	        invoke SendMessage, hTV, TVM_HITTEST, 0, Addr tvhi
 	        Invoke SendMessage, hTV, TVM_SELECTITEM, TVGN_CARET, tvhi.hItem
-	        ;Invoke TreeViewSetSelectedItem, hTV, tvhi.hItem
-	        
-	        ;PrintDec eax
-	        ;PrintDec tvhi.hItem
-	        ;PrintDec tvhi.flags
 	        .IF eax != 0 && tvhi.flags == TVHT_ONITEMLABEL
 	            Invoke UpdateMenus, hWin, TRUE
 	        .ELSE
 	            Invoke UpdateMenus, hWin, FALSE
 	        .ENDIF
-			Invoke GetCursorPos, addr TVRCMenuPoint
-			; Focus Main Window - ; Fix for shortcut menu not popping up right
-			Invoke SetForegroundWindow, hWin
-			
-			Invoke TrackPopupMenu, hTVMenu, TPM_LEFTALIGN+TPM_LEFTBUTTON, TVRCMenuPoint.x, TVRCMenuPoint.y, NULL, hWin, NULL
-			Invoke PostMessage, hWin, WM_NULL, 0, 0 ; Fix for shortcut menu not popping up right        
-
-        .ELSEIF eax == NM_DBLCLK
-            Invoke TreeViewGetSelectedItem, hTV
-            Invoke SendMessage, hTV, TVM_EDITLABEL, 0, eax
+            Invoke ShowRightClickMenu, hWin
         
-        .ELSEIF eax == NM_RETURN ; requires sublass of treeview with WM_GETDLGCODE DLGC_WANTALL
+        .ELSEIF eax == NM_CLICK
             Invoke TreeViewGetSelectedItem, hTV
-            Invoke SendMessage, hTV, TVM_EDITLABEL, 0, eax
+            .IF eax != 0
+                Invoke UpdateMenus, hWin, TRUE
+            .ELSE
+                Invoke UpdateMenus, hWin, FALSE
+            .ENDIF
+        
+        .ELSEIF eax == NM_DBLCLK
+            Invoke EditJSONItem, hWin
         
         .ELSEIF eax == TVN_KEYDOWN
             mov ecx, lParam
             movzx eax, (TV_KEYDOWN ptr [ecx]).wVKey
-            .IF eax == VK_F2 
-                Invoke TreeViewGetSelectedItem, hTV
-                Invoke SendMessage, hTV, TVM_EDITLABEL, 0, eax
+            .IF eax == VK_F2
+                Invoke EditJSONItem, hWin
             
             .ELSEIF eax == VK_V
                 Invoke GetAsyncKeyState, VK_CONTROL
-                ;PrintText 'Control+V'
                 .IF eax != 0
+                    Invoke TreeViewDeleteAll, hTV
                     Invoke PasteJSON, hWin
                 .ENDIF
+            
+            .ELSEIF eax == VK_DELETE
+                Invoke DelJSONItem, hWin
+            
+            .ELSEIF eax == VK_INSERT ; show add submenu only if on an item with children or on an object or array item
+                ;Invoke GetAsyncKeyState, VK_CONTROL
+                ;.IF eax != 0
+        	        Invoke ShowAddSubmenu, hWin
+                ;.ENDIF
+                
             .ENDIF
              
         .ELSEIF eax == TVN_BEGINLABELEDIT
@@ -380,52 +428,313 @@ InitGUI ENDP
 ; InitMenus - Initialize menus
 ;-------------------------------------------------------------------------------------
 InitMenus PROC hWin:DWORD
+    LOCAL hMainMenu:DWORD
+    LOCAL hBitmap:DWORD
+    LOCAL hSubMenu:DWORD
+    LOCAL mi:MENUITEMINFO
+
+    mov mi.cbSize, SIZEOF MENUITEMINFO
+    mov mi.fMask, MIIM_STATE
+    mov mi.fState, MFS_GRAYED
+
+    Invoke GetMenu, hWin
+    mov hMainMenu, eax
+        
     ; Create right click treeview menu
     Invoke CreatePopupMenu
     mov hTVMenu, eax
     
+    Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_EDIT_ITEM, Addr szTVRCMenuEditItem
+    
+    ; Create Add Item submenu items   
+    Invoke CreatePopupMenu
+    mov hSubMenu, eax
+    mov hTVAddMenu, eax
+    
+    Invoke AppendMenu, hSubMenu, MF_STRING, IDM_CMD_ADD_ITEM_STRING, Addr szTVRCMenuAddItemString
+    Invoke AppendMenu, hSubMenu, MF_STRING, IDM_CMD_ADD_ITEM_NUMBER, Addr szTVRCMenuAddItemNumber
+    Invoke AppendMenu, hSubMenu, MF_SEPARATOR, 0, 0
+    Invoke AppendMenu, hSubMenu, MF_STRING, IDM_CMD_ADD_ITEM_TRUE, Addr szTVRCMenuAddItemTrue
+    Invoke AppendMenu, hSubMenu, MF_STRING, IDM_CMD_ADD_ITEM_FALSE, Addr szTVRCMenuAddItemFalse
+    Invoke AppendMenu, hSubMenu, MF_SEPARATOR, 0, 0
+    Invoke AppendMenu, hSubMenu, MF_STRING, IDM_CMD_ADD_ITEM_ARRAY, Addr szTVRCMenuAddItemArray
+    Invoke AppendMenu, hSubMenu, MF_STRING, IDM_CMD_ADD_ITEM_OBJECT, Addr szTVRCMenuAddItemObject
+
+    ; Load bitmaps for Add Item submenu
+    Invoke LoadBitmap, hInstance, IMG_CMD_ADD_ITEM_STRING
+    mov hBitmap, eax
+    Invoke SetMenuItemBitmaps, hSubMenu, IDM_CMD_ADD_ITEM_STRING, MF_BYCOMMAND, hBitmap, 0
+    Invoke LoadBitmap, hInstance, IMG_CMD_ADD_ITEM_NUMBER
+    mov hBitmap, eax
+    Invoke SetMenuItemBitmaps, hSubMenu, IDM_CMD_ADD_ITEM_NUMBER, MF_BYCOMMAND, hBitmap, 0
+    Invoke LoadBitmap, hInstance, IMG_CMD_ADD_ITEM_TRUE
+    mov hBitmap, eax
+    Invoke SetMenuItemBitmaps, hSubMenu, IDM_CMD_ADD_ITEM_TRUE, MF_BYCOMMAND, hBitmap, 0
+    Invoke LoadBitmap, hInstance, IMG_CMD_ADD_ITEM_FALSE
+    mov hBitmap, eax
+    Invoke SetMenuItemBitmaps, hSubMenu, IDM_CMD_ADD_ITEM_FALSE, MF_BYCOMMAND, hBitmap, 0
+    Invoke LoadBitmap, hInstance, IMG_CMD_ADD_ITEM_ARRAY
+    mov hBitmap, eax
+    Invoke SetMenuItemBitmaps, hSubMenu, IDM_CMD_ADD_ITEM_ARRAY, MF_BYCOMMAND, hBitmap, 0    
+    Invoke LoadBitmap, hInstance, IMG_CMD_ADD_ITEM_OBJECT
+    mov hBitmap, eax
+    Invoke SetMenuItemBitmaps, hSubMenu, IDM_CMD_ADD_ITEM_OBJECT, MF_BYCOMMAND, hBitmap, 0    
+
+    ; Add submenu 'Add Item' to main menu
+    mov mi.cbSize, SIZEOF MENUITEMINFO
+    mov mi.fMask, MIIM_SUBMENU + MIIM_STRING + MIIM_ID
+    mov mi.wID, IDM_CMD_ADD_ITEM
+    mov eax, hSubMenu
+    mov mi.hSubMenu, eax
+    lea eax, szTVRCMenuAddItem
+    mov mi.dwTypeData, eax
+    Invoke InsertMenuItem, hTVMenu, IDM_CMD_ADD_ITEM, FALSE, Addr mi
+    
+    mov mi.fMask, MIIM_STATE
+    mov mi.wID, 0
+    mov mi.hSubMenu, 0
+    mov mi.dwTypeData, 0
+
+    Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_DEL_ITEM, Addr szTVRCMenuDelItem    
+
+    Invoke AppendMenu, hTVMenu, MF_SEPARATOR, 0, 0
+    Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_COPY, Addr szTVRCMenuCopy
+    Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_COPY_VALUE, Addr szTVRCMenuCopyValue
+    Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_COPY_BRANCH, Addr szTVRCMenuCopyBranch
+    Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_PASTE_JSON, Addr szTVRCMenuPasteJSON
+    Invoke AppendMenu, hTVMenu, MF_SEPARATOR, 0, 0
     Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_COLLAPSE_BRANCH, Addr szTVRCMenuCollapseBranch
     Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_EXPAND_BRANCH, Addr szTVRCMenuExpandBranch
-    invoke AppendMenu, hTVMenu, MF_SEPARATOR, 0, 0
+    Invoke AppendMenu, hTVMenu, MF_SEPARATOR, 0, 0
     Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_COLLAPSE_CHILDREN, Addr szTVRCMenuCollapseChildren
     Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_EXPAND_CHILDREN, Addr szTVRCMenuExpandChildren
+
+   
+    ; Bitmaps for menus
+    Invoke LoadBitmap, hInstance, IMG_CMD_COLLAPSE_BRANCH
+    mov hBitmap, eax
+    Invoke SetMenuItemBitmaps, hTVMenu, IDM_CMD_COLLAPSE_BRANCH, MF_BYCOMMAND, hBitmap, 0
+    Invoke LoadBitmap, hInstance, IMG_CMD_EXPAND_BRANCH
+    mov hBitmap, eax
+    Invoke SetMenuItemBitmaps, hTVMenu, IDM_CMD_EXPAND_BRANCH, MF_BYCOMMAND, hBitmap, 0
+    Invoke LoadBitmap, hInstance, IMG_CMD_COLLAPSE_CHILDREN
+    mov hBitmap, eax
+    Invoke SetMenuItemBitmaps, hTVMenu, IDM_CMD_COLLAPSE_CHILDREN, MF_BYCOMMAND, hBitmap, 0
+    Invoke LoadBitmap, hInstance, IMG_CMD_EXPAND_CHILDREN
+    mov hBitmap, eax
+    Invoke SetMenuItemBitmaps, hTVMenu, IDM_CMD_EXPAND_CHILDREN, MF_BYCOMMAND, hBitmap, 0
+    Invoke LoadBitmap, hInstance, IMG_CMD_COPY
+    mov hBitmap, eax
+    Invoke SetMenuItemBitmaps, hTVMenu, IDM_CMD_COPY, MF_BYCOMMAND, hBitmap, 0
+    Invoke SetMenuItemBitmaps, hMainMenu, IDM_EDIT_COPY, MF_BYCOMMAND, hBitmap, 0
+    Invoke LoadBitmap, hInstance, IMG_CMD_COPY_VALUE
+    mov hBitmap, eax
+    Invoke SetMenuItemBitmaps, hTVMenu, IDM_CMD_COPY_VALUE, MF_BYCOMMAND, hBitmap, 0
+    Invoke SetMenuItemBitmaps, hMainMenu, IDM_EDIT_COPY_VALUE, MF_BYCOMMAND, hBitmap, 0
+    Invoke LoadBitmap, hInstance, IMG_CMD_COPY_BRANCH
+    mov hBitmap, eax
+    Invoke SetMenuItemBitmaps, hTVMenu, IDM_CMD_COPY_BRANCH, MF_BYCOMMAND, hBitmap, 0
+    Invoke SetMenuItemBitmaps, hMainMenu, IDM_EDIT_COPY_BRANCH, MF_BYCOMMAND, hBitmap, 0
+    Invoke LoadBitmap, hInstance, IMG_CMD_PASTE_JSON
+    mov hBitmap, eax
+    Invoke SetMenuItemBitmaps, hTVMenu, IDM_CMD_PASTE_JSON, MF_BYCOMMAND, hBitmap, 0
+    Invoke SetMenuItemBitmaps, hMainMenu, IDM_EDIT_PASTE_JSON, MF_BYCOMMAND, hBitmap, 0
+    Invoke LoadBitmap, hInstance, IMG_CMD_ADD_ITEM
+    mov hBitmap, eax
+    Invoke SetMenuItemBitmaps, hTVMenu, IDM_CMD_ADD_ITEM, MF_BYCOMMAND, hBitmap, 0
+    
+    Invoke LoadBitmap, hInstance, IMG_CMD_EDIT_ITEM
+    mov hBitmap, eax
+    Invoke SetMenuItemBitmaps, hTVMenu, IDM_CMD_EDIT_ITEM, MF_BYCOMMAND, hBitmap, 0    
+    
+    Invoke LoadBitmap, hInstance, IMG_CMD_DEL_ITEM
+    mov hBitmap, eax
+    Invoke SetMenuItemBitmaps, hTVMenu, IDM_CMD_DEL_ITEM, MF_BYCOMMAND, hBitmap, 0
+    Invoke LoadBitmap, hInstance, IMG_CMD_NEW_JSON_FILE
+    mov hBitmap, eax
+    Invoke SetMenuItemBitmaps, hMainMenu, IDM_FILE_NEW, MF_BYCOMMAND, hBitmap, 0    
+    
+    Invoke LoadBitmap, hInstance, IMG_CMD_OPEN_JSON_FILE
+    mov hBitmap, eax
+    Invoke SetMenuItemBitmaps, hMainMenu, IDM_FILE_OPEN, MF_BYCOMMAND, hBitmap, 0
+    Invoke LoadBitmap, hInstance, IMG_CMD_CLOSE_JSON_FILE
+    mov hBitmap, eax
+    Invoke SetMenuItemBitmaps, hMainMenu, IDM_FILE_CLOSE, MF_BYCOMMAND, hBitmap, 0
+    Invoke LoadBitmap, hInstance, IMG_CMD_EXIT
+    mov hBitmap, eax
+    Invoke SetMenuItemBitmaps, hMainMenu, IDM_FILE_EXIT, MF_BYCOMMAND, hBitmap, 0    
+    
+    ; Set inital state for some menu items
+    mov mi.fState, MFS_GRAYED
+    Invoke SetMenuItemInfo, hMainMenu, IDM_EDIT_COPY, FALSE, Addr mi
+    Invoke SetMenuItemInfo, hMainMenu, IDM_EDIT_COPY_VALUE, FALSE, Addr mi
+    Invoke SetMenuItemInfo, hMainMenu, IDM_EDIT_COPY_BRANCH, FALSE, Addr mi
+    
+    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_COPY, FALSE, Addr mi
+    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_COPY_VALUE, FALSE, Addr mi    
+    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_COPY_BRANCH, FALSE, Addr mi
+    
+    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_ADD_ITEM, FALSE, Addr mi
+    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_EDIT_ITEM, FALSE, Addr mi
+    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_DEL_ITEM, FALSE, Addr mi
+    
+    Invoke IsClipboardFormatAvailable, CF_TEXT
+    .IF eax == TRUE
+        mov mi.fState, MFS_ENABLED
+    .ENDIF
+    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_PASTE_JSON, FALSE, Addr mi
+    
+    Invoke SetMenuItemInfo, hMainMenu, IDM_EDIT_PASTE_JSON, FALSE, Addr mi
     
     ret
 InitMenus ENDP
 
 
 ;-------------------------------------------------------------------------------------
+; ShowRightClickMenu - shows treeview right click menu
+;-------------------------------------------------------------------------------------
+ShowRightClickMenu PROC hWin:DWORD
+	Invoke GetCursorPos, addr TVRCMenuPoint
+	; Focus Main Window - ; Fix for shortcut menu not popping up right
+	Invoke SetForegroundWindow, hWin
+	Invoke TrackPopupMenu, hTVMenu, TPM_LEFTALIGN+TPM_LEFTBUTTON, TVRCMenuPoint.x, TVRCMenuPoint.y, NULL, hWin, NULL
+	Invoke PostMessage, hWin, WM_NULL, 0, 0 ; Fix for shortcut menu not popping up right  
+    ret
+ShowRightClickMenu ENDP
+
+
+;-------------------------------------------------------------------------------------
+; ShowAddSubmenu - Show Add Submenu if INSERT key is pressed and conditions are satisfied
+;-------------------------------------------------------------------------------------
+ShowAddSubmenu PROC hWin:DWORD
+    LOCAL tvhi:TV_HITTESTINFO
+    LOCAL bShowSubmenu:DWORD
+    LOCAL hItem:DWORD
+    mov bShowSubmenu, FALSE
+    
+    invoke GetCursorPos, Addr tvhi.pt
+    invoke ScreenToClient, hTV, addr tvhi.pt
+    invoke SendMessage, hTV, TVM_HITTEST, 0, Addr tvhi
+    Invoke SendMessage, hTV, TVM_SELECTITEM, TVGN_CARET, tvhi.hItem
+    ;Invoke TreeViewSetSelectedItem, hTV, tvhi.hItem
+    .IF eax != 0 && tvhi.flags == TVHT_ONITEMLABEL
+        mov hItem, eax
+        Invoke TreeViewItemHasChildren, hTV, hItem
+        mov bShowSubmenu, eax
+        
+        .IF eax == FALSE
+            Invoke TreeViewGetSelectedParam, hTV
+            .IF eax != NULL ; eax = hJSON
+                mov ebx, eax
+                mov eax, [ebx].cJSON.itemtype
+                .IF eax == cJSON_Object || eax == cJSON_Array
+                    mov bShowSubmenu, TRUE
+                .ENDIF 
+            .ENDIF
+        .ENDIF
+    .ENDIF
+    
+    .IF bShowSubmenu == TRUE
+    	Invoke GetCursorPos, addr TVRCMenuPoint
+    	; Focus Main Window - ; Fix for shortcut menu not popping up right
+    	Invoke SetForegroundWindow, hWin
+    	Invoke TrackPopupMenu, hTVAddMenu, TPM_LEFTALIGN+TPM_LEFTBUTTON, TVRCMenuPoint.x, TVRCMenuPoint.y, NULL, hWin, NULL
+    	Invoke PostMessage, hWin, WM_NULL, 0, 0 ; Fix for shortcut menu not popping up right   
+    .ENDIF
+    ret
+
+ShowAddSubmenu ENDP
+
+
+;-------------------------------------------------------------------------------------
 ; UpdateMenus - Initialize menus
 ;-------------------------------------------------------------------------------------
 UpdateMenus PROC USES EBX hWin:DWORD, dwInTV:DWORD
+    LOCAL hMainMenu:DWORD
     LOCAL hItem:DWORD
     LOCAL hJSON:DWORD
     LOCAL mi:MENUITEMINFO
+    LOCAL nArraySize:DWORD
+    LOCAL bChildren:DWORD
     
     mov mi.cbSize, SIZEOF MENUITEMINFO
     mov mi.fMask, MIIM_STATE
     mov mi.fState, MFS_GRAYED
+    
+    mov nArraySize, 0
 
     .IF dwInTV == TRUE
-        
         Invoke TreeViewGetSelectedItem, hTV
         mov hItem, eax
-        Invoke TreeViewGetItemParam, hTV, hItem
+        
+        Invoke TreeViewItemHasChildren, hTV, hItem
+        mov bChildren, eax
+        
+        ;Invoke TreeViewCountChildren, hTV, hItem, FALSE
+        ;mov nArraySize, eax
+        .IF eax != 0
+            mov mi.fState, MFS_ENABLED
+        .ENDIF 
+        
+;        Invoke TreeViewGetItemParam, hTV, hItem
         Invoke TreeViewGetSelectedParam, hTV
         mov hJSON, eax
         
         .IF hJSON != NULL
-            Invoke cJSON_GetArraySize, hJSON
-            .IF eax != 0
+            mov ebx, eax
+            mov eax, [ebx].cJSON.itemtype
+            .IF eax == cJSON_Object || eax == cJSON_Array
                 mov mi.fState, MFS_ENABLED
             .ENDIF 
         .ENDIF
+        
     .ENDIF
-
+    
+    ; Enabled if has children items
     Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_COLLAPSE_BRANCH, FALSE, Addr mi
     Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_EXPAND_BRANCH, FALSE, Addr mi
     Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_COLLAPSE_CHILDREN, FALSE, Addr mi
     Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_EXPAND_CHILDREN, FALSE, Addr mi
+    ;Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_COPY_BRANCH, FALSE, Addr mi
+    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_ADD_ITEM, FALSE, Addr mi
+    
+    ; Enabled if inside a treeview and on an item or label
+    .IF dwInTV == TRUE
+        mov mi.fState, MFS_ENABLED
+    .ELSE
+        mov mi.fState, MFS_GRAYED
+    .ENDIF
+    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_COPY, FALSE, Addr mi
+    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_COPY_VALUE, FALSE, Addr mi
+    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_EDIT_ITEM, FALSE, Addr mi
+    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_DEL_ITEM, FALSE, Addr mi
+    
+    ; Main menu items copy, copy value, copy branch
+    Invoke GetMenu, hWin
+    mov hMainMenu, eax
+    .IF dwInTV == TRUE
+        mov mi.fState, MFS_ENABLED
+    .ELSE
+        mov mi.fState, MFS_GRAYED
+    .ENDIF
+    Invoke SetMenuItemInfo, hMainMenu, IDM_EDIT_COPY, FALSE, Addr mi
+    Invoke SetMenuItemInfo, hMainMenu, IDM_EDIT_COPY_VALUE, FALSE, Addr mi
+    .IF nArraySize > 0
+        mov mi.fState, MFS_ENABLED
+    .ELSE
+        mov mi.fState, MFS_GRAYED
+    .ENDIF    
+    ;Invoke SetMenuItemInfo, hMainMenu, IDM_EDIT_COPY_BRANCH, FALSE, Addr mi
+    
+    ; Enabled if clipload has data and format text is available
+    Invoke IsClipboardFormatAvailable, CF_TEXT
+    .IF eax == TRUE
+        mov mi.fState, MFS_ENABLED
+    .ELSE
+        mov mi.fState, MFS_GRAYED
+    .ENDIF
+    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_PASTE_JSON, FALSE, Addr mi
+    Invoke SetMenuItemInfo, hTVMenu, IDM_EDIT_PASTE_JSON, FALSE, Addr mi
     
     ret
 UpdateMenus ENDP
@@ -437,13 +746,14 @@ UpdateMenus ENDP
 PasteJSON PROC USES EBX hWin:DWORD
     LOCAL ptrClipData:DWORD
     
+    Invoke CloseJSONFile
+    
     Invoke IsClipboardFormatAvailable, CF_TEXT
     .IF eax == FALSE
         ret
     .ENDIF
     
     Invoke OpenClipboard, hWin
-    
     Invoke GetClipboardData, CF_TEXT
     .IF eax == NULL
         Invoke CloseClipboard
@@ -451,16 +761,721 @@ PasteJSON PROC USES EBX hWin:DWORD
         ret
     .ENDIF
     mov ptrClipData, eax
-    
-    Invoke TreeViewDeleteAll, hTV
-    
     Invoke ProcessJSONData, hWin, NULL, ptrClipData
-    
     Invoke CloseClipboard
+    ret
+PasteJSON ENDP
+
+
+;-------------------------------------------------------------------------------------
+; Copies selected treeview item text to clipboard. if dwValueOnly == TRUE then 
+; extracts the value from the colon in the text and copies it to clipboard
+;-------------------------------------------------------------------------------------
+CopyToClipboard PROC USES EBX hWin:DWORD, dwValueOnly:DWORD
+    LOCAL ptrClipboardData:DWORD
+    LOCAL hClipData:DWORD
+    LOCAL pClipData:DWORD
+    LOCAL LenData:DWORD
+    
+    Invoke OpenClipboard, hWin
+    .IF eax == 0
+        ret
+    .ENDIF
+    Invoke EmptyClipboard
+    
+    Invoke GlobalAlloc, GMEM_FIXED + GMEM_ZEROINIT, 1024d
+    mov ptrClipboardData, eax
+    
+    Invoke TreeViewGetSelectedText, hTV, Addr szSelectedTreeviewText, SIZEOF szSelectedTreeviewText
+    .IF eax == 0
+        Invoke GlobalFree, ptrClipboardData
+        Invoke CloseClipboard
+        ret
+    .ENDIF
+    Invoke szLen, Addr szSelectedTreeviewText
+    mov LenData, eax
+    
+    .IF dwValueOnly == TRUE
+        Invoke InString, 1, Addr szSelectedTreeviewText, Addr szColon
+        .IF eax == 0 ; no match
+            Invoke GlobalFree, ptrClipboardData
+            Invoke CloseClipboard
+            ret
+        .ENDIF
+        mov ebx, eax
+        mov eax, LenData
+        sub eax, ebx
+        
+        .IF sdword ptr eax > 1
+            dec eax ; skip any space
+        .ELSE
+            Invoke GlobalFree, ptrClipboardData
+            Invoke CloseClipboard
+            ret
+        .ENDIF
+        Invoke szRight, Addr szSelectedTreeviewText, ptrClipboardData, eax
+        
+        Invoke szLen, ptrClipboardData
+        .IF eax == 0
+            Invoke GlobalFree, ptrClipboardData
+            Invoke CloseClipboard
+            ret
+        .ENDIF
+    .ELSE
+        Invoke RtlMoveMemory, ptrClipboardData, Addr szSelectedTreeviewText, LenData
+    .ENDIF
+    
+    mov eax, LenData
+    inc eax
+    Invoke GlobalAlloc, GMEM_MOVEABLE, eax ;+GMEM_DDESHARE
+    .IF eax == NULL
+        Invoke GlobalFree, ptrClipboardData
+        Invoke CloseClipboard
+        ret
+    .ENDIF
+    mov hClipData, eax
+    
+    Invoke GlobalLock, hClipData
+    .IF eax == NULL
+        Invoke GlobalFree, ptrClipboardData
+        Invoke GlobalFree, hClipData
+        Invoke CloseClipboard
+        ret
+    .ENDIF
+    mov pClipData, eax
+    mov eax, LenData
+    Invoke RtlMoveMemory, pClipData, ptrClipboardData, eax
+    
+    Invoke GlobalUnlock, hClipData 
+    invoke SetClipboardData, CF_TEXT, hClipData
+    Invoke CloseClipboard
+
+    Invoke GlobalFree, ptrClipboardData
+    
+    Invoke SendMessage, hSB, SB_SETTEXT, 1, Addr szJSONCopiedDataToClipboard
     
     ret
+CopyToClipboard ENDP
 
-PasteJSON ENDP
+
+;-------------------------------------------------------------------------------------
+; Copies branch and all descendants to json formatted text to clipboard
+;-------------------------------------------------------------------------------------
+CopyBranchToClipboard PROC USES EBX hWin:DWORD
+    LOCAL hCurrentChild:DWORD
+    LOCAL hCheckItem:DWORD
+    LOCAL LenData:DWORD
+    LOCAL dwLevel:DWORD
+    LOCAL dwSpacingLevel:DWORD
+    LOCAL jsontype:DWORD
+    LOCAL lpszItemName:DWORD
+    LOCAL dwChildrenCount:DWORD
+    LOCAL ptrClipboardData:DWORD
+    LOCAL hClipData:DWORD
+    LOCAL pClipData:DWORD
+    LOCAL dwLenSelectedTreeviewText
+    LOCAL dwColonPos:DWORD
+    LOCAL dwMaxSize:DWORD
+    
+    Invoke TreeViewGetSelectedItem, hTV
+    .IF eax == NULL
+        ret
+    .ENDIF
+    mov hCurrentChild, eax
+    
+    mov dwLevel, 0
+    mov dwSpacingLevel, 0
+
+    Invoke TreeViewCountChildren, hTV, hCurrentChild, TRUE
+    mov dwChildrenCount, eax
+    IFDEF DEBUG32
+    PrintDec dwChildrenCount
+    ENDIF
+    ; estimate space for clipboard: no children and items in branch x 1024d 
+    ; (+ each item requires up to 4 quotes and comma, cr, lf) + indent spacing per line + brackets or array brackets pairs) (11)
+    ; estimate 10 spaces per item for indenting (10)
+    ; = 1048 x no children
+    
+    mov eax, dwChildrenCount
+    mov ebx, 1048d
+    mul ebx
+    mov dwMaxSize, eax
+    
+    Invoke GlobalAlloc, GMEM_FIXED + GMEM_ZEROINIT, dwMaxSize
+    .IF eax == NULL
+        ret
+    .ENDIF
+    mov ptrClipboardData, eax    
+
+    Invoke OpenClipboard, hWin
+    .IF eax == 0
+        Invoke GlobalFree, ptrClipboardData
+        ret
+    .ENDIF
+    Invoke EmptyClipboard
+
+
+
+;szJSONExportStart           DB '{',13,10,0
+;szJSONExportEnd             DB '}',13,10,0
+;szJSONExportArrayStart      DB '[',13,10,0
+;szJSONExportArrayEnd        DB ']',13,10,0
+;szJSONExportArrayEmpty      DB '[]',13,10,0
+;szJSONExportCRLF            DB 13,10,0
+;szJSONExportCommaCRLF       DB ',',13,10,0
+;szJSONExportMiddleString    DB '": "',0
+;szJSONExportMiddleOther     DB '": ',0
+;szJSONExportIndentSpaces    DB 32 DUP (32d)
+
+
+    Invoke szCopy, Addr szJSONExportStart, ptrClipboardData
+
+    Invoke TreeViewGetItemText, hTV, hCurrentChild, Addr szSelectedTreeviewText, SIZEOF szSelectedTreeviewText
+    Invoke szLen, Addr szSelectedTreeviewText
+    mov dwLenSelectedTreeviewText, eax
+    Invoke TreeViewGetItemParam, hTV, hCurrentChild
+    ;PrintDec eax
+    .IF eax != NULL
+        mov ebx, eax
+        mov eax, [ebx].cJSON.itemtype
+        mov jsontype, eax
+        mov eax, [ebx].cJSON.itemstring
+        mov lpszItemName, eax
+        mov eax, [ebx].cJSON.valuestring
+        mov lpszItemString, eax
+        ;PrintDec jsontype
+        mov eax, jsontype
+        .IF eax == cJSON_Object
+            IFDEF DEBUG32
+            PrintText 'cJSON_Object'
+            ENDIF
+            Invoke szCatStr, ptrClipboardData, Addr szSpace
+            Invoke szCatStr, ptrClipboardData, Addr szJSONExportObjectStart
+            
+            .IF lpszItemName != NULL
+                Invoke szCatStr, ptrClipboardData, Addr szSpace
+                Invoke szCatStr, ptrClipboardData, Addr szQuote
+                Invoke szCatStr, ptrClipboardData, lpszItemName
+                Invoke szCatStr, ptrClipboardData, Addr szQuote
+                Invoke szCatStr, ptrClipboardData, Addr szColon                
+            .ELSE
+                ;Invoke szCatStr, ptrClipboardData, Addr szObject
+            .ENDIF
+            ;Invoke szCatStr, ptrClipboardData, Addr szJSONExportCRLF
+        .ELSEIF eax == cJSON_Array
+            IFDEF DEBUG32
+            PrintText 'cJSON_Array'
+            ENDIF
+            Invoke szCatStr, ptrClipboardData, Addr szSpace
+            Invoke szCatStr, ptrClipboardData, Addr szQuote
+            .IF lpszItemName != NULL
+                Invoke szCatStr, ptrClipboardData, lpszItemName
+            .ELSE
+                Invoke szCatStr, ptrClipboardData, Addr szArray
+            .ENDIF
+            Invoke szCatStr, ptrClipboardData, Addr szQuote
+            Invoke szCatStr, ptrClipboardData, Addr szColon
+            Invoke szCatStr, ptrClipboardData, Addr szSpace
+            Invoke szCatStr, ptrClipboardData, Addr szLeftSquareBracket
+            ;Invoke szCatStr, ptrClipboardData, Addr szJSONExportCRLF
+        .ENDIF
+        inc dwSpacingLevel
+    .ENDIF
+    IFDEF DEBUG32
+    PrintText 'TVM_GETNEXTITEM, TVGN_CHILD'
+    ENDIF
+    push hCurrentChild
+    Invoke SendMessage, hTV, TVM_GETNEXTITEM, TVGN_CHILD, hCurrentChild
+    .WHILE eax != NULL
+        mov hCurrentChild, eax      
+        
+        .IF dwSpacingLevel != 0
+            Invoke szLeft, Addr szJSONExportIndentSpaces, Addr szJSONExportSpacesBuffer, dwSpacingLevel
+            Invoke szCatStr, ptrClipboardData, Addr szJSONExportSpacesBuffer
+        .ENDIF
+        
+        IFDEF DEBUG32
+        PrintText 'TreeViewGetItemText hCurrentChild'
+        ENDIF
+        Invoke TreeViewGetItemText, hTV, hCurrentChild, Addr szSelectedTreeviewText, SIZEOF szSelectedTreeviewText
+        .IF eax == 0
+            IFDEF DEBUG32
+            PrintText 'TreeViewGetItemText error'
+            ENDIF
+            Invoke GlobalFree, ptrClipboardData
+            Invoke CloseClipboard
+            ret
+        .ENDIF
+        
+        IFDEF DEBUG32
+        PrintText 'TreeViewGetItemText Length'
+        ENDIF
+        
+        Invoke szLen, Addr szSelectedTreeviewText
+        mov dwLenSelectedTreeviewText, eax
+        
+        IFDEF DEBUG32
+        PrintString szSelectedTreeviewText
+        ENDIF
+        
+        Invoke TreeViewGetItemParam, hTV, hCurrentChild
+        ;PrintDec eax
+        .IF eax != NULL
+            mov ebx, eax
+            mov eax, [ebx].cJSON.itemtype
+            mov jsontype, eax
+            mov eax, [ebx].cJSON.itemstring
+            mov lpszItemName, eax
+            mov eax, [ebx].cJSON.valuestring
+            mov lpszItemString, eax
+            ;PrintDec jsontype
+            mov eax, jsontype
+            .IF eax == cJSON_Object
+                IFDEF DEBUG32
+                PrintText 'cJSON_Object'
+                ENDIF
+                Invoke szCatStr, ptrClipboardData, Addr szJSONExportObjectStart
+                ;Invoke szCatStr, ptrClipboardData, Addr szJSONExportSpacesBuffer
+                
+                .IF lpszItemName != NULL
+                    Invoke szCatStr, ptrClipboardData, Addr szQuote
+                    Invoke szCatStr, ptrClipboardData, lpszItemName
+                    Invoke szCatStr, ptrClipboardData, Addr szQuote
+                    Invoke szCatStr, ptrClipboardData, Addr szColon
+                .ELSE
+                    ;Invoke szCatStr, ptrClipboardData, Addr szObject
+                .ENDIF
+                inc dwSpacingLevel
+ 
+            .ELSEIF eax == cJSON_Array
+                IFDEF DEBUG32
+                PrintText 'cJSON_Array'
+                ENDIF
+                Invoke szCatStr, ptrClipboardData, Addr szQuote
+                .IF lpszItemName != NULL
+                    Invoke szCatStr, ptrClipboardData, lpszItemName
+                .ELSE
+                    Invoke szCatStr, ptrClipboardData, Addr szArray
+                .ENDIF
+                Invoke szCatStr, ptrClipboardData, Addr szQuote
+                Invoke szCatStr, ptrClipboardData, Addr szColon                
+                Invoke szCatStr, ptrClipboardData, Addr szSpace
+                Invoke szCatStr, ptrClipboardData, Addr szLeftSquareBracket
+                inc dwSpacingLevel
+                
+            .ELSEIF eax == cJSON_String
+                IFDEF DEBUG32
+                PrintText 'cJSON_String'
+                ENDIF
+                Invoke szCatStr, ptrClipboardData, Addr szQuote
+                
+                Invoke InString, 1, Addr szSelectedTreeviewText, Addr szColon
+                mov dwColonPos, eax
+                .IF eax != 0 ; match                
+                    Invoke szLeft, Addr szSelectedTreeviewText, Addr szItemTextValue, dwColonPos
+                    Invoke szCatStr, ptrClipboardData, Addr szItemTextValue
+                    Invoke szCatStr, ptrClipboardData, Addr szJSONExportMiddleString
+                .ELSE
+                    IFDEF DEBUG32
+                    PrintText '!!!'
+                    ENDIF
+                .ENDIF
+                
+                mov ebx, dwColonPos
+                mov eax, dwLenSelectedTreeviewText
+                sub eax, ebx
+                .IF sdword ptr eax > 1
+                    dec eax ; skip any space
+                    Invoke szRight, Addr szSelectedTreeviewText, Addr szItemTextValue, eax
+                    Invoke szCatStr, ptrClipboardData, Addr szItemTextValue
+                .ENDIF
+                Invoke szCatStr, ptrClipboardData, Addr szQuote
+                
+            .ELSEIF eax == cJSON_Number
+                IFDEF DEBUG32
+                PrintText 'cJSON_Number'
+                ENDIF
+            .ELSEIF eax == cJSON_True
+                IFDEF DEBUG32
+                PrintText 'cJSON_True'
+                ENDIF
+;                Invoke szCatStr, ptrClipboardData, Addr szQuote
+;                Invoke InString, 1, Addr szSelectedTreeviewText, Addr szColon
+;                mov dwColonPos, eax
+;                .IF eax != 0 ; match
+;                    Invoke szLeft, Addr szSelectedTreeviewText, Addr szItemTextValue, dwColonPos
+;                    Invoke szCatStr, ptrClipboardData, Addr szItemTextValue
+;                    Invoke szCatStr, ptrClipboardData, Addr szJSONExportMiddleOther
+;                .ELSE
+;                    PrintText '!!!'
+;                .ENDIF
+;                mov ebx, dwColonPos
+;                mov eax, dwLenSelectedTreeviewText
+;                sub eax, ebx
+;                dec eax
+;                Invoke szRight, Addr szSelectedTreeviewText, Addr szItemTextValue, eax
+;                Invoke szCatStr, ptrClipboardData, Addr szItemTextValue
+
+                
+            .ELSEIF eax == cJSON_False
+                IFDEF DEBUG32
+                PrintText 'cJSON_False'
+                ENDIF
+            .ELSEIF eax == cJSON_Invalid
+                IFDEF DEBUG32
+                PrintText 'cJSON_Invalid'
+                ENDIF
+            .ENDIF
+            
+            mov eax, jsontype
+            .IF eax == cJSON_Number || eax == cJSON_True || eax == cJSON_False || eax == cJSON_Invalid
+                Invoke szCatStr, ptrClipboardData, Addr szQuote
+                Invoke InString, 1, Addr szSelectedTreeviewText, Addr szColon
+                mov dwColonPos, eax
+                .IF eax != 0 ; match
+                    Invoke szLeft, Addr szSelectedTreeviewText, Addr szItemTextValue, dwColonPos
+                    Invoke szCatStr, ptrClipboardData, Addr szItemTextValue
+                    Invoke szCatStr, ptrClipboardData, Addr szJSONExportMiddleOther
+                .ELSE
+                    IFDEF DEBUG32
+                    PrintText '!!!'
+                    ENDIF
+                .ENDIF
+                mov ebx, dwColonPos
+                mov eax, dwLenSelectedTreeviewText
+                sub eax, ebx
+                .IF sdword ptr eax > 1
+                    dec eax ; skip any space
+                    Invoke szRight, Addr szSelectedTreeviewText, Addr szItemTextValue, eax
+                    Invoke szCatStr, ptrClipboardData, Addr szItemTextValue
+                .ENDIF
+            .ENDIF
+             
+        .ENDIF
+        
+        
+        mov LenData, eax
+        
+        Invoke SendMessage, hTV, TVM_GETNEXTITEM, TVGN_CHILD, hCurrentChild
+        .IF eax != 0
+            inc dwLevel
+            inc dwSpacingLevel
+            IFDEF DEBUG32
+            PrintDec hCurrentChild
+            ENDIF
+            push hCurrentChild
+            mov hCurrentChild, eax
+        .ENDIF
+        
+        ;mov eax, hCurrentChild
+        ;mov hCheckItem, eax
+        Invoke SendMessage, hTV, TVM_GETNEXTITEM, TVGN_NEXT, hCurrentChild
+        mov hCurrentChild, eax
+        .IF eax == 0
+            IFDEF DEBUG32
+            PrintText 'TVM_GETNEXTITEM == 0 '
+            ENDIF
+            Invoke szCatStr, ptrClipboardData, Addr szJSONExportCRLF
+            
+            ; pop always, then check for last object type?
+            
+            .IF dwLevel != 0
+                IFDEF DEBUG32
+                PrintText 'dwLevel != 0'
+                ENDIF
+                dec dwLevel
+                dec dwSpacingLevel
+                pop hCurrentChild
+                mov eax, hCurrentChild
+                mov hCheckItem, eax
+                Invoke SendMessage, hTV, TVM_GETNEXTITEM, TVGN_NEXT, hCurrentChild
+                mov hCurrentChild, eax
+                
+                .IF dwSpacingLevel != 0
+                    Invoke szLeft, Addr szJSONExportIndentSpaces, Addr szJSONExportSpacesBuffer, dwSpacingLevel
+                    Invoke szCatStr, ptrClipboardData, Addr szJSONExportSpacesBuffer                
+                .ENDIF
+                
+                mov eax, hCurrentChild
+                .IF eax == 0
+                    Invoke szCatStr, ptrClipboardData, Addr szJSONExportObjectEnd
+                .ELSE
+                    Invoke szCatStr, ptrClipboardData, Addr szJSONExportObjectCommaEnd
+                .ENDIF
+                IFDEF DEBUG32
+                PrintText 'Checking Last objects'
+                PrintDec hCheckItem
+                ENDIF
+                Invoke TreeViewGetItemParam, hTV, hCheckItem
+                ;PrintDec eax
+                .IF eax != NULL
+                    mov ebx, eax
+                    mov eax, [ebx].cJSON.itemtype                
+                    .IF eax == cJSON_Object
+                        IFDEF DEBUG32
+                        PrintText 'Last objects: cJSON_Object'
+                        ENDIF
+                    .ELSEIF eax == cJSON_Array
+                        IFDEF DEBUG32
+                        PrintText 'Last objects: cJSON_Array'
+                        ENDIF
+                    .ENDIF
+                .ENDIF                
+                
+            .ELSE
+                IFDEF DEBUG32
+                PrintText 'dwLevel == 0'
+                ENDIF
+                pop hCurrentChild
+                mov eax, hCurrentChild
+                mov hCheckItem, eax
+                
+                IFDEF DEBUG32
+                PrintText 'Checking Last objects'
+                PrintDec hCheckItem
+                ENDIF
+                Invoke TreeViewGetItemParam, hTV, hCheckItem
+                ;PrintDec eax
+                .IF eax != NULL
+                    mov ebx, eax
+                    mov eax, [ebx].cJSON.itemtype                
+                    .IF eax == cJSON_Object
+                        IFDEF DEBUG32
+                        PrintText 'Last objects: cJSON_Object'
+                        ENDIF
+                    .ELSEIF eax == cJSON_Array
+                        IFDEF DEBUG32
+                        PrintText 'Last objects: cJSON_Array'
+                        ENDIF
+                    .ENDIF
+                .ENDIF                   
+                
+            .ENDIF
+        .ELSE
+            mov eax, jsontype
+            .IF eax == cJSON_Object || eax == cJSON_Array
+                ;Invoke szCatStr, ptrClipboardData, Addr szJSONExportCRLF
+            .ELSE
+                Invoke szCatStr, ptrClipboardData, Addr szJSONExportCommaCRLF
+            .ENDIF
+        .ENDIF
+
+        mov eax, hCurrentChild
+    .ENDW
+
+    pop hCurrentChild
+                mov eax, hCurrentChild
+                mov hCheckItem, eax
+               Invoke TreeViewGetItemParam, hTV, hCheckItem
+                ;PrintDec eax
+                .IF eax != NULL
+                    mov ebx, eax
+                    mov eax, [ebx].cJSON.itemtype                
+                    .IF eax == cJSON_Object
+                        IFDEF DEBUG32
+                        PrintText 'Last objects: cJSON_Object'
+                        ENDIF
+                    .ELSEIF eax == cJSON_Array
+                        IFDEF DEBUG32
+                        PrintText 'Last objects: cJSON_Array'
+                        ENDIF
+                    .ENDIF
+                .ENDIF                       
+    
+    
+    Invoke szCatStr, ptrClipboardData, Addr szJSONExportEnd 
+
+
+    ;DbgDump ptrClipboardData, dwMaxSize
+    
+    Invoke szLen, ptrClipboardData
+    mov LenData, eax
+    inc eax
+    Invoke GlobalAlloc, GMEM_MOVEABLE, eax ;+GMEM_DDESHARE
+    .IF eax == NULL
+        Invoke GlobalFree, ptrClipboardData
+        Invoke CloseClipboard
+        ret
+    .ENDIF
+    mov hClipData, eax
+    
+    Invoke GlobalLock, hClipData
+    .IF eax == NULL
+        Invoke GlobalFree, ptrClipboardData
+        Invoke GlobalFree, hClipData
+        Invoke CloseClipboard
+        ret
+    .ENDIF
+    mov pClipData, eax
+    mov eax, LenData
+    Invoke RtlMoveMemory, pClipData, ptrClipboardData, eax
+    
+    Invoke GlobalUnlock, hClipData 
+    invoke SetClipboardData, CF_TEXT, hClipData
+
+    Invoke CloseClipboard
+    Invoke GlobalFree, ptrClipboardData
+
+    ret
+CopyBranchToClipboard ENDP
+
+
+;-------------------------------------------------------------------------------------
+; Add a new json type treeview item under current branch
+;-------------------------------------------------------------------------------------
+AddJSONItem PROC USES EBX hWin:DWORD, dwJsonType:DWORD
+    LOCAL hJSON:DWORD
+    LOCAL hJSONPrev:DWORD
+    LOCAL hItemPrev:DWORD
+    LOCAL nTVIndex:DWORD
+    LOCAL prev:DWORD
+    LOCAL nIcon:DWORD
+    LOCAL hTVItem:DWORD
+    
+    Invoke TreeViewGetSelectedItem, hTV
+    mov hTVNode, eax
+    
+    Invoke SendMessage, hTV, TVM_GETCOUNT, 0, 0
+    mov nTVIndex, eax
+
+    mov eax, dwJsonType
+    .IF eax == cJSON_Object
+        Invoke szCopy, Addr szNewItem, Addr szItemText
+        mov eax, IL_ICO_JSON_OBJECT
+        mov nIcon, eax
+    .ELSEIF eax == cJSON_Array
+        Invoke szCopy, Addr szNewItem, Addr szItemText
+        mov eax, IL_ICO_JSON_ARRAY
+        mov nIcon, eax
+    .ELSEIF eax == cJSON_String
+        Invoke szCopy, Addr szNewItem, Addr szItemText
+        mov eax, IL_ICO_JSON_STRING
+        mov nIcon, eax        
+    .ELSEIF eax == cJSON_Number
+        Invoke szCopy, Addr szNewNumber, Addr szItemText
+        mov eax, IL_ICO_JSON_NUMBER
+        mov nIcon, eax        
+    .ELSEIF eax == cJSON_True
+        Invoke szCopy, Addr szNewTrue, Addr szItemText
+        mov eax, IL_ICO_JSON_LOGICAL
+        mov nIcon, eax        
+    .ELSEIF eax == cJSON_False
+        Invoke szCopy, Addr szNewFalse, Addr szItemText
+        mov eax, IL_ICO_JSON_LOGICAL
+        mov nIcon, eax
+    .ENDIF
+    
+    ; Create a JSON object for our new item
+    Invoke GlobalAlloc, GMEM_FIXED + GMEM_ZEROINIT, SIZEOF cJSON
+    mov hJSON, eax
+    mov ebx, eax
+    mov eax, dwJsonType
+    mov [ebx].cJSON.itemtype, eax
+    mov eax, hJSON
+    mov [ebx].cJSON.valueint, eax ; store handle in this value
+    mov dword ptr [ebx].cJSON.valuedouble, eax ; store handle in this value
+    
+    ; Get hJSON from previous treeview item and adjust its record to point to our new items hJSON
+    ; and set our new items hJSON prev value to point to previous treeview item hJSON
+    ; or if item didnt have a child before, point it to out new item we added
+    Invoke SendMessage, hTV, TVM_GETNEXTITEM, TVGN_PREVIOUS, hTVNode
+    .IF eax != NULL
+        mov hItemPrev, eax
+        Invoke TreeViewGetItemParam, hTV, hItemPrev
+        .IF eax != NULL
+            mov hJSONPrev, eax
+            mov ebx, eax
+            mov eax, hJSON
+            mov [ebx].cJSON.next, eax
+            mov ebx, hJSON
+            mov eax, hJSONPrev
+            mov [ebx].cJSON.prev, eax
+        .ENDIF    
+    .ELSE
+        Invoke TreeViewGetItemParam, hTV, hTVNode
+        .IF eax != NULL
+            mov hJSONPrev, eax
+            mov ebx, eax
+            mov eax, [ebx].cJSON.child
+            .IF eax == 0 ; didnt have a child previously
+                mov eax, hJSONPrev
+                mov [ebx].cJSON.child, eax
+            .ENDIF
+        .ENDIF
+    .ENDIF
+    
+    Invoke TreeViewInsertItem, hTV, hTVNode, Addr szItemText, nTVIndex, TVI_LAST, nIcon, nIcon, hJSON
+    mov hTVItem, eax
+    Invoke TreeViewItemExpand, hTV, hTVNode
+    Invoke TreeViewSetSelectedItem, hTV, hTVItem, TRUE
+    Invoke TreeViewItemExpand, hTV, hTVItem
+    Invoke SendMessage, hTV, TVM_EDITLABEL, 0, hTVItem
+    
+    ret
+AddJSONItem ENDP
+
+
+;-------------------------------------------------------------------------------------
+; Deletes a selected treeview item
+;-------------------------------------------------------------------------------------
+DelJSONItem PROC USES EBX hWin:DWORD
+    LOCAL hItem:DWORD
+    Invoke TreeViewGetSelectedItem, hTV
+    mov hItem, eax
+    Invoke TreeViewGetItemParam, hTV, hItem
+    mov ebx, eax
+    mov eax, [ebx].cJSON.valueint
+    mov ebx, dword ptr [ebx].cJSON.valuedouble
+    .IF (eax != 0 && ebx != 0) && (eax == ebx) ; if user added item in treeview, we stored handle to mem allocated cJSON struct in valueint and valuedouble fields
+        Invoke GlobalFree, eax ; if both are the same value and are not 0 then we assume this value is the handle and try to free it.
+    .ENDIF  
+    
+    Invoke TreeViewSetItemParam, hTV, hItem, NULL
+    Invoke TreeViewItemDelete, hTV, hItem
+
+    ret
+
+DelJSONItem ENDP
+
+
+;-------------------------------------------------------------------------------------
+; Edit the treeview item text, F2 or double clicking on label does the same
+;-------------------------------------------------------------------------------------
+EditJSONItem PROC USES EBX hWin:DWORD
+    Invoke TreeViewGetSelectedItem, hTV
+    .IF eax != 0
+        Invoke SendMessage, hTV, TVM_EDITLABEL, 0, eax
+    .ENDIF
+    ret
+EditJSONItem ENDP
+
+
+;-------------------------------------------------------------------------------------
+; Creates a new json treeview
+;-------------------------------------------------------------------------------------
+NewJSON PROC USES EBX hWin:DWORD
+    Invoke TreeViewDeleteAll, hTV
+    Invoke CloseJSONFile
+    
+    Invoke SendMessage, hSB, SB_SETTEXT, 1, Addr szJSONCreatedNewData
+
+    ; Create a JSON object for our new item
+    Invoke GlobalAlloc, GMEM_FIXED + GMEM_ZEROINIT, SIZEOF cJSON
+    mov hJSON_Object_Root, eax
+    mov ebx, eax
+    mov eax, cJSON_Object
+    mov [ebx].cJSON.itemtype, eax
+    mov eax, hJSON_Object_Root
+    mov [ebx].cJSON.valueint, eax ; store handle in this value
+    mov dword ptr [ebx].cJSON.valuedouble, eax ; store handle in this value    
+    
+    Invoke TreeViewInsertItem, hTV, NULL, Addr szJSONNewData, 0, TVI_ROOT, IL_ICO_MAIN, IL_ICO_MAIN, hJSON_Object_Root
+    mov hTVRoot, eax
+    Invoke TreeViewSetSelectedItem, hTV, hTVRoot, TRUE
+    Invoke TreeViewItemExpand, hTV, hTVRoot
+    
+    ret
+NewJSON ENDP
 
 
 ;-------------------------------------------------------------------------------------
@@ -647,24 +1662,9 @@ ProcessJSONData PROC USES EBX hWin:DWORD, lpszJSONFile:DWORD, lpdwJSONData:DWORD
     .ELSEIF hJSON_Object_Root == NULL && lpdwJSONData != NULL
          ; If empty then tell user some error about reading clipboard data
         Invoke szCopy, Addr szJSONErrorClipData, Addr szJSONErrorMessage
-        Invoke SendMessage, hSB, SB_SETTEXT, 1, Addr szJSONErrorMessage    
+        Invoke SendMessage, hSB, SB_SETTEXT, 1, Addr szJSONErrorMessage
         ret  
     .ENDIF
-
-    ; Treeview Root is created, save handle to it, specifically we will need hTVNode later for when inserting children to treeview
-    mov nTVIndex, 0
-    .IF lpdwJSONData == NULL
-        Invoke TreeViewInsertItem, hTV, NULL, lpszJSONFile, nTVIndex, TVI_ROOT, IL_ICO_MAIN, IL_ICO_MAIN, 0
-    .ELSE
-        Invoke TreeViewInsertItem, hTV, NULL, Addr szJSONClipboard, nTVIndex, TVI_ROOT, IL_ICO_MAIN, IL_ICO_MAIN, 0
-    .ENDIF
-    mov hTVRoot, eax
-    mov hTVNode, eax
-    mov hTVCurrentNode, eax
-    inc nTVIndex
-    
-    
-    ; Each time we insert a treeview item we need to increment our nTVIndex counter
 
     ; Just a check to make sure JSON has some stuff to process
     Invoke cJSON_GetArraySize, hJSON_Object_Root
@@ -678,6 +1678,23 @@ ProcessJSONData PROC USES EBX hWin:DWORD, lpszJSONFile:DWORD, lpdwJSONData:DWORD
         Invoke SendMessage, hSB, SB_SETTEXT, 1, Addr szJSONErrorMessage    
         ret
     .ENDIF
+
+    ; Treeview Root is created, save handle to it, specifically we will need hTVNode later for when inserting children to treeview
+    mov nTVIndex, 0
+    .IF lpdwJSONData == NULL
+        Invoke TreeViewInsertItem, hTV, NULL, lpszJSONFile, nTVIndex, TVI_ROOT, IL_ICO_MAIN, IL_ICO_MAIN, hJSON_Object_Root
+    .ELSE
+        Invoke TreeViewInsertItem, hTV, NULL, Addr szJSONClipboard, nTVIndex, TVI_ROOT, IL_ICO_MAIN, IL_ICO_MAIN, hJSON_Object_Root
+    .ENDIF
+    mov hTVRoot, eax
+    mov hTVNode, eax
+    mov hTVCurrentNode, eax
+    inc nTVIndex
+    
+    
+    ; Each time we insert a treeview item we need to increment our nTVIndex counter
+
+
 
     mov level, -1000d ; hack to force our while loop below, only used for possibly debugging/tracking indented levels (children)
     mov eax, hJSON_Object_Root 
@@ -1012,26 +2029,26 @@ ProcessJSONData PROC USES EBX hWin:DWORD, lpszJSONFile:DWORD, lpdwJSONData:DWORD
 
     .ENDW
 
-    IFDEF DEBUG32
-        Invoke VirtualStackDepth, hVirtualStack
-        mov nStackDepth, eax
-        PrintDec nStackDepth
-        
-        Invoke VirtualStackUniqueCount, hVirtualStack
-        mov nUniqueCount, eax
-        PrintDec nUniqueCount
-        
-        Invoke VirtualStackData, hVirtualStack
-        mov pStackData, eax
-        PrintDec pStackData
-        mov eax, VIRTUALSTACK_SIZE_TINY
-        mov ebx, SIZEOF DWORD
-        mul ebx
-        DbgDump pStackData, eax
-    ENDIF
+;    IFDEF DEBUG32
+;        Invoke VirtualStackDepth, hVirtualStack
+;        mov nStackDepth, eax
+;        PrintDec nStackDepth
+;        
+;        Invoke VirtualStackUniqueCount, hVirtualStack
+;        mov nUniqueCount, eax
+;        PrintDec nUniqueCount
+;        
+;        Invoke VirtualStackData, hVirtualStack
+;        mov pStackData, eax
+;        PrintDec pStackData
+;        mov eax, VIRTUALSTACK_SIZE_TINY
+;        mov ebx, SIZEOF DWORD
+;        mul ebx
+;        DbgDump pStackData, eax
+;    ENDIF
     
     Invoke TreeViewItemExpand, hTV, hTVRoot
-    Invoke TreeViewSetSelectedItem, hTV, hTVRoot
+    Invoke TreeViewSetSelectedItem, hTV, hTVRoot, TRUE
     
     Invoke VirtualStackDelete, hVirtualStack, Addr DeleteStackItemsCallback
     
