@@ -21,14 +21,21 @@ include TreeView.inc
 .code
 
 ;**************************************************************************
-; 
+; TreeViewItemHasChildren - has item children?
 ;**************************************************************************
-TreeViewSetSelectedItem PROC FRAME hTreeview:QWORD, hItem:QWORD, bVisible:QWORD
-    Invoke SendMessage, hTreeview, TVM_SELECTITEM, TVGN_CARET, hItem	
-    .IF bVisible == TRUE
-        Invoke SendMessage, hTreeview, TVM_SELECTITEM, TVGN_FIRSTVISIBLE, hItem
+TreeViewItemHasChildren PROC FRAME hTreeview:QWORD, hItem:QWORD
+    LOCAL TVI:TV_ITEM
+    mov TVI.mask_, TVIF_CHILDREN or TVIF_HANDLE
+    mov rax, hItem
+    mov TVI.hItem, rax
+    Invoke SendMessage, hTreeview, TVM_GETITEM, 0, Addr TVI
+    .IF rax == TRUE
+        mov eax, TVI.cChildren
+    .ELSE
+        mov rax, NULL
     .ENDIF
     ret
-TreeViewSetSelectedItem ENDP
+TreeViewItemHasChildren ENDP
+
 
 end

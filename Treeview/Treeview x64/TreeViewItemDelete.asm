@@ -23,12 +23,10 @@ include TreeView.inc
 ;**************************************************************************
 ; 
 ;**************************************************************************
-TreeViewSetSelectedItem PROC FRAME hTreeview:QWORD, hItem:QWORD, bVisible:QWORD
-    Invoke SendMessage, hTreeview, TVM_SELECTITEM, TVGN_CARET, hItem	
-    .IF bVisible == TRUE
-        Invoke SendMessage, hTreeview, TVM_SELECTITEM, TVGN_FIRSTVISIBLE, hItem
-    .ENDIF
+TreeViewItemDelete PROC FRAME hTreeview:QWORD, hItem:QWORD
+    Invoke SendMessage, hTreeview, TVM_DELETEITEM, 0, hItem
     ret
-TreeViewSetSelectedItem ENDP
+TreeViewItemDelete endp
+
 
 end
