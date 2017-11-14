@@ -40,42 +40,46 @@
 ; LTLI TreeView LIB Prototypes
 ;-----------------------------------------------------------------------------------------
 
-TreeViewClearAll		    PROTO :DWORD
-TreeViewDeleteAll           EQU TreeViewClearAll
+TreeViewClearAll		    PROTO :DWORD                                                    ; hTreeview
+TreeViewDeleteAll           EQU TreeViewClearAll                                            ; hTreeview
 
-TreeViewInsertItem          PROTO :DWORD, :DWORD, :DWORD, :DWORD, :DWORD, :DWORD, :DWORD, :DWORD
+TreeViewInsertItem          PROTO :DWORD,:DWORD,:DWORD,:DWORD,:DWORD,:DWORD,:DWORD,:DWORD   ; hTreeview, hNodeParent, lpszNodeText, nNodeIndex, NodePosition, nImage, nImageSelected, dwParam
 
-TreeViewGetSelectedImage    PROTO :DWORD
-TreeViewGetSelectedItem     PROTO :DWORD
-TreeViewGetSelectedParam    PROTO :DWORD
-TreeViewGetSelectedText     PROTO :DWORD, :DWORD, :DWORD
+TreeViewGetSelectedImage    PROTO :DWORD                                                    ; hTreeview, hItem
+TreeViewGetSelectedItem     PROTO :DWORD                                                    ; hTreeview, hItem
+TreeViewGetSelectedParam    PROTO :DWORD                                                    ; hTreeview, hItem
+TreeViewGetSelectedText     PROTO :DWORD,:DWORD,:DWORD                                      ; hTreeview, hItem
 
-TreeViewGetItemText         PROTO :DWORD, :DWORD, :DWORD, :DWORD
-TreeViewGetItemImage        PROTO :DWORD, :DWORD
-TreeViewGetItemParam        PROTO :DWORD, :DWORD
+TreeViewGetItemText         PROTO :DWORD,:DWORD,:DWORD,:DWORD                               ; hTreeview, hItem
+TreeViewGetItemImage        PROTO :DWORD,:DWORD                                             ; hTreeview, hItem
+TreeViewGetItemParam        PROTO :DWORD,:DWORD                                             ; hTreeview, hItem
 
-TreeViewSetItemText         PROTO :DWORD, :DWORD, :DWORD
-TreeViewSetItemImage        PROTO :DWORD, :DWORD, :DWORD
-TreeViewSetItemParam        PROTO :DWORD, :DWORD, :DWORD
+TreeViewSetItemText         PROTO :DWORD,:DWORD,:DWORD                                      ; hTreeview, hItem
+TreeViewSetItemImage        PROTO :DWORD,:DWORD,:DWORD                                      ; hTreeview, hItem
+TreeViewSetItemParam        PROTO :DWORD,:DWORD,:DWORD                                      ; hTreeview, hItem
 
-TreeViewItemExpand          PROTO :DWORD, :DWORD
-TreeViewItemCollapse        PROTO :DWORD, :DWORD
-TreeViewItemToggle          PROTO :DWORD, :DWORD
-TreeViewChildItemsExpand    PROTO :DWORD, :DWORD
-TreeViewChildItemsCollapse  PROTO :DWORD, :DWORD
-TreeViewChildItemsToggle    PROTO :DWORD, :DWORD
+TreeViewItemCollapse        PROTO :DWORD,:DWORD                                             ; hTreeview, hItem
+TreeViewItemDelete          PROTO :DWORD,:DWORD                                             ; hTreeview, hItem
+TreeViewItemExpand          PROTO :DWORD,:DWORD                                             ; hTreeview, hItem
+TreeViewItemHasChildren     PROTO :DWORD,:DWORD                                             ; hTreeview, hItem
+TreeViewItemToggle          PROTO :DWORD,:DWORD                                             ; hTreeview, hItem
 
-TreeViewSetSelectedItem     PROTO :DWORD, :DWORD
+TreeViewChildItemsExpand    PROTO :DWORD,:DWORD                                             ; hTreeview, hItem
+TreeViewChildItemsCollapse  PROTO :DWORD,:DWORD                                             ; hTreeview, hItem
+TreeViewChildItemsToggle    PROTO :DWORD,:DWORD                                             ; hTreeview, hItem
 
-TreeViewSubClassProc        PROTO :DWORD, :DWORD
-TreeViewSubClassData        PROTO :DWORD, :DWORD
+TreeViewSetSelectedItem     PROTO :DWORD,:DWORD,:DWORD                                      ; hTreeview, hItem, bEnsureVisible
 
-TreeViewLinkImageList       PROTO :DWORD, :DWORD, :DWORD
+TreeViewSubClassProc        PROTO :DWORD,:DWORD                                             ; hTreeview, lpdwTVSubClassProc
+TreeViewSubClassData        PROTO :DWORD,:DWORD                                             ; hTreeview, lpdwTVSubClassData
 
-TreeViewDrawSelectedItem    PROTO :DWORD
-TreeViewDrawSelectedItemDlg PROTO :DWORD, :DWORD, :DWORD, :DWORD, :DWORD, :DWORD
+TreeViewLinkImageList       PROTO :DWORD,:DWORD,:DWORD                                      ; hTreeview
+
+TreeViewDrawSelectedItem    PROTO :DWORD                                                    ; hTreeview
+TreeViewDrawSelectedItemDlg PROTO :DWORD,:DWORD,:DWORD,:DWORD,:DWORD,:DWORD                 ; hWin, lParam, dwBackColor, dwTextColor, dwSelBackColor, dwSelTextColor
 
 
+TreeViewCountChildren       PROTO :DWORD,:DWORD,:DWORD                                      ; hTreeview, hItem, bRecurse
 
 
 

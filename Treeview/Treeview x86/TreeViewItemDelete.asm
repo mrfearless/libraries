@@ -14,12 +14,10 @@ include TreeView.inc
 ;**************************************************************************
 ; 
 ;**************************************************************************
-TreeViewSetSelectedItem PROC PUBLIC USES EBX hTreeview:DWORD, hItem:DWORD, bVisible:DWORD
-    Invoke SendMessage, hTreeview, TVM_SELECTITEM, TVGN_CARET, hItem
-    .IF bVisible == TRUE
-        Invoke SendMessage, hTreeview, TVM_SELECTITEM, TVGN_FIRSTVISIBLE, hItem
-    .ENDIF
+TreeViewItemDelete PROC PUBLIC hTreeview:DWORD, hItem:DWORD
+    Invoke SendMessage, hTreeview, TVM_DELETEITEM, 0, hItem
     ret
-TreeViewSetSelectedItem ENDP
+TreeViewItemDelete endp
 
 end
+

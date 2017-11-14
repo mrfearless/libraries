@@ -27,3 +27,6 @@ TreeViewSetItemText,hTreeview,hItem,lpszTextBuffer
 TreeViewSetSelectedItem,hTreeview,hItem
 TreeViewSubClassData,hTreeview,lpdwTVSubClassData
 TreeViewSubClassProc,hTreeview,lpdwTVSubClassProc
+TreeViewCountChildren,hTreeview,hItem,bRecurse
+TreeViewItemDelete,hTreeview,hItem
+TreeViewItemHasChildren,hTreeview,hItem
