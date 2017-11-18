@@ -3,14 +3,16 @@ InitMainMenu                PROTO :DWORD
 InitRightClickMenu          PROTO :DWORD
 InitRightClickAddSubmenu    PROTO :DWORD
 InitRightClickCopySubmenu   PROTO :DWORD
+InitRightClickPasteSubmenu  PROTO :DWORD
 InitRightClickExportSubmenu PROTO :DWORD
 
 UpdateMenus                 PROTO :DWORD, :DWORD
-UpdateMainMenu              PROTO :DWORD, :DWORD, :DWORD, :DWORD
-UpdateRightClickMenu        PROTO :DWORD, :DWORD, :DWORD, :DWORD
-UpdateRightClickAddSubmenu  PROTO :DWORD, :DWORD, :DWORD, :DWORD
-UpdateRightClickCopySubmenu PROTO :DWORD, :DWORD, :DWORD, :DWORD
-UpdateRightClickExportSubmenu PROTO :DWORD, :DWORD, :DWORD, :DWORD
+UpdateMainMenu              PROTO :DWORD, :DWORD, :DWORD, :DWORD, :DWORD
+UpdateRightClickMenu        PROTO :DWORD, :DWORD, :DWORD, :DWORD, :DWORD
+UpdateRightClickAddSubmenu  PROTO :DWORD, :DWORD, :DWORD, :DWORD, :DWORD
+UpdateRightClickCopySubmenu PROTO :DWORD, :DWORD, :DWORD, :DWORD, :DWORD
+UpdateRightClickPasteSubmenu PROTO :DWORD, :DWORD, :DWORD, :DWORD, :DWORD
+UpdateRightClickExportSubmenu PROTO :DWORD, :DWORD, :DWORD, :DWORD, :DWORD
 
 ShowRightClickMenu          PROTO :DWORD
 ShowRightClickAddSubmenu    PROTO :DWORD
@@ -44,18 +46,20 @@ BMP_EDIT_PASTE_BRANCH		EQU 227
 BMP_EDIT_PASTE_JSON			EQU 228
 BMP_EDIT_CUT_ITEM           EQU 0
 BMP_EDIT_CUT_BRANCH         EQU 0
+BMP_EDIT_FIND               EQU 229
 
 ; Right click menu bitmaps:
 BMP_CMD_EDIT_ITEM 			EQU 250
 BMP_CMD_ADD_ITEM 			EQU 251
 BMP_CMD_DEL_ITEM 			EQU 252
 BMP_CMD_COPY 				EQU 253
-BMP_CMD_PASTE_JSON			EQU 254
+BMP_CMD_PASTE			    EQU 254
 BMP_CMD_EXPAND_BRANCH		EQU 255
-BMP_CMD_EXPAND_CHILDREN		EQU 256
+BMP_CMD_EXPAND_ALL		    EQU 256
 BMP_CMD_COLLAPSE_BRANCH		EQU 257
-BMP_CMD_COLLAPSE_CHILDREN	EQU 258
+BMP_CMD_COLLAPSE_ALL	    EQU 258
 BMP_CMD_EXPORT				EQU 259
+BMP_CMD_FIND				EQU BMP_EDIT_FIND
 
 ; Right click 'Add' submenu bitmaps:
 BMP_CMD_ADD_ITEM_STRING		EQU 270
@@ -74,7 +78,7 @@ BMP_CMD_CUT_ITEM            EQU BMP_EDIT_CUT_ITEM
 BMP_CMD_CUT_BRANCH          EQU BMP_EDIT_CUT_BRANCH
 
 ; Right click 'Paste' submenu bitmaps:
-BMP_CMD_PASTE_PASTE_JSON    EQU BMP_EDIT_PASTE_JSON
+BMP_CMD_PASTE_JSON          EQU BMP_EDIT_PASTE_JSON
 BMP_CMD_PASTE_ITEM          EQU BMP_EDIT_PASTE_ITEM
 BMP_CMD_PASTE_BRANCH        EQU BMP_EDIT_PASTE_BRANCH
 
@@ -99,19 +103,24 @@ IDM_EDIT_CUT_ITEM	        EQU 0
 IDM_EDIT_CUT_BRANCH	        EQU 0
 IDM_EDIT_COPY_ITEM	        EQU 10203
 IDM_EDIT_COPY_BRANCH	    EQU 10204
-IDM_EDIT_PASTE_JSON         EQU 10205
+IDM_EDIT_PASTE_ITEM         EQU 10205
+IDM_EDIT_PASTE_BRANCH       EQU 10206
+IDM_EDIT_PASTE_JSON         EQU 10207
+IDM_EDIT_FIND               EQU 10208
 IDM_HELP_ABOUT              EQU 10101
 
 ; Right click menu IDs:
 IDM_CMD_COLLAPSE_BRANCH     EQU 11000
 IDM_CMD_EXPAND_BRANCH       EQU 11001
-IDM_CMD_COLLAPSE_CHILDREN   EQU 11002
-IDM_CMD_EXPAND_CHILDREN     EQU 11003
+IDM_CMD_COLLAPSE_ALL        EQU 11002
+IDM_CMD_EXPAND_ALL          EQU 11003
 IDM_CMD_ADD_ITEM            EQU 11004
 IDM_CMD_DEL_ITEM            EQU 11005
 IDM_CMD_EDIT_ITEM           EQU 11006
 IDM_CMD_COPY                EQU 11007
-IDM_CMD_EXPORT              EQU 11008
+IDM_CMD_PASTE               EQU 11008
+IDM_CMD_EXPORT              EQU 11009
+IDM_CMD_FIND                EQU 11010
 
 ; Right click 'Add' submenu IDs:
 IDM_CMD_ADD_ITEM_STRING     EQU 11020
@@ -130,9 +139,9 @@ IDM_CMD_COPY_ITEM           EQU 11032
 IDM_CMD_COPY_BRANCH         EQU 11033
 
 ; Right click 'Paste' submenu IDs:
-IDM_CMD_PASTE_JSON          EQU 11040
-IDM_CMD_PASTE_ITEM          EQU 11041
-IDM_CMD_PASTE_BRANCH        EQU 0
+IDM_CMD_PASTE_ITEM          EQU 11040
+IDM_CMD_PASTE_BRANCH        EQU 11041
+IDM_CMD_PASTE_JSON          EQU 11042
 
 ; Right click 'Export' submenu IDs:
 IDM_CMD_EXPORT_TREE_CLIP    EQU 11050
@@ -145,14 +154,15 @@ IDM_CMD_EXPORT_BRANCH_FILE  EQU 11053
 ; Right click menu strings:
 szTVRCMenuCollapseBranch    DB 'Collapse Branch',0
 szTVRCMenuExpandBranch      DB 'Expand Branch',0
-szTVRCMenuCollapseChildren  DB 'Collapse Children',0
-szTVRCMenuExpandChildren    DB 'Expand Children',0
+szTVRCMenuCollapseAll       DB 'Collapse All',0
+szTVRCMenuExpandAll         DB 'Expand All',0
 szTVRCMenuCopy              DB 'Copy',0
 szTVRCMenuAddItem           DB 'Add Item',0
 szTVRCMenuDelItem           DB 'Delete Item',0
 szTVRCMenuEditItem          DB 'Edit Item',0
 szTVRCMenuExport            DB 'Export',0
 szTVRCMenuPaste             DB 'Paste',0
+szTVRCMenuFindText          DB 'Find...',0
 
 ; Right click 'Add' submenu strings:
 szTVRCMenuAddItemString     DB 'Add String',0
@@ -170,6 +180,7 @@ szTVRCMenuCopyBranch        DB 'Copy Branch',0
 
 ; Right click 'Paste' submenu strings:
 szTVRCMenuPasteItem         DB 'Paste Item',0
+szTVRCMenuPasteBranch       DB 'Paste Branch',0
 szTVRCMenuPasteJSON         DB 'Paste JSON',0
 szTVRCMenuPasteInsert       DB 'Paste JSON (Insert)',0
 
@@ -256,10 +267,21 @@ InitMainMenu PROC hWin:DWORD
     Invoke LoadBitmap, hInstance, BMP_EDIT_COPY_BRANCH
     mov hBitmap, eax
     Invoke SetMenuItemBitmaps, hMainMenu, IDM_EDIT_COPY_BRANCH, MF_BYCOMMAND, hBitmap, 0
+
+    Invoke LoadBitmap, hInstance, BMP_EDIT_PASTE_ITEM
+    mov hBitmap, eax
+    Invoke SetMenuItemBitmaps, hMainMenu, IDM_EDIT_PASTE_ITEM, MF_BYCOMMAND, hBitmap, 0
+    Invoke LoadBitmap, hInstance, BMP_EDIT_PASTE_BRANCH
+    mov hBitmap, eax
+    Invoke SetMenuItemBitmaps, hMainMenu, IDM_EDIT_PASTE_BRANCH, MF_BYCOMMAND, hBitmap, 0
     
     Invoke LoadBitmap, hInstance, BMP_EDIT_PASTE_JSON
     mov hBitmap, eax
     Invoke SetMenuItemBitmaps, hMainMenu, IDM_EDIT_PASTE_JSON, MF_BYCOMMAND, hBitmap, 0
+    
+    Invoke LoadBitmap, hInstance, BMP_EDIT_FIND
+    mov hBitmap, eax
+    Invoke SetMenuItemBitmaps, hMainMenu, IDM_EDIT_FIND, MF_BYCOMMAND, hBitmap, 0    
     
     ; Set initial state of some of the menu items
     mov mi.fState, MFS_ENABLED
@@ -274,6 +296,8 @@ InitMainMenu PROC hWin:DWORD
     Invoke SetMenuItemInfo, hMainMenu, IDM_EDIT_COPY_VALUE, FALSE, Addr mi
     Invoke SetMenuItemInfo, hMainMenu, IDM_EDIT_COPY_ITEM, FALSE, Addr mi
     Invoke SetMenuItemInfo, hMainMenu, IDM_EDIT_COPY_BRANCH, FALSE, Addr mi
+    Invoke SetMenuItemInfo, hMainMenu, IDM_EDIT_PASTE_ITEM, FALSE, Addr mi
+    Invoke SetMenuItemInfo, hMainMenu, IDM_EDIT_PASTE_BRANCH, FALSE, Addr mi
     Invoke IsClipboardFormatAvailable, CF_TEXT
     .IF eax == TRUE
         mov mi.fState, MFS_ENABLED
@@ -339,11 +363,30 @@ InitRightClickMenu PROC hWin:DWORD
     mov mi.hSubMenu, 0
     mov mi.dwTypeData, 0
     
+    Invoke AppendMenu, hTVMenu, MF_SEPARATOR, 0, 0
+    
+    ; Add submenu 'Paste' to right click menu
+    Invoke InitRightClickPasteSubmenu, hWin
+    mov hSubMenu, eax
+    mov mi.cbSize, SIZEOF MENUITEMINFO
+    mov mi.fMask, MIIM_SUBMENU + MIIM_STRING + MIIM_ID
+    mov mi.wID, IDM_CMD_PASTE
+    mov eax, hSubMenu
+    mov mi.hSubMenu, eax
+    lea eax, szTVRCMenuPaste
+    mov mi.dwTypeData, eax
+    Invoke InsertMenuItem, hTVMenu, IDM_CMD_PASTE, FALSE, Addr mi
+    mov mi.fMask, MIIM_STATE
+    mov mi.wID, 0
+    mov mi.hSubMenu, 0
+    mov mi.dwTypeData, 0    
+    
+    
 ;    Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_COPY_TEXT, Addr szTVRCMenuCopyText
 ;    Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_COPY_VALUE, Addr szTVRCMenuCopyValue
 ;    Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_COPY_BRANCH, Addr szTVRCMenuCopyBranch
-    Invoke AppendMenu, hTVMenu, MF_SEPARATOR, 0, 0
-    Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_PASTE_JSON, Addr szTVRCMenuPasteJSON
+    ;Invoke AppendMenu, hTVMenu, MF_SEPARATOR, 0, 0
+    ;Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_PASTE_JSON, Addr szTVRCMenuPasteJSON
     Invoke AppendMenu, hTVMenu, MF_SEPARATOR, 0, 0
     
 ;    ; Add submenu 'Export' to rght click menu
@@ -362,32 +405,39 @@ InitRightClickMenu PROC hWin:DWORD
 ;    mov mi.hSubMenu, 0
 ;    mov mi.dwTypeData, 0    
     
-    Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_COLLAPSE_BRANCH, Addr szTVRCMenuCollapseBranch
-    Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_EXPAND_BRANCH, Addr szTVRCMenuExpandBranch
-    Invoke AppendMenu, hTVMenu, MF_SEPARATOR, 0, 0
-    Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_COLLAPSE_CHILDREN, Addr szTVRCMenuCollapseChildren
-    Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_EXPAND_CHILDREN, Addr szTVRCMenuExpandChildren
+    
+    Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_FIND, Addr szTVRCMenuFindText 
+;    Invoke AppendMenu, hTVMenu, MF_SEPARATOR, 0, 0
+;    Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_COLLAPSE_BRANCH, Addr szTVRCMenuCollapseBranch
+;    Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_EXPAND_BRANCH, Addr szTVRCMenuExpandBranch
+;    Invoke AppendMenu, hTVMenu, MF_SEPARATOR, 0, 0
+;    Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_COLLAPSE_ALL, Addr szTVRCMenuCollapseAll
+;    Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_EXPAND_ALL, Addr szTVRCMenuExpandAll
 
     ; Load bitmaps for right click menu
-    Invoke LoadBitmap, hInstance, BMP_CMD_COLLAPSE_BRANCH
+    Invoke LoadBitmap, hInstance, BMP_CMD_FIND
     mov hBitmap, eax
-    Invoke SetMenuItemBitmaps, hTVMenu, IDM_CMD_COLLAPSE_BRANCH, MF_BYCOMMAND, hBitmap, 0
-    Invoke LoadBitmap, hInstance, BMP_CMD_EXPAND_BRANCH
-    mov hBitmap, eax
-    Invoke SetMenuItemBitmaps, hTVMenu, IDM_CMD_EXPAND_BRANCH, MF_BYCOMMAND, hBitmap, 0
-    Invoke LoadBitmap, hInstance, BMP_CMD_COLLAPSE_CHILDREN
-    mov hBitmap, eax
-    Invoke SetMenuItemBitmaps, hTVMenu, IDM_CMD_COLLAPSE_CHILDREN, MF_BYCOMMAND, hBitmap, 0
-    Invoke LoadBitmap, hInstance, BMP_CMD_EXPAND_CHILDREN
-    mov hBitmap, eax
-    Invoke SetMenuItemBitmaps, hTVMenu, IDM_CMD_EXPAND_CHILDREN, MF_BYCOMMAND, hBitmap, 0
+    Invoke SetMenuItemBitmaps, hTVMenu, IDM_CMD_FIND, MF_BYCOMMAND, hBitmap, 0
+
+;    Invoke LoadBitmap, hInstance, BMP_CMD_COLLAPSE_BRANCH
+;    mov hBitmap, eax
+;    Invoke SetMenuItemBitmaps, hTVMenu, IDM_CMD_COLLAPSE_BRANCH, MF_BYCOMMAND, hBitmap, 0
+;    Invoke LoadBitmap, hInstance, BMP_CMD_EXPAND_BRANCH
+;    mov hBitmap, eax
+;    Invoke SetMenuItemBitmaps, hTVMenu, IDM_CMD_EXPAND_BRANCH, MF_BYCOMMAND, hBitmap, 0
+;    Invoke LoadBitmap, hInstance, BMP_CMD_COLLAPSE_ALL
+;    mov hBitmap, eax
+;    Invoke SetMenuItemBitmaps, hTVMenu, IDM_CMD_COLLAPSE_ALL, MF_BYCOMMAND, hBitmap, 0
+;    Invoke LoadBitmap, hInstance, BMP_CMD_EXPAND_ALL
+;    mov hBitmap, eax
+;    Invoke SetMenuItemBitmaps, hTVMenu, IDM_CMD_EXPAND_ALL, MF_BYCOMMAND, hBitmap, 0
     
     Invoke LoadBitmap, hInstance, BMP_CMD_COPY
     mov hBitmap, eax
     Invoke SetMenuItemBitmaps, hTVMenu, IDM_CMD_COPY, MF_BYCOMMAND, hBitmap, 0
-    Invoke LoadBitmap, hInstance, BMP_CMD_PASTE_JSON
+    Invoke LoadBitmap, hInstance, BMP_CMD_PASTE
     mov hBitmap, eax
-    Invoke SetMenuItemBitmaps, hTVMenu, IDM_CMD_PASTE_JSON, MF_BYCOMMAND, hBitmap, 0
+    Invoke SetMenuItemBitmaps, hTVMenu, IDM_CMD_PASTE, MF_BYCOMMAND, hBitmap, 0
     Invoke LoadBitmap, hInstance, BMP_CMD_ADD_ITEM
     mov hBitmap, eax
     Invoke SetMenuItemBitmaps, hTVMenu, IDM_CMD_ADD_ITEM, MF_BYCOMMAND, hBitmap, 0
@@ -405,14 +455,21 @@ InitRightClickMenu PROC hWin:DWORD
     Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_COPY_ITEM, FALSE, Addr mi
     Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_COPY_BRANCH, FALSE, Addr mi
     Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_COPY, FALSE, Addr mi
+    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_PASTE, FALSE, Addr mi
     Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_ADD_ITEM, FALSE, Addr mi
     Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_EDIT_ITEM, FALSE, Addr mi
     Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_DEL_ITEM, FALSE, Addr mi
-    Invoke IsClipboardFormatAvailable, CF_TEXT
-    .IF eax == TRUE
-        mov mi.fState, MFS_ENABLED
-    .ENDIF
-    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_PASTE_JSON, FALSE, Addr mi
+    ;Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_COLLAPSE_BRANCH, FALSE, Addr mi
+    ;Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_EXPAND_BRANCH, FALSE, Addr mi
+    ;Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_COLLAPSE_ALL, FALSE, Addr mi
+    ;Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_EXPAND_ALL, FALSE, Addr mi
+    
+    
+    ;Invoke IsClipboardFormatAvailable, CF_TEXT
+    ;.IF eax == TRUE
+    ;    mov mi.fState, MFS_ENABLED
+    ;.ENDIF
+    ;Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_PASTE_JSON, FALSE, Addr mi
 
     ret
 InitRightClickMenu ENDP
@@ -471,7 +528,7 @@ InitRightClickAddSubmenu ENDP
 
 
 ;-------------------------------------------------------------------------------------
-; InitRightClickCopySubmenu
+; InitRightClickCopySubmenu - Initialize treeview right click 'Copy' submenu
 ;-------------------------------------------------------------------------------------
 InitRightClickCopySubmenu PROC hWin:DWORD
     LOCAL hBitmap:DWORD
@@ -513,7 +570,56 @@ InitRightClickCopySubmenu ENDP
 
 
 ;-------------------------------------------------------------------------------------
-; InitRightClickExportSubmenu
+; InitRightClickPasteSubmenu - Initialize treeview right click 'Paste' submenu
+;-------------------------------------------------------------------------------------
+InitRightClickPasteSubmenu PROC hWin:DWORD
+    LOCAL hBitmap:DWORD
+    LOCAL hSubMenu:DWORD
+    LOCAL mi:MENUITEMINFO
+
+    mov mi.cbSize, SIZEOF MENUITEMINFO
+    mov mi.fMask, MIIM_STATE
+    mov mi.fState, MFS_GRAYED ;MFS_ENABLED
+
+    ; Create 'Paste' submenu items   
+    Invoke CreatePopupMenu
+    mov hSubMenu, eax
+
+    ; Strings for 'Paste' submenu
+    Invoke AppendMenu, hSubMenu, MF_STRING, IDM_CMD_PASTE_ITEM, Addr szTVRCMenuPasteItem
+    Invoke AppendMenu, hSubMenu, MF_STRING, IDM_CMD_PASTE_BRANCH, Addr szTVRCMenuPasteBranch
+    ;Invoke AppendMenu, hSubMenu, MF_SEPARATOR, 0, 0
+    Invoke AppendMenu, hSubMenu, MF_STRING, IDM_CMD_PASTE_JSON, Addr szTVRCMenuPasteJSON
+    
+    ; Load bitmaps for 'Paste' submenu
+    Invoke LoadBitmap, hInstance, BMP_CMD_PASTE_ITEM
+    mov hBitmap, eax
+    Invoke SetMenuItemBitmaps, hSubMenu, IDM_CMD_PASTE_ITEM, MF_BYCOMMAND, hBitmap, 0    
+    Invoke LoadBitmap, hInstance, BMP_CMD_PASTE_BRANCH
+    mov hBitmap, eax
+    Invoke SetMenuItemBitmaps, hSubMenu, IDM_CMD_PASTE_BRANCH, MF_BYCOMMAND, hBitmap, 0
+    Invoke LoadBitmap, hInstance, BMP_CMD_PASTE_JSON ; BMP_EDIT_PASTE_JSON
+    mov hBitmap, eax
+    Invoke SetMenuItemBitmaps, hSubMenu, IDM_CMD_PASTE_JSON, MF_BYCOMMAND, hBitmap, 0
+
+    ; Set inital state for some menu items
+    mov mi.fState, MFS_GRAYED
+    Invoke SetMenuItemInfo, hSubMenu, IDM_CMD_PASTE_ITEM, FALSE, Addr mi
+    Invoke SetMenuItemInfo, hSubMenu, IDM_CMD_PASTE_BRANCH, FALSE, Addr mi
+        
+    Invoke IsClipboardFormatAvailable, CF_TEXT
+    .IF eax == TRUE
+        mov mi.fState, MFS_ENABLED
+    .ENDIF
+    Invoke SetMenuItemInfo, hSubMenu, IDM_CMD_PASTE_JSON, FALSE, Addr mi
+    
+    mov eax, hSubMenu ; return handle to submenu
+    ret
+InitRightClickPasteSubmenu ENDP
+
+
+;-------------------------------------------------------------------------------------
+; InitRightClickExportSubmenu - Initialize treeview right click 'Export' submenu
 ;-------------------------------------------------------------------------------------
 InitRightClickExportSubmenu PROC hWin:DWORD
     LOCAL hBitmap:DWORD
@@ -563,10 +669,12 @@ UpdateMenus PROC USES EBX hWin:DWORD, hItem:DWORD
     LOCAL bInTV:DWORD
     LOCAL bHasChildren:DWORD
     LOCAL bObjectOrArray:DWORD
+    LOCAL bRoot:DWORD
     
     mov bInTV, FALSE
     mov bHasChildren, FALSE
     mov bObjectOrArray, FALSE
+    mov bRoot, FALSE
     
     .IF hItem == NULL
         Invoke GetCursorPos, Addr tvhi.pt
@@ -594,15 +702,16 @@ UpdateMenus PROC USES EBX hWin:DWORD, hItem:DWORD
                 mov bObjectOrArray, TRUE
             .ENDIF 
         .ENDIF
-        
     .ENDIF
 
-;    PrintDec bInTV
-;    PrintDec bHasChildren
-;    PrintDec bObjectOrArray
+    ; check node is not root
+    mov eax, hCurrentItem
+    .IF eax == hTVRoot && eax != 0
+        mov bRoot, TRUE
+    .ENDIF
     
-    Invoke UpdateMainMenu, hWin, bInTV, bHasChildren, bObjectOrArray
-    Invoke UpdateRightClickMenu, hWin, bInTV, bHasChildren, bObjectOrArray
+    Invoke UpdateMainMenu, hWin, bInTV, bHasChildren, bObjectOrArray, bRoot
+    Invoke UpdateRightClickMenu, hWin, bInTV, bHasChildren, bObjectOrArray, bRoot
 
     ret
 UpdateMenus ENDP
@@ -611,7 +720,7 @@ UpdateMenus ENDP
 ;-------------------------------------------------------------------------------------
 ; Update main menu
 ;-------------------------------------------------------------------------------------
-UpdateMainMenu PROC hWin:DWORD, bInTV:DWORD, bHasChildren:DWORD, bObjectOrArray:DWORD
+UpdateMainMenu PROC hWin:DWORD, bInTV:DWORD, bHasChildren:DWORD, bObjectOrArray:DWORD, bRoot:DWORD
     LOCAL hMainMenu:DWORD
     LOCAL mi:MENUITEMINFO
 
@@ -620,7 +729,16 @@ UpdateMainMenu PROC hWin:DWORD, bInTV:DWORD, bHasChildren:DWORD, bObjectOrArray:
 
     Invoke GetMenu, hWin
     mov hMainMenu, eax
-
+    
+    ; Save / SaveAs menu items
+    .IF g_Edit == TRUE 
+        mov mi.fState, MFS_ENABLED
+    .ELSE
+        mov mi.fState, MFS_GRAYED
+    .ENDIF
+    Invoke SetMenuItemInfo, hMainMenu, IDM_FILE_SAVE, FALSE, Addr mi
+    Invoke SetMenuItemInfo, hMainMenu, IDM_FILE_SAVEAS, FALSE, Addr mi 
+    
     .IF bInTV == TRUE
         mov mi.fState, MFS_ENABLED
     .ELSE
@@ -629,6 +747,13 @@ UpdateMainMenu PROC hWin:DWORD, bInTV:DWORD, bHasChildren:DWORD, bObjectOrArray:
     Invoke SetMenuItemInfo, hMainMenu, IDM_EDIT_COPY_TEXT, FALSE, Addr mi
     Invoke SetMenuItemInfo, hMainMenu, IDM_EDIT_COPY_VALUE, FALSE, Addr mi
     Invoke SetMenuItemInfo, hMainMenu, IDM_EDIT_COPY_ITEM, FALSE, Addr mi
+    
+    .IF g_hCutCopyNode != NULL && (bInTV == TRUE && (bHasChildren == TRUE || bObjectOrArray == TRUE))
+        mov mi.fState, MFS_ENABLED
+    .ELSE
+        mov mi.fState, MFS_GRAYED
+    .ENDIF
+    Invoke SetMenuItemInfo, hMainMenu, IDM_EDIT_PASTE_ITEM, FALSE, Addr mi
 
     .IF bInTV == TRUE && (bHasChildren == TRUE || bObjectOrArray == TRUE)
         mov mi.fState, MFS_ENABLED
@@ -636,6 +761,13 @@ UpdateMainMenu PROC hWin:DWORD, bInTV:DWORD, bHasChildren:DWORD, bObjectOrArray:
         mov mi.fState, MFS_GRAYED
     .ENDIF
     Invoke SetMenuItemInfo, hMainMenu, IDM_EDIT_COPY_BRANCH, FALSE, Addr mi
+    
+    .IF g_hCutCopyBranchNode != NULL && (bInTV == TRUE && (bHasChildren == TRUE || bObjectOrArray == TRUE))
+        mov mi.fState, MFS_ENABLED
+    .ELSE
+        mov mi.fState, MFS_GRAYED
+    .ENDIF
+    Invoke SetMenuItemInfo, hMainMenu, IDM_EDIT_PASTE_BRANCH, FALSE, Addr mi
 
     ; Enabled if clipload has data and format text is available
     Invoke IsClipboardFormatAvailable, CF_TEXT
@@ -653,11 +785,20 @@ UpdateMainMenu ENDP
 ;-------------------------------------------------------------------------------------
 ; Update right click menu
 ;-------------------------------------------------------------------------------------
-UpdateRightClickMenu PROC hWin:DWORD, bInTV:DWORD, bHasChildren:DWORD, bObjectOrArray:DWORD
+UpdateRightClickMenu PROC hWin:DWORD, bInTV:DWORD, bHasChildren:DWORD, bObjectOrArray:DWORD, bRoot:DWORD
     LOCAL mi:MENUITEMINFO
     
     mov mi.cbSize, SIZEOF MENUITEMINFO
     mov mi.fMask, MIIM_STATE
+    
+;    Invoke TreeViewCountItems, hTV
+;    .IF sdword ptr eax > 0 
+;        mov mi.fState, MFS_ENABLED
+;    .ELSE
+;        mov mi.fState, MFS_GRAYED
+;    .ENDIF
+;    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_COLLAPSE_ALL, FALSE, Addr mi
+;    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_EXPAND_ALL, FALSE, Addr mi
 
     .IF bInTV == TRUE
         mov mi.fState, MFS_ENABLED
@@ -666,37 +807,29 @@ UpdateRightClickMenu PROC hWin:DWORD, bInTV:DWORD, bHasChildren:DWORD, bObjectOr
     .ENDIF
     Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_EDIT_ITEM, FALSE, Addr mi
     Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_DEL_ITEM, FALSE, Addr mi
-
-    .IF bInTV == TRUE && (bHasChildren == TRUE || bObjectOrArray == TRUE)
-        mov mi.fState, MFS_ENABLED
-    .ELSE
-        mov mi.fState, MFS_GRAYED
-    .ENDIF
-    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_COLLAPSE_BRANCH, FALSE, Addr mi
-    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_EXPAND_BRANCH, FALSE, Addr mi
-    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_COLLAPSE_CHILDREN, FALSE, Addr mi
-    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_EXPAND_CHILDREN, FALSE, Addr mi
     Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_COPY, FALSE, Addr mi
-    
+    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_PASTE, FALSE, Addr mi    
+
+;    .IF bInTV == TRUE && (bHasChildren == TRUE || bObjectOrArray == TRUE)
+;        mov mi.fState, MFS_ENABLED
+;    .ELSE
+;        mov mi.fState, MFS_GRAYED
+;    .ENDIF
+;    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_COLLAPSE_BRANCH, FALSE, Addr mi
+;    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_EXPAND_BRANCH, FALSE, Addr mi
+
+
     .IF bInTV == TRUE && bObjectOrArray == TRUE
         mov mi.fState, MFS_ENABLED
     .ELSE
         mov mi.fState, MFS_GRAYED
     .ENDIF
     Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_ADD_ITEM, FALSE, Addr mi
-    
-    ; Enabled if clipload has data and format text is available
-    Invoke IsClipboardFormatAvailable, CF_TEXT
-    .IF eax == TRUE
-        mov mi.fState, MFS_ENABLED
-    .ELSE
-        mov mi.fState, MFS_GRAYED
-    .ENDIF
-    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_PASTE_JSON, FALSE, Addr mi
-    
-    Invoke UpdateRightClickAddSubmenu, hWin, bInTV, bHasChildren, bObjectOrArray
-    Invoke UpdateRightClickCopySubmenu, hWin, bInTV, bHasChildren, bObjectOrArray
-    Invoke UpdateRightClickExportSubmenu, hWin, bInTV, bHasChildren, bObjectOrArray
+
+    Invoke UpdateRightClickAddSubmenu, hWin, bInTV, bHasChildren, bObjectOrArray, bRoot
+    Invoke UpdateRightClickCopySubmenu, hWin, bInTV, bHasChildren, bObjectOrArray, bRoot
+    Invoke UpdateRightClickPasteSubmenu, hWin, bInTV, bHasChildren, bObjectOrArray, bRoot
+    Invoke UpdateRightClickExportSubmenu, hWin, bInTV, bHasChildren, bObjectOrArray, bRoot
     
     ret
 UpdateRightClickMenu ENDP
@@ -705,7 +838,7 @@ UpdateRightClickMenu ENDP
 ;-------------------------------------------------------------------------------------
 ; Update right click menu 'Add' submenu
 ;-------------------------------------------------------------------------------------
-UpdateRightClickAddSubmenu PROC hWin:DWORD, bInTV:DWORD, bHasChildren:DWORD, bObjectOrArray:DWORD
+UpdateRightClickAddSubmenu PROC hWin:DWORD, bInTV:DWORD, bHasChildren:DWORD, bObjectOrArray:DWORD, bRoot:DWORD
     LOCAL mi:MENUITEMINFO
 
     mov mi.cbSize, SIZEOF MENUITEMINFO
@@ -731,7 +864,7 @@ UpdateRightClickAddSubmenu ENDP
 ;-------------------------------------------------------------------------------------
 ; Update right click menu 'Copy' submenu
 ;-------------------------------------------------------------------------------------
-UpdateRightClickCopySubmenu PROC hWin:DWORD, bInTV:DWORD, bHasChildren:DWORD, bObjectOrArray:DWORD
+UpdateRightClickCopySubmenu PROC hWin:DWORD, bInTV:DWORD, bHasChildren:DWORD, bObjectOrArray:DWORD, bRoot:DWORD
     LOCAL mi:MENUITEMINFO
 
     mov mi.cbSize, SIZEOF MENUITEMINFO
@@ -743,10 +876,16 @@ UpdateRightClickCopySubmenu PROC hWin:DWORD, bInTV:DWORD, bHasChildren:DWORD, bO
         mov mi.fState, MFS_GRAYED
     .ENDIF
     Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_COPY_TEXT, FALSE, Addr mi
+    
+    .IF bInTV == TRUE && bRoot == FALSE
+        mov mi.fState, MFS_ENABLED
+    .ELSE
+        mov mi.fState, MFS_GRAYED
+    .ENDIF    
     Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_COPY_VALUE, FALSE, Addr mi
     Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_COPY_ITEM, FALSE, Addr mi
 
-    .IF bInTV == TRUE && bHasChildren == TRUE 
+    .IF bInTV == TRUE && (bHasChildren == TRUE || bObjectOrArray == TRUE) && bRoot == FALSE
         mov mi.fState, MFS_ENABLED
     .ELSE
         mov mi.fState, MFS_GRAYED
@@ -758,9 +897,45 @@ UpdateRightClickCopySubmenu ENDP
 
 
 ;-------------------------------------------------------------------------------------
+; Update right click menu 'Paste' submenu
+;-------------------------------------------------------------------------------------
+UpdateRightClickPasteSubmenu PROC hWin:DWORD, bInTV:DWORD, bHasChildren:DWORD, bObjectOrArray:DWORD, bRoot:DWORD
+    LOCAL mi:MENUITEMINFO
+
+    mov mi.cbSize, SIZEOF MENUITEMINFO
+    mov mi.fMask, MIIM_STATE
+
+    .IF g_hCutCopyNode != NULL && bInTV == TRUE && (bHasChildren == TRUE || bObjectOrArray == TRUE)
+        mov mi.fState, MFS_ENABLED
+    .ELSE
+        mov mi.fState, MFS_GRAYED
+    .ENDIF
+    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_PASTE_ITEM, FALSE, Addr mi
+
+    .IF g_hCutCopyBranchNode != NULL && bInTV == TRUE && (bHasChildren == TRUE || bObjectOrArray == TRUE); && bRoot == FALSE
+        mov mi.fState, MFS_ENABLED
+    .ELSE
+        mov mi.fState, MFS_GRAYED
+    .ENDIF
+    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_PASTE_BRANCH, FALSE, Addr mi
+
+    ; Enabled if clipload has data and format text is available
+    Invoke IsClipboardFormatAvailable, CF_TEXT
+    .IF eax == TRUE
+        mov mi.fState, MFS_ENABLED
+    .ELSE
+        mov mi.fState, MFS_GRAYED
+    .ENDIF
+    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_PASTE_JSON, FALSE, Addr mi
+    
+    ret
+UpdateRightClickPasteSubmenu ENDP
+
+
+;-------------------------------------------------------------------------------------
 ; Update right click menu 'Export' submenu
 ;-------------------------------------------------------------------------------------
-UpdateRightClickExportSubmenu PROC hWin:DWORD, bInTV:DWORD, bHasChildren:DWORD, bObjectOrArray:DWORD
+UpdateRightClickExportSubmenu PROC hWin:DWORD, bInTV:DWORD, bHasChildren:DWORD, bObjectOrArray:DWORD, bRoot:DWORD
     LOCAL mi:MENUITEMINFO
 
     mov mi.cbSize, SIZEOF MENUITEMINFO

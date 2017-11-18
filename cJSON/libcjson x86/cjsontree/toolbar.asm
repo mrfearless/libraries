@@ -27,6 +27,7 @@ ICO_TB_EDIT_PASTE_ITEM		    EQU 1507
 ICO_TB_EDIT_PASTE_BRANCH	    EQU 1508
 ICO_TB_ADD_ITEM 			    EQU 1509
 ICO_TB_DEL_ITEM 			    EQU 1510
+ICO_TB_EDIT_FIND                EQU 1511
 ; Toolbar Icons: Disabled (Greyed)
 ICO_TB_FILE_OPEN_GREY			EQU 1600
 ICO_TB_FILE_CLOSE_GREY			EQU 1601
@@ -39,6 +40,7 @@ ICO_TB_EDIT_PASTE_ITEM_GREY		EQU 1607
 ICO_TB_EDIT_PASTE_BRANCH_GREY	EQU 1608
 ICO_TB_ADD_ITEM_GREY			EQU 1609
 ICO_TB_DEL_ITEM_GREY 			EQU 1610
+ICO_TB_EDIT_FIND_GREY           EQU 1611
 ; Toolbar Icons Add Dropdown: Enabled
 ICO_TB_ADD_ITEM_STRING		    EQU 1540
 ICO_TB_ADD_ITEM_NUMBER		    EQU 1541
@@ -66,12 +68,14 @@ TB_EDIT_PASTE_ITEM		        EQU 2007
 TB_EDIT_PASTE_BRANCH	        EQU 2008
 TB_ADD_ITEM 			        EQU 2009
 TB_DEL_ITEM 			        EQU 2010
+TB_EDIT_FIND                    EQU 2011
 TB_ADD_ITEM_STRING		        EQU 2040
 TB_ADD_ITEM_NUMBER		        EQU 2041
 TB_ADD_ITEM_TRUE		        EQU 2042
 TB_ADD_ITEM_FALSE		        EQU 2043
 TB_ADD_ITEM_ARRAY		        EQU 2044
 TB_ADD_ITEM_OBJECT		        EQU 2045
+
 
 ; ToolBar Tooltips String Table IDs - 1000 more than toolbar resources
 TT_FILE_OPEN			        EQU 3000
@@ -85,6 +89,7 @@ TT_EDIT_PASTE_ITEM		        EQU 3007
 TT_EDIT_PASTE_BRANCH	        EQU 3008
 TT_ADD_ITEM 			        EQU 3009
 TT_DEL_ITEM 			        EQU 3010
+TT_EDIT_FIND                    EQU 3011
 TT_ADD_ITEM_STRING		        EQU 3040
 TT_ADD_ITEM_NUMBER		        EQU 3041
 TT_ADD_ITEM_TRUE		        EQU 3042
@@ -155,6 +160,8 @@ InitToolbar PROC USES EBX hWin:DWORD, dwToolbarButtonWidth:DWORD, dwToolbarButto
     Invoke ImageList_AddIcon, hToolBarIL_Enabled, eax
     Invoke LoadIcon, hInstance, ICO_TB_DEL_ITEM
     Invoke ImageList_AddIcon, hToolBarIL_Enabled, eax
+    Invoke LoadIcon, hInstance, ICO_TB_EDIT_FIND
+    Invoke ImageList_AddIcon, hToolBarIL_Enabled, eax    
     
     ; Load disabled icons
     Invoke LoadIcon, hInstance, ICO_TB_FILE_OPEN_GREY
@@ -178,7 +185,9 @@ InitToolbar PROC USES EBX hWin:DWORD, dwToolbarButtonWidth:DWORD, dwToolbarButto
     Invoke LoadIcon, hInstance, ICO_TB_ADD_ITEM_GREY
     Invoke ImageList_AddIcon, hToolBarIL_Disabled, eax
     Invoke LoadIcon, hInstance, ICO_TB_DEL_ITEM_GREY
-    Invoke ImageList_AddIcon, hToolBarIL_Disabled, eax    
+    Invoke ImageList_AddIcon, hToolBarIL_Disabled, eax
+    Invoke LoadIcon, hInstance, ICO_TB_EDIT_FIND_GREY
+    Invoke ImageList_AddIcon, hToolBarIL_Disabled, eax  
 
     Invoke SendMessage, hToolBar, TB_BUTTONSTRUCTSIZE, sizeof TBBUTTON, 0	; Set toolbar struct size
 
@@ -257,6 +266,15 @@ InitToolbar PROC USES EBX hWin:DWORD, dwToolbarButtonWidth:DWORD, dwToolbarButto
 	mov tbb.idCommand, TB_DEL_ITEM
 	mov tbb.fsStyle, TBSTYLE_BUTTON
 	Invoke SendMessage, hToolBar, TB_ADDBUTTONS, 1, Addr tbb
+	
+    mov tbb.iBitmap, -1
+    mov tbb.fsStyle, TBSTYLE_SEP
+    invoke SendMessage, hToolBar, TB_ADDBUTTONS, 1, Addr tbb
+    
+;	mov tbb.iBitmap, 11
+;	mov tbb.idCommand, TB_EDIT_FIND
+;	mov tbb.fsStyle, TBSTYLE_BUTTON
+;	Invoke SendMessage, hToolBar, TB_ADDBUTTONS, 1, Addr tbb    
     
     Invoke ResetToolbars, hWin
    
@@ -293,7 +311,9 @@ ToolBarUpdate PROC hWin:DWORD, hItem:DWORD
     LOCAL bHasChildren:DWORD
     LOCAL bObjectOrArray:DWORD
     LOCAL dwToolbarState:DWORD
+    LOCAL bRoot:DWORD
     
+    mov bRoot, FALSE
     mov bInTV, FALSE
     mov bHasChildren, FALSE
     mov bObjectOrArray, FALSE
@@ -328,12 +348,28 @@ ToolBarUpdate PROC hWin:DWORD, hItem:DWORD
         
     .ENDIF
 
+    ; check node is not root
+    mov eax, hCurrentItem
+    .IF eax == hTVRoot
+        mov bRoot, TRUE
+    .ENDIF
+
     ; Main menu toolbar icons
     mov eax, TBSTATE_ENABLED
     mov dwToolbarState, eax
     Invoke SendMessage, hToolBar, TB_SETSTATE, TB_FILE_OPEN, dwToolbarState
     Invoke SendMessage, hToolBar, TB_SETSTATE, TB_FILE_CLOSE, dwToolbarState
     Invoke SendMessage, hToolBar, TB_SETSTATE, TB_FILE_NEW, dwToolbarState
+    
+    ; Save / SaveAs toolbar
+    .IF g_Edit == TRUE 
+	    mov eax, TBSTATE_ENABLED
+    .ELSE
+        mov eax, TBSTATE_INDETERMINATE
+    .ENDIF
+    mov dwToolbarState, eax
+    Invoke SendMessage, hToolBar, TB_SETSTATE, TB_FILE_SAVE, dwToolbarState
+    Invoke SendMessage, hToolBar, TB_SETSTATE, TB_FILE_SAVEAS, dwToolbarState
 
     ; On a treeview item
 	.IF bInTV == TRUE
@@ -342,18 +378,39 @@ ToolBarUpdate PROC hWin:DWORD, hItem:DWORD
         mov eax, TBSTATE_INDETERMINATE
     .ENDIF
     mov dwToolbarState, eax
-    Invoke SendMessage, hToolBar, TB_SETSTATE, TB_EDIT_COPY_ITEM, dwToolbarState
-    Invoke SendMessage, hToolBar, TB_SETSTATE, TB_EDIT_PASTE_ITEM, dwToolbarState
     Invoke SendMessage, hToolBar, TB_SETSTATE, TB_DEL_ITEM, dwToolbarState
+    
+	.IF bInTV == TRUE && bRoot == FALSE
+	    mov eax, TBSTATE_ENABLED
+    .ELSE
+        mov eax, TBSTATE_INDETERMINATE
+    .ENDIF
+    mov dwToolbarState, eax    
+    Invoke SendMessage, hToolBar, TB_SETSTATE, TB_EDIT_COPY_ITEM, dwToolbarState
 
+    .IF g_hCutCopyNode != NULL && bInTV == TRUE && (bHasChildren == TRUE || bObjectOrArray == TRUE)
+	    mov eax, TBSTATE_ENABLED
+    .ELSE
+        mov eax, TBSTATE_INDETERMINATE
+    .ENDIF
+    mov dwToolbarState, eax
+    Invoke SendMessage, hToolBar, TB_SETSTATE, TB_EDIT_PASTE_ITEM, dwToolbarState    
+    
     ; On a treeview item that has children or is an object or array
-	.IF bInTV == TRUE && (bHasChildren == TRUE || bObjectOrArray == TRUE)
+	.IF bInTV == TRUE && (bHasChildren == TRUE || bObjectOrArray == TRUE) && bRoot == FALSE
 	    mov eax, TBSTATE_ENABLED
     .ELSE
         mov eax, TBSTATE_INDETERMINATE
     .ENDIF
     mov dwToolbarState, eax
     Invoke SendMessage, hToolBar, TB_SETSTATE, TB_EDIT_COPY_BRANCH, dwToolbarState
+    
+    .IF g_hCutCopyBranchNode != NULL && bInTV == TRUE && (bHasChildren == TRUE || bObjectOrArray == TRUE); && bRoot == FALSE
+	    mov eax, TBSTATE_ENABLED
+    .ELSE
+        mov eax, TBSTATE_INDETERMINATE
+    .ENDIF
+    mov dwToolbarState, eax
     Invoke SendMessage, hToolBar, TB_SETSTATE, TB_EDIT_PASTE_BRANCH, dwToolbarState
 
     .IF bInTV == TRUE && bObjectOrArray == TRUE

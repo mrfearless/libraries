@@ -78,13 +78,14 @@ TreeViewLinkImageList       PROTO :DWORD,:DWORD,:DWORD                          
 TreeViewDrawSelectedItem    PROTO :DWORD                                                    ; hTreeview
 TreeViewDrawSelectedItemDlg PROTO :DWORD,:DWORD,:DWORD,:DWORD,:DWORD,:DWORD                 ; hWin, lParam, dwBackColor, dwTextColor, dwSelBackColor, dwSelTextColor
 
-
+TreeViewCountItems          PROTO :DWORD                                                    ; hTreeview
 TreeViewCountChildren       PROTO :DWORD,:DWORD,:DWORD                                      ; hTreeview, hItem, bRecurse
 
+TreeViewFindItem            PROTO :DWORD,:DWORD,:DWORD                                      ; hTreeview, hItem, lpszFindText
+TreeViewFindItemBranch      PROTO :DWORD,:DWORD,:DWORD                                      ; hTreeview, hItem, lpszFindText
 
-
-
-
+TreeViewCollapseAll         PROTO :DWORD                                                    ; hTreeview
+TreeViewExpandAll           PROTO :DWORD                                                    ; hTreeview
 
 
 

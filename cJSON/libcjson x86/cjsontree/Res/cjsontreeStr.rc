@@ -15,6 +15,7 @@
 #define TT_ADD_ITEM_FALSE				3043
 #define TT_ADD_ITEM_ARRAY				3044
 #define TT_ADD_ITEM_OBJECT				3045
+#define TT_EDIT_FIND					3011
 STRINGTABLE DISCARDABLE
 BEGIN
   TT_FILE_OPEN				"Open a json file"
@@ -34,4 +35,5 @@ BEGIN
   TT_ADD_ITEM_FALSE			"Add json false"
   TT_ADD_ITEM_ARRAY			"Add json array"
   TT_ADD_ITEM_OBJECT		"Add json object"
+  TT_EDIT_FIND				"Find text..."
 END

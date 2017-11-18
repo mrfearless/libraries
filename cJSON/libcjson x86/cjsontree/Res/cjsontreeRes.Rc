@@ -32,11 +32,11 @@
 #define IMG_CMD_ADD_ITEM 				251
 #define IMG_CMD_DEL_ITEM 				252
 #define IMG_CMD_COPY 					253
-#define IMG_CMD_PASTE_JSON				254
+#define IMG_CMD_PASTE					254
 #define IMG_CMD_EXPAND_BRANCH			255
-#define IMG_CMD_EXPAND_CHILDREN			256
+#define IMG_CMD_EXPAND_ALL				256
 #define IMG_CMD_COLLAPSE_BRANCH			257
-#define IMG_CMD_COLLAPSE_CHILDREN		258
+#define IMG_CMD_COLLAPSE_ALL			258
 #define IMG_CMD_EXPORT					259
 #define IMG_CMD_ADD_ITEM_STRING			270
 #define IMG_CMD_ADD_ITEM_NUMBER			271
@@ -73,18 +73,18 @@ IMG_EDIT_COPY_VALUE		BITMAP    DISCARDABLE "Images/Menu/Main/Edit/EditCopyValue.
 IMG_EDIT_COPY_ITEM		BITMAP    DISCARDABLE "Images/Menu/Main/Edit/EditCopyItem.bmp"
 IMG_EDIT_COPY_BRANCH	BITMAP    DISCARDABLE "Images/Menu/Main/Edit/EditCopyBranch.bmp"
 IMG_EDIT_PASTE_TEXT		BITMAP    DISCARDABLE "Images/Menu/_placeholder.bmp"
-IMG_EDIT_PASTE_ITEM		BITMAP    DISCARDABLE "Images/Menu/_placeholder.bmp"
-IMG_EDIT_PASTE_BRANCH	BITMAP    DISCARDABLE "Images/Menu/_placeholder.bmp"
-IMG_EDIT_PASTE_JSON		BITMAP    DISCARDABLE "Images/Menu/Main/Edit/EditPasteJson.bmp"
+IMG_EDIT_PASTE_ITEM		BITMAP    DISCARDABLE "Images/Menu/Main/Edit/EditPasteItem.bmp"
+IMG_EDIT_PASTE_BRANCH	BITMAP    DISCARDABLE "Images/Menu/Main/Edit/EditPasteBranch.bmp"
+IMG_EDIT_PASTE_JSON		BITMAP    DISCARDABLE "Images/Menu/Main/Edit/clipboardjson.bmp"
 IMG_CMD_EDIT_ITEM 		BITMAP    DISCARDABLE "Images/Menu/Rightclick/EditItem.bmp"
 IMG_CMD_ADD_ITEM 		BITMAP    DISCARDABLE "Images/Menu/Rightclick/AddItem.bmp"
 IMG_CMD_DEL_ITEM 		BITMAP    DISCARDABLE "Images/Menu/Rightclick/DeleteItem.bmp"
 IMG_CMD_COPY 			BITMAP    DISCARDABLE "Images/Menu/Rightclick/CopySubmenu.bmp"
-IMG_CMD_PASTE_JSON		BITMAP    DISCARDABLE "Images/Menu/Rightclick/PasteJson.bmp"
+IMG_CMD_PASTE			BITMAP    DISCARDABLE "Images/Menu/Rightclick/PasteSubmenu2.bmp"
 IMG_CMD_EXPAND_BRANCH	BITMAP    DISCARDABLE "Images/Menu/Rightclick/ExpandBranch.bmp"
-IMG_CMD_EXPAND_CHILDREN	BITMAP    DISCARDABLE "Images/Menu/Rightclick/ExpandChildren.bmp"
+IMG_CMD_EXPAND_ALL		BITMAP    DISCARDABLE "Images/Menu/Rightclick/ExpandChildren.bmp"
 IMG_CMD_COLLAPSE_BRANCH	BITMAP    DISCARDABLE "Images/Menu/Rightclick/CollapseBranch.bmp"
-IMG_CMD_COLLAPSE_CHILDREN	BITMAP    DISCARDABLE "Images/Menu/Rightclick/CollapseChildren.bmp"
+IMG_CMD_COLLAPSE_ALL	BITMAP    DISCARDABLE "Images/Menu/Rightclick/CollapseChildren.bmp"
 IMG_CMD_EXPORT			BITMAP    DISCARDABLE "Images/Menu/Rightclick/ExportSubmenu.bmp"
 IMG_CMD_ADD_ITEM_STRING	BITMAP    DISCARDABLE "Images/Menu/Rightclick/Add/AddString.bmp"
 IMG_CMD_ADD_ITEM_NUMBER	BITMAP    DISCARDABLE "Images/Menu/Rightclick/Add/AddNumber.bmp"
@@ -117,3 +117,6 @@ IMG_CMD_EXPORT_TREE_FILE	BITMAP    DISCARDABLE "Images/Menu/Rightclick/Export/Ex
 1609					ICON      DISCARDABLE "Images/Toolbar/TB_AddItem_Grey.ico"
 1610					ICON      DISCARDABLE "Images/Toolbar/TB_DeleteItem_Grey.ico"
 101						BITMAP    DISCARDABLE "Images/Menu/Main/menu_aboutltli.bmp"
+229						BITMAP    DISCARDABLE "Images/Menu/Main/Edit/EditFind.bmp"
+1511					ICON      DISCARDABLE "Images/Toolbar/TB_FindText.ico"
+1611					ICON      DISCARDABLE "Images/Toolbar/TB_FindText_Grey.ico"
