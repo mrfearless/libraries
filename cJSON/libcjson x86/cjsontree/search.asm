@@ -138,6 +138,7 @@ SearchTextboxSubclass PROC hWin:HWND,uMsg:UINT,wParam:WPARAM,lParam:LPARAM
         .IF eax == VK_F3
             ; search (default)
             Invoke SearchTextboxStartSearch, hWin
+            Invoke SetFocus, hTV
             xor eax, eax ; FALSE
             ret            
             
@@ -150,7 +151,7 @@ SearchTextboxSubclass PROC hWin:HWND,uMsg:UINT,wParam:WPARAM,lParam:LPARAM
         
         .ELSEIF eax == VK_RETURN
             Invoke SearchTextboxStartSearch, hWin
-            ;Invoke SetFocus, hTV
+            Invoke SetFocus, hTV
             xor eax, eax ; FALSE
             ret
 
@@ -210,6 +211,7 @@ SearchTextboxStartSearch PROC hWin:DWORD
     Invoke GetWindowText, hTxtSearchTextbox, Addr szSearchText, SIZEOF szSearchText
     .IF eax == 0
         mov bSearchTermNew, TRUE
+        Invoke SetFocus, hTxtSearchTextbox
         ;Invoke StatusBarSetPanelText, 2, Addr szSearchEmpty
         ret
     .ENDIF
@@ -220,6 +222,7 @@ SearchTextboxStartSearch PROC hWin:DWORD
         mov bSearchTermNew, TRUE
         mov hFoundItem, 0
         mov hLastFoundItem, 0
+        Invoke SetFocus, hTxtSearchTextbox
     .ELSE
         Invoke szCmp, Addr szLastSearchText, Addr szSearchText
         .IF eax == 0 ; no match
@@ -301,7 +304,7 @@ SearchTreeviewThread PROC lpszSearchText:DWORD
         mov eax, hFoundItem
         mov hLastFoundItem, eax
 
-        Invoke SetFocus, hTV
+        ;Invoke SetFocus, hTV
         Invoke TreeViewSetSelectedItem, hTV, hFoundItem, TRUE
         ;Invoke SetFocus, hTV
         mov bSearchTermNew, FALSE

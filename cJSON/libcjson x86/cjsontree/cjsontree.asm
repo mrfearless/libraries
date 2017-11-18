@@ -312,8 +312,10 @@ WndProc proc USES EBX hWin:HWND,uMsg:UINT,wParam:WPARAM,lParam:LPARAM
                     Invoke EditJSONItem, hWin
                 
                 .ELSEIF eax == VK_F3
-                    Invoke SetFocus, hTxtSearchTextbox
+                    ;Invoke SetFocus, hTxtSearchTextbox
                     Invoke SearchTextboxStartSearch, hWin
+                    ;Invoke TreeViewGetSelectedItem, hTV
+                    ;Invoke TreeViewSetSelectedItem, hTV, eax, TRUE
 
                 .ELSEIF eax == VK_F
                     Invoke GetAsyncKeyState, VK_CONTROL
@@ -1384,7 +1386,7 @@ ProcessJSONData PROC USES EBX hWin:DWORD, lpszJSONFile:DWORD, lpdwJSONData:DWORD
         .ENDIF
         
         Invoke TreeViewItemExpand, hTV, hTVNode
-        Invoke TreeViewItemExpand, hTV, hTVCurrentNode
+        ;Invoke TreeViewItemExpand, hTV, hTVCurrentNode
 
 
         ; we have inserted a treeview item, now we check what the next cJSON item is and how to handle it
