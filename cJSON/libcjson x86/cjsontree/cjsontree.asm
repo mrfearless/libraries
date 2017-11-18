@@ -1142,6 +1142,8 @@ ProcessJSONData PROC USES EBX hWin:DWORD, lpszJSONFile:DWORD, lpdwJSONData:DWORD
     mov hCurrentArray, NULL
     ENDIF
 
+    Invoke SendMessage, hTV, WM_SETREDRAW, FALSE, 0
+
     .WHILE level != 0
 
         .IF level == -1000d
@@ -1382,7 +1384,9 @@ ProcessJSONData PROC USES EBX hWin:DWORD, lpszJSONFile:DWORD, lpdwJSONData:DWORD
         .ENDIF
         
         Invoke TreeViewItemExpand, hTV, hTVNode
-        
+        Invoke TreeViewItemExpand, hTV, hTVCurrentNode
+
+
         ; we have inserted a treeview item, now we check what the next cJSON item is and how to handle it
         ; get child if there is one, otherwise sibling if there is one
         .IF child != 0
@@ -1485,6 +1489,8 @@ ProcessJSONData PROC USES EBX hWin:DWORD, lpszJSONFile:DWORD, lpdwJSONData:DWORD
         .ENDIF
 
     .ENDW
+
+    Invoke SendMessage, hTV, WM_SETREDRAW, TRUE, 0
 
 ;    IFDEF DEBUG32
 ;        Invoke VirtualStackDepth, hVirtualStack
