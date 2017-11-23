@@ -29,7 +29,7 @@ include TreeView.inc
 ; If hNodeParent is not NULL we are inserting a Child node.
 ; Returns handle to the newly created node root or child in rax
 ;======================================================================
-TreeViewInsertItem PROC FRAME hTreeview:QWORD, hNodeParent:QWORD, lpszNodeText:QWORD, nNodeIndex:QWORD, NodePosition:QWORD, nImage:QWORD, nImageSelected:QWORD, dqParam:QWORD
+TreeViewItemInsert PROC FRAME hTreeview:QWORD, hNodeParent:QWORD, lpszNodeText:QWORD, nNodeIndex:QWORD, NodePosition:QWORD, nImage:QWORD, nImageSelected:QWORD, dqParam:QWORD
 	LOCAL TVIS:TV_INSERTSTRUCT
 	;LOCAL hNode:QWORD
 
@@ -86,7 +86,7 @@ TreeViewInsertItem PROC FRAME hTreeview:QWORD, hNodeParent:QWORD, lpszNodeText:Q
 	
 	ret
 
-TreeViewInsertItem endp
+TreeViewItemInsert endp
 
 
 end

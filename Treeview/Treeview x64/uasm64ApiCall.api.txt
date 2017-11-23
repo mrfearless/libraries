@@ -9,8 +9,6 @@ TreeViewDeleteAll,hTreeview
 TreeViewItemExpand,hTreeview,hItem
 TreeViewItemCollapse,hTreeview,hItem
 TreeViewItemToggle,hTreeview,hItem
-TreeViewChildItemsCollapse,hTreeview,hItem
-TreeViewChildItemsExpand,hTreeview,hItem
 TreeViewChildItemsToggle,hTreeview,hItem
 TreeViewGetItemImage,hTreeview,hItem
 TreeViewGetItemParam,hTreeview,hItem
@@ -19,7 +17,7 @@ TreeViewGetSelectedImage,hTreeview
 TreeViewGetSelectedItem,hTreeview
 TreeViewGetSelectedParam,hTreeview
 TreeViewGetSelectedText,hTreeview,lpszTextBuffer,dqSizeTextBuffer
-TreeViewInsertItem,hTreeview,hNodeParent,lpszNodeText,nNodeIndex,NodePosition,nImage,nImageSelected,dqParam
+TreeViewItemInsert,hTreeview,hNodeParent,lpszNodeText,nNodeIndex,NodePosition,nImage,nImageSelected,dqParam
 TreeViewLinkImageList,hTreeview,hImagelist,ImagelistType
 TreeViewSetItemImage,hTreeview,hItem,nImageListIndex
 TreeViewSetItemParam,hTreeview,hItem,dqParam
@@ -28,5 +26,15 @@ TreeViewSetSelectedItem,hTreeview,hItem
 TreeViewSubClassData,hTreeview,lpdqTVSubClassData
 TreeViewSubClassProc,hTreeview,lpdqTVSubClassProc
 TreeViewCountChildren,hTreeview,hItem,bRecurse
-TreeViewItemDelete,hTreeview,hItem
-TreeViewItemHasChildren,hTreeview,hItem
+TreeViewFindItem,hTreeview,hItem,lpszFindText
+TreeViewFindItemBranch,hTreeview,hItem,lpszFindText
+TreeViewCountItems,hTreeview
+TreeViewRootCollapse,hTreeview
+TreeViewRootExpand,hTreeview
+TreeViewBranchCollapse,hTreeview,hItem
+TreeViewBranchExpand,hTreeview,hItem
+TreeViewItemCollapse,hTreeview,hItem
+TreeViewItemExpand,hTreeview,hItem
+TreeViewWalk,hTreeview,hItem,lpTreeViewWalkCallback,lpCustomData
+TreeViewBranchDepth,hTreeview,hItem
+TreeViewWalkCallback,hTreeview,hItem,dwStatus,dwTotalItems,dwItemNo,dwLevel,dwCustomData

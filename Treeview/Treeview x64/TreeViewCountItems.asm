@@ -21,12 +21,12 @@ include TreeView.inc
 .code
 
 ;**************************************************************************
-; 
+; Returns total count of items in treeview
 ;**************************************************************************
-TreeViewClearAll PROC FRAME hTreeview:QWORD
-    Invoke SendMessage, hTreeview, TVM_DELETEITEM, 0, TVI_ROOT
+TreeViewCountItems PROC FRAME hTreeview:QWORD
+    Invoke SendMessage, hTreeview, TVM_GETCOUNT, 0, 0
     ret
-TreeViewClearAll ENDP
+TreeViewCountItems ENDP
 
 
 END

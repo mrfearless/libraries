@@ -43,32 +43,25 @@
 TreeViewClearAll		    PROTO :QWORD                                                    ; hTreeview
 TreeViewDeleteAll           EQU TreeViewClearAll                                            ; hTreeview
 
-TreeViewInsertItem          PROTO :QWORD,:QWORD,:QWORD,:QWORD,:QWORD,:QWORD,:QWORD,:QWORD   ; hTreeview, hNodeParent, lpszNodeText, nNodeIndex, NodePosition, nImage, nImageSelected, qwParam
-
 TreeViewGetSelectedImage    PROTO :QWORD                                                    ; hTreeview, hItem
 TreeViewGetSelectedItem     PROTO :QWORD                                                    ; hTreeview, hItem
 TreeViewGetSelectedParam    PROTO :QWORD                                                    ; hTreeview, hItem
 TreeViewGetSelectedText     PROTO :QWORD,:QWORD,:QWORD                                      ; hTreeview, hItem
+TreeViewSetSelectedItem     PROTO :QWORD,:QWORD,:QWORD                                      ; hTreeview, hItem, bEnsureVisible
 
 TreeViewGetItemText         PROTO :QWORD,:QWORD,:QWORD,:QWORD                               ; hTreeview, hItem
 TreeViewGetItemImage        PROTO :QWORD,:QWORD                                             ; hTreeview, hItem
 TreeViewGetItemParam        PROTO :QWORD,:QWORD                                             ; hTreeview, hItem
-
 TreeViewSetItemText         PROTO :QWORD,:QWORD,:QWORD                                      ; hTreeview, hItem
 TreeViewSetItemImage        PROTO :QWORD,:QWORD,:QWORD                                      ; hTreeview, hItem
 TreeViewSetItemParam        PROTO :QWORD,:QWORD,:QWORD                                      ; hTreeview, hItem
 
-TreeViewItemCollapse        PROTO :QWORD,:QWORD                                             ; hTreeview, hItem
+
 TreeViewItemDelete          PROTO :QWORD,:QWORD                                             ; hTreeview, hItem
-TreeViewItemExpand          PROTO :QWORD,:QWORD                                             ; hTreeview, hItem
 TreeViewItemHasChildren     PROTO :QWORD,:QWORD                                             ; hTreeview, hItem
+TreeViewItemInsert          PROTO :QWORD,:QWORD,:QWORD,:QWORD,:QWORD,:QWORD,:QWORD,:QWORD   ; hTreeview, hNodeParent, lpszNodeText, nNodeIndex, NodePosition, nImage, nImageSelected, qwParam
 TreeViewItemToggle          PROTO :QWORD,:QWORD                                             ; hTreeview, hItem
 
-TreeViewChildItemsExpand    PROTO :QWORD,:QWORD                                             ; hTreeview, hItem
-TreeViewChildItemsCollapse  PROTO :QWORD,:QWORD                                             ; hTreeview, hItem
-TreeViewChildItemsToggle    PROTO :QWORD,:QWORD                                             ; hTreeview, hItem
-
-TreeViewSetSelectedItem     PROTO :QWORD,:QWORD,:QWORD                                      ; hTreeview, hItem, bEnsureVisible
 
 TreeViewSubClassProc        PROTO :QWORD,:QWORD                                             ; hTreeview, lpqwTVSubClassProc
 TreeViewSubClassData        PROTO :QWORD,:QWORD                                             ; hTreeview, lpqwTVSubClassData
@@ -78,15 +71,33 @@ TreeViewLinkImageList       PROTO :QWORD,:QWORD,:QWORD                          
 TreeViewDrawSelectedItem    PROTO :QWORD                                                    ; hTreeview
 TreeViewDrawSelectedItemDlg PROTO :QWORD,:QWORD,:QWORD,:QWORD,:QWORD,:QWORD                 ; hWin, lParam, qwBackColor, qwTextColor, qwSelBackColor, qwSelTextColor
 
-
+TreeViewCountItems          PROTO :QWORD                                                    ; hTreeview
 TreeViewCountChildren       PROTO :QWORD,:QWORD,:QWORD                                      ; hTreeview, hItem, bRecurse
 
+TreeViewFindItem            PROTO :QWORD,:QWORD,:QWORD,:QWORD                               ; hTreeview, hItem, lpszFindText, bCaseSensitive
 
 
+TreeViewRootCollapse        PROTO :QWORD                                                    ; hTreeview
+TreeViewRootExpand          PROTO :QWORD                                                    ; hTreeview
+TreeViewBranchCollapse      PROTO :QWORD,:QWORD                                             ; hTreeview, hItem
+TreeViewBranchExpand        PROTO :QWORD,:QWORD                                             ; hTreeview, hItem
+TreeViewItemCollapse        PROTO :QWORD,:QWORD                                             ; hTreeview, hItem
+TreeViewItemExpand          PROTO :QWORD,:QWORD                                             ; hTreeview, hItem
+
+TreeViewBranchDepth         PROTO :QWORD,:QWORD                                             ; hTreeview, hItem
+
+TreeViewWalk                PROTO :QWORD,:QWORD,:QWORD,:QWORD                               ; hTreeview, hItem, lpTreeViewWalkCallback, lpCustomData
+;TreeViewWalkCallback       PROTO :QWORD,:QWORD,:QWORD,:QWORD,:QWORD,:QWORD,:QWORD          ; hTreeview, hItem, qwStatus, qwTotalItems, qwItemNo, qwLevel, qwCustomData
 
 
-
-
-
-
-
+;-----------------------------------------------------------------------------------------
+; LTLI TreeView LIB Constants
+;-----------------------------------------------------------------------------------------
+.CONST
+; TreeView Walk Callback Status (dwStatus):
+TREEVIEWWALK_NULL              EQU 0
+TREEVIEWWALK_ITEM              EQU 1
+TREEVIEWWALK_ITEM_START        EQU 2
+TREEVIEWWALK_ITEM_FINISH       EQU 3
+TREEVIEWWALK_ROOT_START        EQU 4
+TREEVIEWWALK_ROOT_FINISH       EQU 5
