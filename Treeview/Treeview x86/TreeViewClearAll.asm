@@ -14,7 +14,7 @@ include TreeView.inc
 ;**************************************************************************
 ; 
 ;**************************************************************************
-TreeViewClearAll PROC hTreeview:DWORD
+TreeViewClearAll PROC PUBLIC hTreeview:DWORD
     Invoke SendMessage, hTreeview, TVM_DELETEITEM, 0, TVI_ROOT
     ret
 

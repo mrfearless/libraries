@@ -17,7 +17,7 @@ include TreeView.inc
 ; If hNodeParent is not NULL we are inserting a Child node.
 ; Returns handle to the newly created node root or child in eax
 ;======================================================================
-TreeViewInsertItem PROC PUBLIC hTreeview:DWORD, hNodeParent:DWORD, lpszNodeText:DWORD, nNodeIndex:DWORD, NodePosition:DWORD, nImage:DWORD, nImageSelected:DWORD, dwParam:DWORD
+TreeViewItemInsert PROC PUBLIC hTreeview:DWORD, hNodeParent:DWORD, lpszNodeText:DWORD, nNodeIndex:DWORD, NodePosition:DWORD, nImage:DWORD, nImageSelected:DWORD, dwParam:DWORD
 	LOCAL TVIS:TV_INSERTSTRUCT
 	;LOCAL hNode:DWORD
 
@@ -74,7 +74,7 @@ TreeViewInsertItem PROC PUBLIC hTreeview:DWORD, hNodeParent:DWORD, lpszNodeText:
 	
 	ret
 
-TreeViewInsertItem endp
+TreeViewItemInsert endp
 
 
 end

@@ -17,7 +17,7 @@ include TreeView.inc
 ;**************************************************************************
 ; retruns in eax length of text copied to lpszTextBuffer, or 0 otherwise
 ;**************************************************************************
-TreeViewGetItemText PROC PUBLIC USES EBX hTreeview:DWORD, hItem:DWORD, lpszTextBuffer:DWORD, dwSizeTextBuffer:DWORD
+TreeViewGetItemText PROC PUBLIC hTreeview:DWORD, hItem:DWORD, lpszTextBuffer:DWORD, dwSizeTextBuffer:DWORD
     LOCAL TVI:TV_ITEM
     mov TVI._mask, TVIF_TEXT
     mov eax, hItem

@@ -9,18 +9,19 @@ includelib user32.lib
 
 include TreeView.inc
 
+.DATA
+TreeViewBranchDepthCount    DD 0
+TreeViewBranchDepthLevel    DD 0
 
-.code
+
+.CODE
 
 ;**************************************************************************
 ; TreeViewCountChildren - count child items under current item,
 ; if bRecurse is TRUE then it will count all grandchildren etc as well
 ;**************************************************************************
-TreeViewCountChildren PROC PUBLIC USES EBX hTreeview:DWORD, hItem:DWORD, bRecurse:DWORD
+TreeViewBranchDepth PROC PUBLIC hTreeview:DWORD, hItem:DWORD
     LOCAL hCurrentItem:DWORD
-    LOCAL dwChildrenCount:DWORD
-    
-    mov dwChildrenCount, 0
     
     .IF hItem == NULL
         Invoke TreeViewGetSelectedItem, hTreeview
@@ -32,39 +33,26 @@ TreeViewCountChildren PROC PUBLIC USES EBX hTreeview:DWORD, hItem:DWORD, bRecurs
     Invoke SendMessage, hTreeview, TVM_GETNEXTITEM, TVGN_CHILD, hCurrentItem
     .WHILE eax != NULL
         mov hCurrentItem, eax
-        inc dwChildrenCount
-        .IF bRecurse == TRUE
-            Invoke TreeViewCountChildren, hTreeview, hCurrentItem, bRecurse
-            mov ebx, dwChildrenCount
-            add eax, ebx
-            mov dwChildrenCount, eax
+        inc TreeViewBranchDepthLevel
+        mov eax, TreeViewBranchDepthLevel
+        .IF eax > TreeViewBranchDepthCount
+            mov TreeViewBranchDepthCount, eax
         .ENDIF
+        Invoke TreeViewBranchDepth, hTreeview, hCurrentItem
+        dec TreeViewBranchDepthLevel
         Invoke SendMessage, hTreeview, TVM_GETNEXTITEM, TVGN_NEXT, hCurrentItem
     .ENDW
-    mov eax, dwChildrenCount
+    mov eax, TreeViewBranchDepthCount
     ret
 
-TreeViewCountChildren ENDP
-
-
-;int CountTreeItems(CTreeCtrl *pTree, HTREEITEM hItem = NULL, BOOL Recurse = TRUE)
-;{
-;	int Count = 0;
-;	if (hItem == NULL)
-;		hItem = pTree->GetSelectedItem();
-;	if (pTree->ItemHasChildren(hItem))
-;	{
-;		hItem = pTree->GetNextItem(hItem, TVGN_CHILD);
-;		while (hItem)
-;		{
-;			Count++;
-;			if (Recurse)
-;				Count += CountTreeItems(pTree, hItem, Recurse);
-;			hItem = pTree->GetNextItem(hItem, TVGN_NEXT);
-;		}
-;	}
-;	return Count;
-;}
-
+TreeViewBranchDepth ENDP
 
 end
+
+
+
+
+
+
+
+
