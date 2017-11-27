@@ -195,7 +195,7 @@ TestWalk PROC USES EBX
     
     Invoke CreateFile, Addr szTestFile, GENERIC_READ + GENERIC_WRITE, FILE_SHARE_READ+FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_FLAG_WRITE_THROUGH, NULL
     .IF eax == INVALID_HANDLE_VALUE
-        PrintText 'Failed to create output file'
+        ;PrintText 'Failed to create output file'
         ret
     .ENDIF
     mov hFile, eax
@@ -208,14 +208,14 @@ TestWalk PROC USES EBX
     
     Invoke CalcSaveSpaceRequired, hTV, hItem
     mov dwMaxSize, eax
-    PrintDec dwMaxSize
+    ;PrintDec dwMaxSize
     
     Invoke GlobalAlloc, GMEM_FIXED + GMEM_ZEROINIT, dwMaxSize
     .IF eax == NULL
         ret
     .ENDIF
     mov pData, eax    
-    PrintDec pData
+    ;PrintDec pData
     
     lea ebx, SaveJsonData
     mov [ebx].SAVEJSON.ptrOutputData, eax
@@ -224,12 +224,12 @@ TestWalk PROC USES EBX
     Invoke TreeViewWalk, hTV, hItem, Addr TestWalkCallback, pData
     
     .IF sdword ptr dwTotalBytesToWrite > 0
-        PrintDec dwTotalBytesToWrite
+        ;PrintDec dwTotalBytesToWrite
         Invoke SetFilePointer, hFile, 0, 0, FILE_BEGIN	
         Invoke WriteFile, hFile, pData, dwTotalBytesToWrite, Addr dwTotalBytesWritten, NULL
         .IF eax != TRUE
             Invoke GetLastError
-            PrintDec eax
+            ;PrintDec eax
         .ENDIF
         Invoke SetEndOfFile, hFile
     .ENDIF
@@ -262,8 +262,8 @@ TestWalkCallback PROC USES EBX hTreeview:DWORD, hItem:DWORD, dwStatus:DWORD, dwT
     mov eax, [ebx].cJSON.itemtype
     mov jsontype, eax
     
-    PrintText '----------------'
-    PrintDec dwLevel
+    ;PrintText '----------------'
+    ;PrintDec dwLevel
 
     .IF dwStatus == TREEVIEWWALK_ITEM
         
@@ -302,12 +302,12 @@ TestWalkCallback PROC USES EBX hTreeview:DWORD, hItem:DWORD, dwStatus:DWORD, dwT
         ;PrintText 'TREEVIEWWALK_ITEM'
         
         Invoke SeperateNameValue, Addr szItemText, Addr szItemTextString, Addr szItemTextValue
-        PrintText 'SeperateNameValue'
+        ;PrintText 'SeperateNameValue'
         Invoke szLen, Addr szItemTextString
-        PrintDec eax
+        ;PrintDec eax
         add dwTotalBytesToWrite, eax
         Invoke szLen, Addr szItemTextValue
-        PrintDec eax
+        ;PrintDec eax
         add dwTotalBytesToWrite, eax
         
         
@@ -342,11 +342,11 @@ TestWalkCallback PROC USES EBX hTreeview:DWORD, hItem:DWORD, dwStatus:DWORD, dwT
             Invoke szCatStr, dwCustomData, Addr szItemTextValue
             add dwTotalBytesToWrite, 5 ; quotes and stuff 
         .ELSE
-            PrintText 'Other'
+            ;PrintText 'Other'
             add dwTotalBytesToWrite, 5 ; quotes and stuff 
         .ENDIF
         
-        PrintString szItemText
+        ;PrintString szItemText
         ;Invoke szCatStr, dwCustomData, Addr szItemText
     
 
@@ -374,7 +374,7 @@ TestWalkCallback PROC USES EBX hTreeview:DWORD, hItem:DWORD, dwStatus:DWORD, dwT
             add dwTotalBytesToWrite, eax
             add dwTotalBytesToWrite, 4 ; quotes and stuff
             
-            PrintString szItemText
+            ;PrintString szItemText
                     
             ;PrintText '['
             Invoke szCatStr, dwCustomData, Addr szJSONExportArrayStart
@@ -465,13 +465,13 @@ TestWalkCallback PROC USES EBX hTreeview:DWORD, hItem:DWORD, dwStatus:DWORD, dwT
     
         ;PrintText 'TREEVIEWWALK_ITEM_FINISH'
         .IF dwLevel == 0
-            PrintText '=============='
-            PrintDec dwItemNo
-            PrintDec dwTotalItems
+            ;PrintText '=============='
+            ;PrintDec dwItemNo
+            ;PrintDec dwTotalItems
         .ENDIF
         
     .ELSEIF dwStatus == TREEVIEWWALK_ROOT_START
-        PrintDec dwCustomData
+        ;PrintDec dwCustomData
         ;PrintText '{'
         Invoke szCatStr, dwCustomData, Addr szJSONExportStart
         add dwTotalBytesToWrite, 3
@@ -561,13 +561,13 @@ SaveJSONBranchToFile PROC hWin:DWORD, lpszSaveFilename:DWORD, hItem:DWORD
     Invoke CloseJSONFileHandles, hWin
     
     .IF lpszSaveFilename == NULL
-        PrintText 'no save filename specified'
+        ;PrintText 'no save filename specified'
         ret
     .ENDIF
     
     Invoke CreateFile, lpszSaveFilename, GENERIC_READ + GENERIC_WRITE, FILE_SHARE_READ+FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_FLAG_WRITE_THROUGH, NULL
     .IF eax == INVALID_HANDLE_VALUE
-        PrintText 'Failed to create output file'
+        ;PrintText 'Failed to create output file'
         mov eax, FALSE
         ret
     .ENDIF
@@ -577,7 +577,7 @@ SaveJSONBranchToFile PROC hWin:DWORD, lpszSaveFilename:DWORD, hItem:DWORD
         Invoke SendMessage, hTV, TVM_GETNEXTITEM, TVGN_ROOT, NULL
         ;Invoke SendMessage, hTV, TVM_GETNEXTITEM, TVGN_CHILD, eax
         .IF eax == 0
-            PrintText 'nothing to save'
+            ;PrintText 'nothing to save'
             ret
         .ENDIF
     .ELSE
@@ -587,7 +587,7 @@ SaveJSONBranchToFile PROC hWin:DWORD, lpszSaveFilename:DWORD, hItem:DWORD
     
     Invoke CalcSaveSpaceRequired, hTV, hItemSave
     mov dwMaxSize, eax
-    PrintDec dwMaxSize
+    ;PrintDec dwMaxSize
     
     Invoke GlobalAlloc, GMEM_FIXED + GMEM_ZEROINIT, dwMaxSize
     .IF eax == NULL
@@ -595,7 +595,7 @@ SaveJSONBranchToFile PROC hWin:DWORD, lpszSaveFilename:DWORD, hItem:DWORD
         ret
     .ENDIF
     mov pData, eax    
-    PrintDec pData
+    ;PrintDec pData
     
     Invoke TreeViewWalk, hTV, hItemSave, Addr SaveJSONBranchProcess, Addr pData
     
@@ -603,12 +603,12 @@ SaveJSONBranchToFile PROC hWin:DWORD, lpszSaveFilename:DWORD, hItem:DWORD
     mov dwTotalBytesToWrite, eax
     
     .IF sdword ptr dwTotalBytesToWrite > 0
-        PrintDec dwTotalBytesToWrite
+        ;PrintDec dwTotalBytesToWrite
         Invoke SetFilePointer, hFile, 0, 0, FILE_BEGIN	
         Invoke WriteFile, hFile, pData, dwTotalBytesToWrite, Addr dwTotalBytesWritten, NULL
         .IF eax != TRUE
             Invoke GetLastError
-            PrintDec eax
+            ;PrintDec eax
         .ENDIF
         Invoke SetEndOfFile, hFile
         mov ReturnVal, TRUE
@@ -643,8 +643,8 @@ SaveJSONBranchProcess PROC USES EBX hTreeview:DWORD, hItem:DWORD, dwStatus:DWORD
     mov eax, [ebx].cJSON.itemtype
     mov jsontype, eax
     
-    PrintString szItemText
-    PrintDec jsontype
+    ;PrintString szItemText
+    ;PrintDec jsontype
     
     mov ebx, dwCustomData
     mov eax, [ebx] ; ebx contains pointer to pData

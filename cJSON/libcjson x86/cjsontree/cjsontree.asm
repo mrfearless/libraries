@@ -5,7 +5,7 @@
 option casemap:none
 include \masm32\macros\macros.asm
 
-DEBUG32 EQU 1
+;DEBUG32 EQU 1
 
 ;EXPERIMENTAL_ARRAYNAME_STACK EQU 1 ; Experimental, doesnt seem to work properly, so use if you uncomment, use with caution
 
@@ -988,18 +988,15 @@ JSONFileSave PROC hWin:DWORD, bSaveAs:DWORD
     .IF bSaveAs == TRUE
         mov bShowSaveAsDialog, TRUE
     .ELSE
-        PrintDec JsonOpenedFilename
         .IF JsonOpenedFilename == 0
             mov bShowSaveAsDialog, TRUE
         .ELSE
-            PrintString JsonOpenedFilename
             Invoke szLen, Addr JsonOpenedFilename
             .IF eax == 0
                 mov bShowSaveAsDialog, TRUE
             .ENDIF
         .ENDIF
     .ENDIF
-    
     
     .IF bShowSaveAsDialog == TRUE
         

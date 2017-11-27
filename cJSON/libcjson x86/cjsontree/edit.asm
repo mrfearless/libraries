@@ -66,7 +66,7 @@ JSONAddItem PROC USES EBX hWin:DWORD, dwJsonType:DWORD
     mov hJSONAdd, eax
 
     .IF hJSONAdd == 0
-        PrintText 'hJSONAdd == 0'
+        ;PrintText 'hJSONAdd == 0'
         ret
     .ENDIF
 
@@ -287,7 +287,7 @@ JSONCreateItem PROC USES EBX hTreeview:DWORD, hParentItem:DWORD, dwJsonObjectTyp
     .ENDIF
 
     .IF hJSONAdd == 0
-        PrintText 'hJSONAdd == 0'
+        ;PrintText 'hJSONAdd == 0'
         xor eax, eax
         ret
     .ENDIF

@@ -775,7 +775,7 @@ JSONPasteItem PROC USES EBX hWin:DWORD, hItem:DWORD
     mov hJSONPasteTo, eax
 
     .IF hJSONPasteTo == 0
-        PrintText 'hJSONAdd == 0'
+        ;PrintText 'hJSONAdd == 0'
         ret
     .ENDIF
 
