@@ -55,12 +55,16 @@ TreeViewWalk PROC PUBLIC hTreeview:DWORD, hItem:DWORD, lpTreeViewWalkCallback:DW
     
     ;inc TreeViewWalkLevel
     Invoke TreeViewWalkBranch, hTreeview, hCurrentItem, lpTreeViewWalkCallback, lpCustomData
+    .IF eax == FALSE
+        ret
+    .ENDIF       
     ;dec TreeViewWalkLevel
 
     Invoke TreeViewWalkCallbackCall, hTreeview, hCurrentItem, lpTreeViewWalkCallback, lpCustomData, TREEVIEWWALK_ITEM_FINISH
     ;dec TreeViewWalkLevel
     Invoke TreeViewWalkCallbackCall, hTreeview, hCurrentItem, lpTreeViewWalkCallback, lpCustomData, TREEVIEWWALK_ROOT_FINISH
     
+    mov eax, TRUE
     ret
 TreeViewWalk endp
 
@@ -90,15 +94,23 @@ TreeViewWalkBranch PROC PRIVATE hTreeview:DWORD, hItem:DWORD, lpTreeViewWalkCall
             Invoke SendMessage, hTreeview, TVM_GETNEXTITEM, TVGN_CHILD, hCurrentItem
             .IF eax != NULL
                 Invoke TreeViewWalkCallbackCall, hTreeview, hCurrentItem, lpTreeViewWalkCallback, lpCustomData, TREEVIEWWALK_ITEM_START
+                .IF eax == FALSE
+                    ret
+                .ENDIF                
             .ENDIF
             
             
             Invoke TreeViewWalkBranch, hTreeview, hCurrentItem, lpTreeViewWalkCallback, lpCustomData
-            
+            .IF eax == FALSE
+                ret
+            .ENDIF               
 
             Invoke SendMessage, hTreeview, TVM_GETNEXTITEM, TVGN_CHILD, hCurrentItem
             .IF eax != NULL
                 Invoke TreeViewWalkCallbackCall, hTreeview, hCurrentItem, lpTreeViewWalkCallback, lpCustomData, TREEVIEWWALK_ITEM_FINISH
+                .IF eax == FALSE
+                    ret
+                .ENDIF                
             .ENDIF            
             
             dec TreeViewWalkLevel
@@ -107,15 +119,18 @@ TreeViewWalkBranch PROC PRIVATE hTreeview:DWORD, hItem:DWORD, lpTreeViewWalkCall
         .ENDW
     .ELSE
         Invoke TreeViewWalkCallbackCall, hTreeview, hCurrentItem, lpTreeViewWalkCallback, lpCustomData, TREEVIEWWALK_ITEM
+        .IF eax == FALSE
+            ret
+        .ENDIF
     .ENDIF
     
-    
+    mov eax, TRUE
     ret
 TreeViewWalkBranch ENDP
 
 
 ;**************************************************************************
-; 
+; Return TRUE or FALSE from user callback, FALSE = user quit
 ;**************************************************************************
 TreeViewWalkCallbackCall PROC PRIVATE hTreeview:DWORD, hItem:DWORD, lpTreeViewWalkCallback:DWORD, lpCustomData:DWORD, dwStatus:DWORD
     push lpCustomData
