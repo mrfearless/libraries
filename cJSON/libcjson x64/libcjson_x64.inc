@@ -26,6 +26,47 @@
 ;includelib msvcrt.lib
 includelib msvcrt14.lib
 
+; cJSON project version
+CJSON_VERSION_MAJOR             EQU 1
+CJSON_VERSION_MINOR             EQU 6
+CJSON_VERSION_PATCH             EQU 0
+
+; cJSON Types:
+cJSON_Invalid                   EQU 0; (0)
+cJSON_False                     EQU 1; (1 << 0)
+cJSON_True                      EQU 2; (1 << 1)
+cJSON_NULL                      EQU 4; (1 << 2)
+cJSON_Number                    EQU 8; (1 << 3)
+cJSON_String                    EQU 16; (1 << 4)
+cJSON_Array                     EQU 32; (1 << 5)
+cJSON_Object                    EQU 64; (1 << 6)
+cJSON_Raw                       EQU 128; (1 << 7) - raw json
+
+cJSON_IsReference               EQU 256
+cJSON_StringIsConst             EQU 512
+
+
+
+; The cJSON structure:
+cJSON                           STRUCT 8
+    next                        QWORD ?
+    prev                        QWORD ?
+    child                       QWORD ?
+    itemtype                    QWORD ?
+    valuestring                 QWORD ?
+    valueint                    QWORD ?
+    valuedouble                 QWORD ?
+    itemstring                  QWORD ?
+cJSON                           ENDS
+
+cJSON_Hooks                     STRUCT
+    malloc_fn                   QWORD ?
+    free_fn                     QWORD ?
+cJSON_Hooks                     ENDS
+
+cJSON_bool                      TYPEDEF QWORD
+
+CJSON_NESTING_LIMIT             EQU 1000
 
 
 cJSON_Version                   PROTO 
@@ -112,61 +153,193 @@ cJSON_malloc                    PROTO :QWORD ; (size_t size);
 cJSON_free                      PROTO :QWORD ; (void *object);
 
 
-; The cJSON structure:
-cJSON                           STRUCT 
-    next                        QWORD ?
-    prev                        QWORD ?
-    child                       QWORD ?
-    itemtype                    QWORD ?
-    valuestring                 QWORD ?
-    valueint                    QWORD ?
-    valuedouble                 QWORD ?
-    itemstring                  QWORD ?
-cJSON                           ENDS
+cJSON_AddObjectToObject         PROTO :QWORD, :QWORD
+cJSON_AddArrayToObject          PROTO :QWORD, :QWORD
+cJSON_AddNullToObject           PROTO :QWORD, :QWORD
+cJSON_AddTrueToObject           PROTO :QWORD, :QWORD
+cJSON_AddFalseToObject          PROTO :QWORD, :QWORD
+cJSON_AddBoolToObject           PROTO :QWORD, :QWORD, :QWORD
+cJSON_AddNumberToObject         PROTO :QWORD, :QWORD, :QWORD
+cJSON_AddStringToObject         PROTO :QWORD, :QWORD, :QWORD
+cJSON_AddRawToObject            PROTO :QWORD, :QWORD, :QWORD
 
-cJSON_Hooks                     STRUCT
-    malloc_fn                   QWORD ?
-    free_fn                     QWORD ?
-cJSON_Hooks                     ENDS
-
-cJSON_bool                      TYPEDEF QWORD
-
-
-
-.CONST
-CJSON_NESTING_LIMIT             EQU 1000
-
-; cJSON project version
-CJSON_VERSION_MAJOR             EQU 1
-CJSON_VERSION_MINOR             EQU 6
-CJSON_VERSION_PATCH             EQU 0
-
-; cJSON Types:
-cJSON_Invalid                   EQU 0; (0)
-cJSON_False                     EQU 1; (1 << 0)
-cJSON_True                      EQU 2; (1 << 1)
-cJSON_NULL                      EQU 4; (1 << 2)
-cJSON_Number                    EQU 8; (1 << 3)
-cJSON_String                    EQU 16; (1 << 4)
-cJSON_Array                     EQU 32; (1 << 5)
-cJSON_Object                    EQU 64; (1 << 6)
-cJSON_Raw                       EQU 128; (1 << 7) - raw json
-
-cJSON_IsReference               EQU 256
-cJSON_StringIsConst             EQU 512
+cJSON_AddObjectToArray          PROTO :QWORD
+cJSON_AddArrayToArray           PROTO :QWORD
+cJSON_AddNullToArray            PROTO :QWORD
+cJSON_AddTrueToArray            PROTO :QWORD
+cJSON_AddFalseToArray           PROTO :QWORD
+cJSON_AddBoolToArray            PROTO :QWORD, :QWORD
+cJSON_AddNumberToArray          PROTO :QWORD, :QWORD
+cJSON_AddStringToArray          PROTO :QWORD, :QWORD
+cJSON_AddRawToArray             PROTO :QWORD, :QWORD
 
 
 
+.CODE
 
+; Add To Object
+cJSON_AddObjectToObject PROC FRAME hJSON:QWORD, lpszName:QWORD
+    LOCAL hJSONObject:QWORD
+    Invoke cJSON_CreateObject
+    mov hJSONObject, rax
+    Invoke cJSON_AddItemToObject, hJSON, lpszName, hJSONObject
+    mov rax, hJSONObject
+    ret
+cJSON_AddObjectToObject ENDP
 
+cJSON_AddArrayToObject PROC FRAME hJSON:QWORD, lpszName:QWORD
+    LOCAL hJSONObjectArray:QWORD
+    Invoke cJSON_CreateArray
+    mov hJSONObjectArray, rax
+    Invoke cJSON_AddItemToObject, hJSON, lpszName, hJSONObjectArray
+    mov rax, hJSONObjectArray
+    ret
+cJSON_AddArrayToObject ENDP
 
+cJSON_AddNullToObject PROC FRAME hJSON:QWORD, lpszName:QWORD
+    LOCAL hJSONObjectNull:QWORD
+    Invoke cJSON_CreateNull
+    mov hJSONObjectNull, rax
+    Invoke cJSON_AddItemToObject, hJSON, lpszName, hJSONObjectNull
+    mov rax, hJSONObjectNull
+    ret
+cJSON_AddNullToObject ENDP
 
+cJSON_AddTrueToObject PROC FRAME hJSON:QWORD, lpszName:QWORD
+    LOCAL hJSONObjectTrue:QWORD
+    Invoke cJSON_CreateTrue
+    mov hJSONObjectTrue, rax
+    Invoke cJSON_AddItemToObject, hJSON, lpszName, hJSONObjectTrue
+    mov rax, hJSONObjectTrue
+    ret
+cJSON_AddTrueToObject ENDP
 
+cJSON_AddFalseToObject PROC FRAME hJSON:QWORD, lpszName:QWORD
+    LOCAL hJSONObjectFalse:QWORD
+    Invoke cJSON_CreateFalse
+    mov hJSONObjectFalse, rax
+    Invoke cJSON_AddItemToObject, hJSON, lpszName, hJSONObjectFalse
+    mov rax, hJSONObjectFalse
+    ret
+cJSON_AddFalseToObject ENDP
 
+cJSON_AddBoolToObject PROC FRAME hJSON:QWORD, lpszName:QWORD, qwBoolValue:QWORD
+    LOCAL hJSONObjectBool:QWORD
+    Invoke cJSON_CreateBool, qwBoolValue
+    mov hJSONObjectBool, rax
+    Invoke cJSON_AddItemToObject, hJSON, lpszName, hJSONObjectBool
+    mov rax, hJSONObjectBool
+    ret
+cJSON_AddBoolToObject ENDP
 
+cJSON_AddNumberToObject PROC FRAME hJSON:QWORD, lpszName:QWORD, qwNumberValue:QWORD
+    LOCAL hJSONObjectNumber:QWORD
+    Invoke cJSON_CreateNumber, qwNumberValue
+    mov hJSONObjectNumber, rax
+    Invoke cJSON_AddItemToObject, hJSON, lpszName, hJSONObjectNumber
+    mov rax, hJSONObjectNumber
+    ret
+cJSON_AddNumberToObject ENDP
 
+cJSON_AddStringToObject PROC FRAME hJSON:QWORD, lpszName:QWORD, lpszString:QWORD
+    LOCAL hJSONObjectString:QWORD
+    Invoke cJSON_CreateString, lpszString
+    mov hJSONObjectString, rax
+    Invoke cJSON_AddItemToObject, hJSON, lpszName, hJSONObjectString
+    mov rax, hJSONObjectString
+    ret
+cJSON_AddStringToObject ENDP
 
+cJSON_AddRawToObject PROC FRAME hJSON:QWORD, lpszName:QWORD, lpszRawJson:QWORD
+    LOCAL hJSONObjectRaw:QWORD
+    Invoke cJSON_CreateRaw, lpszRawJson
+    mov hJSONObjectRaw, rax
+    Invoke cJSON_AddItemToObject, hJSON, lpszName, hJSONObjectRaw
+    mov rax, hJSONObjectRaw
+    ret
+cJSON_AddRawToObject ENDP
 
+; Add To Array
+cJSON_AddObjectToArray PROC FRAME hJSON:QWORD
+    LOCAL hJSONObject:QWORD
+    Invoke cJSON_CreateObject
+    mov hJSONObject, rax
+    Invoke cJSON_AddItemToArray, hJSON, hJSONObject
+    mov rax, hJSONObject
+    ret
+cJSON_AddObjectToArray ENDP
+
+cJSON_AddArrayToArray PROC FRAME hJSON:QWORD
+    LOCAL hJSONObjectArray:QWORD
+    Invoke cJSON_CreateArray
+    mov hJSONObjectArray, rax
+    Invoke cJSON_AddItemToArray, hJSON, hJSONObjectArray
+    mov rax, hJSONObjectArray
+    ret
+cJSON_AddArrayToArray ENDP
+
+cJSON_AddNullToArray PROC FRAME hJSON:QWORD
+    LOCAL hJSONObjectNull:QWORD
+    Invoke cJSON_CreateNull
+    mov hJSONObjectNull, rax
+    Invoke cJSON_AddItemToArray, hJSON, hJSONObjectNull
+    mov rax, hJSONObjectNull
+    ret
+cJSON_AddNullToArray ENDP
+
+cJSON_AddTrueToArray PROC FRAME hJSON:QWORD
+    LOCAL hJSONObjectTrue:QWORD
+    Invoke cJSON_CreateTrue
+    mov hJSONObjectTrue, rax
+    Invoke cJSON_AddItemToArray, hJSON, hJSONObjectTrue
+    mov rax, hJSONObjectTrue
+    ret
+cJSON_AddTrueToArray ENDP
+
+cJSON_AddFalseToArray PROC FRAME hJSON:QWORD
+    LOCAL hJSONObjectFalse:QWORD
+    Invoke cJSON_CreateFalse
+    mov hJSONObjectFalse, rax
+    Invoke cJSON_AddItemToArray, hJSON, hJSONObjectFalse
+    mov rax, hJSONObjectFalse
+    ret
+cJSON_AddFalseToArray ENDP
+
+cJSON_AddBoolToArray PROC FRAME hJSON:QWORD, qwBoolValue:QWORD
+    LOCAL hJSONObjectBool:QWORD
+    Invoke cJSON_CreateBool, qwBoolValue
+    mov hJSONObjectBool, rax
+    Invoke cJSON_AddItemToArray, hJSON, hJSONObjectBool
+    mov rax, hJSONObjectBool
+    ret
+cJSON_AddBoolToArray ENDP
+
+cJSON_AddNumberToArray PROC FRAME hJSON:QWORD, qwNumberValue:QWORD
+    LOCAL hJSONObjectNumber:QWORD
+    Invoke cJSON_CreateNumber, qwNumberValue
+    mov hJSONObjectNumber, rax
+    Invoke cJSON_AddItemToArray, hJSON, hJSONObjectNumber
+    mov rax, hJSONObjectNumber
+    ret
+cJSON_AddNumberToArray ENDP
+
+cJSON_AddStringToArray PROC FRAME hJSON:QWORD, lpszString:QWORD
+    LOCAL hJSONObjectString:QWORD
+    Invoke cJSON_CreateString, lpszString
+    mov hJSONObjectString, rax
+    Invoke cJSON_AddItemToArray, hJSON, hJSONObjectString
+    mov rax, hJSONObjectString
+    ret
+cJSON_AddStringToArray ENDP
+
+cJSON_AddRawToArray PROC FRAME hJSON:QWORD, lpszRawJson:QWORD
+    LOCAL hJSONObjectRaw:QWORD
+    Invoke cJSON_CreateRaw, lpszRawJson
+    mov hJSONObjectRaw, rax
+    Invoke cJSON_AddItemToArray, hJSON, hJSONObjectRaw
+    mov rax, hJSONObjectRaw
+    ret
+cJSON_AddRawToArray ENDP
 
 
 
