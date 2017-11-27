@@ -1,9 +1,11 @@
-InitSearchTextbox           PROTO :DWORD
-SearchTextboxSubclass       PROTO :DWORD, :DWORD, :DWORD, :DWORD
-ShowSearchTextbox           PROTO :DWORD, :DWORD
-ClearSearchTextbox          PROTO :DWORD, :DWORD
-SearchTextboxStartSearch    PROTO :DWORD
-SearchTreeviewThread        PROTO :DWORD  
+SearchTextboxInit                   PROTO :DWORD
+SearchTextboxSubclass               PROTO :DWORD, :DWORD, :DWORD, :DWORD
+SearchTextboxShow                   PROTO :DWORD, :DWORD
+SearchTextboxClear                  PROTO :DWORD, :DWORD
+SearchTextboxStartSearch            PROTO :DWORD
+SearchTreeviewThread                PROTO :DWORD 
+SearchTextboxStatusBarSubclass      PROTO :DWORD, :DWORD, :DWORD, :DWORD
+
 
 .CONST
 STACK8MB                    EQU 8388608d
@@ -12,10 +14,15 @@ STACK32MB                   EQU 33554432d
 STACK64MB                   EQU 67108864d
 
 IDC_TxtSearchbox            EQU 1004
+IDC_BtnCaseToggle           EQU 1099
+
+BMP_CASE_SENSITIVE          EQU 998
+BMP_CASE_INSENSITIVE        EQU 999
 
 
 .DATA
 TxtSearchboxClass           DB 'edit',0
+BtnSearchboxCaseClass       DB 'button',0
 
 szWideNull                  DB 0,0,0,0
 szWideSearchForText         DB 'S',0,'e',0,'a',0,'r',0,'c',0,'h',0,' ',0
@@ -37,6 +44,7 @@ szSearchNotFound            DB "No occurance of '",0
 szFound                     DB "' found",0
 szSearchNoMoreFound         DB "No more occurances of '",0
 szSearchEmpty               DB 'No text to search for has been provided',0
+szSearchCaseSensitive       DB " (case sensitive is on - F4 to toggle)",0
 
 hFoundItem                  DD 0
 hLastFoundItem              DD 0
@@ -47,15 +55,17 @@ lpSearchThreadId            DD 0
 
 .DATA?
 hTxtSearchTextbox           DD ?
-
+hBtnCaseToggle              DD ?
+hBmpCaseSensitive           DD ?
+hBmpCaseInsensitive         DD ?
 
 .CODE
 
 
 ;-------------------------------------------------------------------------------------
-; InitSearchTextbox
+; SearchTextboxInit
 ;-------------------------------------------------------------------------------------
-InitSearchTextbox PROC hWin:DWORD
+SearchTextboxInit PROC hWin:DWORD
 
     Invoke CreateWindowEx, WS_EX_CLIENTEDGE, Addr TxtSearchboxClass, NULL, WS_VISIBLE or WS_TABSTOP or WS_CHILD or ES_LEFT or ES_AUTOHSCROLL, 2, 3, 130, 19, hSB, 0, hInstance, NULL
     .IF eax == NULL
@@ -72,14 +82,67 @@ InitSearchTextbox PROC hWin:DWORD
     Invoke SendMessage, hTxtSearchTextbox, WM_SETFONT, hFontNormal, TRUE
     Invoke SendMessageW, hTxtSearchTextbox, EM_SETCUEBANNER, FALSE, Addr szWideSearchForText
 
+    
+;    Invoke CreateWindowEx, NULL, Addr BtnSearchboxCaseClass, NULL, WS_VISIBLE or WS_CHILD or BS_PUSHBUTTON or BS_ICON, 134, 4, 16, 16, hWin, 0, hInstance, IDC_BtnCaseToggle
+;    mov hBtnCaseToggle, eax
+    Invoke SetWindowLong, hSB, GWL_WNDPROC, Addr SearchTextboxStatusBarSubclass
+    Invoke SetWindowLong, hSB, GWL_USERDATA, eax
+;    
+;    ;Invoke LoadIcon, hInstance, BMP_CASE_SENSITIVE
+;    Invoke LoadImage, hInstance, BMP_CASE_SENSITIVE, IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR
+;    ;Invoke LoadBitmap, hInstance, BMP_CASE_SENSITIVE
+;    mov hBmpCaseSensitive, eax
+;    
+;    ;Invoke LoadIcon, hInstance, BMP_CASE_INSENSITIVE
+;    Invoke LoadImage, hInstance, BMP_CASE_INSENSITIVE, IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR
+;    ;Invoke LoadBitmap, hInstance, BMP_CASE_INSENSITIVE
+;    mov hBmpCaseInsensitive, eax
+;    
+;    ;Invoke SendMessage, hBtnCaseToggle, BM_SETIMAGE, IMAGE_BITMAP, hBmpCaseSensitive
+;    Invoke SendMessage, hBtnCaseToggle, STM_SETIMAGE, IMAGE_ICON, hBmpCaseSensitive
+;
+;        ;invoke LoadCursor, 0, IDC_HAND
+;        ;invoke SetClassLong, hBtnCaseToggle, GCL_HCURSOR,eax
+    
     ret
-InitSearchTextbox ENDP
+SearchTextboxInit ENDP
 
 
 ;-------------------------------------------------------------------------------------
-; ShowSearchTextbox
+; SearchTextboxStatusBarSubclass - to handle color of search box text to indicate case sensitivity
 ;-------------------------------------------------------------------------------------
-ShowSearchTextbox PROC hWin:DWORD, bShow:DWORD
+SearchTextboxStatusBarSubclass PROC hWin:HWND,uMsg:UINT,wParam:WPARAM,lParam:LPARAM
+    LOCAL wNotifyCode:DWORD
+    
+    mov eax, uMsg
+    .IF eax == WM_CTLCOLOREDIT
+        .IF g_CaseSensitiveSearch == FALSE ; black text
+            Invoke SetTextColor, wParam, 230194h ;94015Fh
+            ;mov eax, hStatusbarGreyBrush
+            ret
+        .ELSE ; green text
+	        Invoke SetTextColor, wParam, 0E07A21h ;0A9401h
+	        ;mov eax, hStatusbarGreyBrush	
+	        ret
+        .ENDIF
+		 
+	.ELSE
+	    Invoke GetWindowLong, hWin, GWL_USERDATA
+	    Invoke CallWindowProc, eax, hWin, uMsg, wParam, lParam
+	    ret
+	.ENDIF
+
+	Invoke GetWindowLong, hWin, GWL_USERDATA
+	Invoke CallWindowProc, eax, hWin, uMsg, wParam, lParam	
+	ret
+
+SearchTextboxStatusBarSubclass ENDP
+
+
+;-------------------------------------------------------------------------------------
+; SearchTextboxShow
+;-------------------------------------------------------------------------------------
+SearchTextboxShow PROC hWin:DWORD, bShow:DWORD
     
     .IF bShow == TRUE
         Invoke EnableWindow, hTxtSearchTextbox, TRUE
@@ -90,13 +153,13 @@ ShowSearchTextbox PROC hWin:DWORD, bShow:DWORD
     .ENDIF
     ret
 
-ShowSearchTextbox ENDP
+SearchTextboxShow ENDP
 
 
 ;-------------------------------------------------------------------------------------
-; ClearSearchTextbox
+; SearchTextboxClear
 ;-------------------------------------------------------------------------------------
-ClearSearchTextbox PROC hWin:DWORD, bShowCue:DWORD
+SearchTextboxClear PROC hWin:DWORD, bShowCue:DWORD
     
     Invoke SetWindowTextW, hTxtSearchTextbox, Addr szWideNull
     .IF bShowCue == TRUE
@@ -107,7 +170,7 @@ ClearSearchTextbox PROC hWin:DWORD, bShowCue:DWORD
     
     ret
 
-ClearSearchTextbox ENDP
+SearchTextboxClear ENDP
 
 
 ;-------------------------------------------------------------------------------------
@@ -141,7 +204,12 @@ SearchTextboxSubclass PROC hWin:HWND,uMsg:UINT,wParam:WPARAM,lParam:LPARAM
             Invoke SetFocus, hTV
             xor eax, eax ; FALSE
             ret            
-            
+        .ELSEIF eax == VK_F4
+            Invoke IniToggleCaseSensitiveSearch
+            Invoke MenuOptionsUpdate, hWnd
+            Invoke InvalidateRect, hWin, NULL, TRUE
+            xor eax, eax ; FALSE
+            ret   
         ;.ELSEIF eax == VK_F6
         ;    ; search again forward for next ref
         ;    Invoke SearchTextboxStartSearch, hWin
@@ -187,7 +255,7 @@ SearchTextboxFocus PROC hWin:DWORD
     
     Invoke SendMessage, hTV, TVM_GETCOUNT, 0, 0
     .IF sdword ptr eax > 0
-        ;Invoke ShowSearchTextbox, hWin, TRUE
+        ;Invoke SearchTextboxShow, hWin, TRUE
         Invoke SetFocus, hTxtSearchTextbox
     .ENDIF
     
@@ -269,19 +337,19 @@ SearchTextboxStartSearch ENDP
 SearchTreeviewThread PROC lpszSearchText:DWORD
     
     .IF bSearchTermNew == TRUE
-        Invoke TreeViewFindItem, hTV, 0, lpszSearchText
+        Invoke TreeViewFindItem, hTV, 0, lpszSearchText, g_CaseSensitiveSearch
     .ELSE
         mov eax, hFoundItem
         .IF eax == 0 && eax != hLastFoundItem
             ;PrintText 'Search again from start'
             ;PrintDec hFoundItem
             ;PrintDec hLastFoundItem
-            Invoke TreeViewFindItem, hTV, 0, lpszSearchText
+            Invoke TreeViewFindItem, hTV, 0, lpszSearchText, g_CaseSensitiveSearch
         .ELSE
             ;PrintText 'Search again'
             ;PrintDec hFoundItem
             ;PrintDec hLastFoundItem            
-            Invoke TreeViewFindItem, hTV, hFoundItem, lpszSearchText
+            Invoke TreeViewFindItem, hTV, hFoundItem, lpszSearchText, g_CaseSensitiveSearch
         .ENDIF
     .ENDIF
     mov hFoundItem, eax
@@ -310,14 +378,21 @@ SearchTreeviewThread PROC lpszSearchText:DWORD
         mov bSearchTermNew, FALSE
     .ELSE
         .IF bSearchTermNew == TRUE
+
             Invoke szCopy, Addr szSearchNotFound, Addr szSearchingForBuffer
             Invoke szCatStr, Addr szSearchingForBuffer, Addr szSearchText
             Invoke szCatStr, Addr szSearchingForBuffer, Addr szFound
+            .IF g_CaseSensitiveSearch == TRUE
+                Invoke szCatStr, Addr szSearchingForBuffer, Addr szSearchCaseSensitive
+            .ENDIF
             Invoke StatusBarSetPanelText, 2, Addr szSearchingForBuffer
         .ELSE
             Invoke szCopy, Addr szSearchNoMoreFound, Addr szSearchingForBuffer
             Invoke szCatStr, Addr szSearchingForBuffer, Addr szSearchText
             Invoke szCatStr, Addr szSearchingForBuffer, Addr szFound
+            .IF g_CaseSensitiveSearch == TRUE
+                Invoke szCatStr, Addr szSearchingForBuffer, Addr szSearchCaseSensitive
+            .ENDIF            
             Invoke StatusBarSetPanelText, 2, Addr szSearchingForBuffer
  
         .ENDIF

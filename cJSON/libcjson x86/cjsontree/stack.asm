@@ -1,25 +1,25 @@
-CreateJSONStackItem         PROTO :DWORD
-FreeJSONStackItem           PROTO :DWORD
-GetJSONStackItemCount       PROTO :DWORD
-SetJSONStackItemCount       PROTO :DWORD, :DWORD
-IncJSONStackItemCount       PROTO :DWORD
-CreateJSONArrayIteratorName PROTO :DWORD, :DWORD
-DeleteStackItemsCallback    PROTO :DWORD, :DWORD
+JSONStackItemCreate             PROTO :DWORD
+JSONStackItemFree               PROTO :DWORD
+JSONStackItemGetCount           PROTO :DWORD
+JSONStackItemSetCount           PROTO :DWORD, :DWORD
+JSONStackItemIncCount           PROTO :DWORD
+JSONStackItemArrayIteratorName  PROTO :DWORD, :DWORD
+JSONStackItemsDeleteCallback    PROTO :DWORD, :DWORD
 
 
-JSONSTACKITEM               STRUCT
-    szItemName              DB 64 DUP (?) 
-    dwItemCount             DD ?
-JSONSTACKITEM               ENDS
+JSONSTACKITEM                   STRUCT
+    szItemName                  DB 64 DUP (?) 
+    dwItemCount                 DD ?
+JSONSTACKITEM                   ENDS
 
 
 .CODE
 
 
 ;-------------------------------------------------------------------------------------
-; CreateJSONStackItem - Creates a JSONSTACKITEM json stack item
+; JSONStackItemCreate - Creates a JSONSTACKITEM json stack item
 ;-------------------------------------------------------------------------------------
-CreateJSONStackItem PROC USES EBX lpszJsonItemName:DWORD
+JSONStackItemCreate PROC USES EBX lpszJsonItemName:DWORD
     LOCAL ptrJsonStackItem:DWORD
     
     .IF lpszJsonItemName == NULL
@@ -48,27 +48,27 @@ CreateJSONStackItem PROC USES EBX lpszJsonItemName:DWORD
     mov eax, ptrJsonStackItem
     ret
 
-CreateJSONStackItem ENDP
+JSONStackItemCreate ENDP
 
 
 ;-------------------------------------------------------------------------------------
-; FreeJSONStackItem - Free JSONSTACKITEM item created by CreateJSONStackItem
+; JSONStackItemFree - Free JSONSTACKITEM item created by JSONStackItemCreate
 ;-------------------------------------------------------------------------------------
-FreeJSONStackItem PROC ptrJsonStackItem:DWORD
+JSONStackItemFree PROC ptrJsonStackItem:DWORD
     mov eax, ptrJsonStackItem
     .IF eax != NULL
         Invoke GlobalFree, eax
     .ENDIF
     xor eax, eax
     ret
-FreeJSONStackItem ENDP
+JSONStackItemFree ENDP
 
 
 ;-------------------------------------------------------------------------------------
-; IncJSONStackItemCount - increments JSONSTACKITEM counter for use in next call to 
-;CreateJSONArrayIteratorName
+; JSONStackItemIncCount - increments JSONSTACKITEM counter for use in next call to 
+;JSONStackItemArrayIteratorName
 ;-------------------------------------------------------------------------------------
-IncJSONStackItemCount PROC USES EBX ptrJsonStackItem:DWORD
+JSONStackItemIncCount PROC USES EBX ptrJsonStackItem:DWORD
     .IF ptrJsonStackItem == NULL
         mov eax, 0
         ret
@@ -78,13 +78,13 @@ IncJSONStackItemCount PROC USES EBX ptrJsonStackItem:DWORD
     inc eax
     mov [ebx].JSONSTACKITEM.dwItemCount, eax
     ret
-IncJSONStackItemCount ENDP
+JSONStackItemIncCount ENDP
 
 
 ;-------------------------------------------------------------------------------------
-; CreateJSONArrayIteratorName - Creates next array name: Thing[1], Thing[2], etc
+; JSONStackItemArrayIteratorName - Creates next array name: Thing[1], Thing[2], etc
 ;-------------------------------------------------------------------------------------
-CreateJSONArrayIteratorName PROC USES EBX ptrJsonStackItem:DWORD, lpszNameBuffer:DWORD
+JSONStackItemArrayIteratorName PROC USES EBX ptrJsonStackItem:DWORD, lpszNameBuffer:DWORD
     LOCAL dwCount:DWORD
     LOCAL szCount[16]:BYTE
 
@@ -110,15 +110,15 @@ CreateJSONArrayIteratorName PROC USES EBX ptrJsonStackItem:DWORD, lpszNameBuffer
     Invoke szCatStr, lpszNameBuffer, Addr szRightSquareBracket
     mov eax, TRUE
     ret
-CreateJSONArrayIteratorName ENDP
+JSONStackItemArrayIteratorName ENDP
 
 
 ;-------------------------------------------------------------------------------------
-; DeleteStackItemsCallback - callback to clean up virtual stack that had array names 
-; Calls FreeJSONStackItem to free JSONSTACKITEM items, only unique items, so we
+; JSONStackItemsDeleteCallback - callback to clean up virtual stack that had array names 
+; Calls JSONStackItemFree to free JSONSTACKITEM items, only unique items, so we
 ; dont get an error trying to free memory we already freed
 ;-------------------------------------------------------------------------------------
-DeleteStackItemsCallback PROC hStack:DWORD, ptrStackItem:DWORD
+JSONStackItemsDeleteCallback PROC hStack:DWORD, ptrStackItem:DWORD
     
     .IF hStack == NULL
         ret   
@@ -127,19 +127,19 @@ DeleteStackItemsCallback PROC hStack:DWORD, ptrStackItem:DWORD
     .IF ptrStackItem == NULL
         ret
     .ENDIF
-    ;PrintText 'DeleteStackItemsCallback'
+    ;PrintText 'JSONStackItemsDeleteCallback'
     ;PrintDec hStack
     ;PrintDec ptrStackItem
-    Invoke FreeJSONStackItem, ptrStackItem
+    Invoke JSONStackItemFree, ptrStackItem
     ret
 
-DeleteStackItemsCallback endp
+JSONStackItemsDeleteCallback endp
 
 
 ;-------------------------------------------------------------------------------------
-; GetJSONStackItemCount - Function not used currently
+; JSONStackItemGetCount - Function not used currently
 ;-------------------------------------------------------------------------------------
-GetJSONStackItemCount PROC USES EBX ptrJsonStackItem:DWORD
+JSONStackItemGetCount PROC USES EBX ptrJsonStackItem:DWORD
 ;    .IF ptrJsonStackItem == NULL
 ;        mov eax, 0
 ;        ret
@@ -147,13 +147,13 @@ GetJSONStackItemCount PROC USES EBX ptrJsonStackItem:DWORD
 ;    mov ebx, ptrJsonStackItem
 ;    mov eax, [ebx].JSONSTACKITEM.dwItemCount
     ret
-GetJSONStackItemCount ENDP
+JSONStackItemGetCount ENDP
 
 
 ;-------------------------------------------------------------------------------------
-; SetJSONStackItemCount - Function not used currently
+; JSONStackItemSetCount - Function not used currently
 ;-------------------------------------------------------------------------------------
-SetJSONStackItemCount PROC USES EBX ptrJsonStackItem:DWORD, dwCountValue:DWORD
+JSONStackItemSetCount PROC USES EBX ptrJsonStackItem:DWORD, dwCountValue:DWORD
 ;    .IF ptrJsonStackItem == NULL
 ;        mov eax, 0
 ;        ret
@@ -162,4 +162,4 @@ SetJSONStackItemCount PROC USES EBX ptrJsonStackItem:DWORD, dwCountValue:DWORD
 ;    mov eax, dwCountValue
 ;    mov [ebx].JSONSTACKITEM.dwItemCount, eax
     ret
-SetJSONStackItemCount ENDP
+JSONStackItemSetCount ENDP

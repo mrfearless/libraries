@@ -1,6 +1,6 @@
-InitStatusBar               PROTO :DWORD
-SizeStatusBar			    PROTO :DWORD, :DWORD
-StatusBarSetPanelText       PROTO :DWORD, :DWORD	
+StatusBarInit               PROTO :DWORD                ; Initialize the statusbar, set parts and set initial text etc
+StatusBarSize			    PROTO :DWORD, :DWORD        ; Resize statusbar
+StatusBarSetPanelText       PROTO :DWORD, :DWORD        ; Set text in a statusbar panel
 
 .DATA
 szStatusText                DB 512 dup (0)
@@ -10,9 +10,9 @@ szStatusText                DB 512 dup (0)
 
 
 ;-------------------------------------------------------------------------------------
-; InitStatusBar - Initialize the StatusBar Control
+; StatusBarInit - Initialize the StatusBar Control
 ;-------------------------------------------------------------------------------------
-InitStatusBar PROC hWin:DWORD
+StatusBarInit PROC hWin:DWORD
 	LOCAL sbParts[3]:DWORD
 
 	invoke CreateStatusWindow, WS_CHILD or WS_VISIBLE or WS_CLIPCHILDREN  or WS_CLIPSIBLINGS or SBS_SIZEGRIP, NULL, hWin, IDC_SB
@@ -28,16 +28,16 @@ InitStatusBar PROC hWin:DWORD
 	Invoke  StatusBarSetPanelText, 1, CTEXT(" Info: ") 	
 	Invoke  StatusBarSetPanelText, 2, CTEXT(" ")
     ret
-InitStatusBar ENDP
+StatusBarInit ENDP
 
 
 ;-------------------------------------------------------------------------------------
 ; Resets StatusBar to bottom of main dialog - Call from WM_SIZE event
 ;-------------------------------------------------------------------------------------
-SizeStatusBar PROC hWin:DWORD, lParam:DWORD
+StatusBarSize PROC hWin:DWORD, lParam:DWORD
 	Invoke MoveWindow, hSB, 0, 0, 0, 0, TRUE	
 	ret
-SizeStatusBar ENDP
+StatusBarSize ENDP
 
 
 ;-------------------------------------------------------------------------------------

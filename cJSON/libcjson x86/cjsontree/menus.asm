@@ -1,30 +1,40 @@
-InitMenus                   PROTO :DWORD
-InitMainMenu                PROTO :DWORD
-InitRightClickMenu          PROTO :DWORD
-InitRightClickAddSubmenu    PROTO :DWORD
-InitRightClickCopySubmenu   PROTO :DWORD
-InitRightClickPasteSubmenu  PROTO :DWORD
-InitRightClickExportSubmenu PROTO :DWORD
+MenusInit                   PROTO :DWORD                                    ; Initialize Main Menu and Right Click (RC) shortcut menu and submenus
+MenusReset                  PROTO :DWORD                                    ; Reset all menu items on Main Menu and Right Click (RC) shortcut menu back to default state
+MenusUpdate                 PROTO :DWORD, :DWORD                            ; Update Main Menu and Right Click (RC) shortcute menu and submenus
 
-UpdateMenus                 PROTO :DWORD, :DWORD
-UpdateMainMenu              PROTO :DWORD, :DWORD, :DWORD, :DWORD, :DWORD
-UpdateRightClickMenu        PROTO :DWORD, :DWORD, :DWORD, :DWORD, :DWORD
-UpdateRightClickAddSubmenu  PROTO :DWORD, :DWORD, :DWORD, :DWORD, :DWORD
-UpdateRightClickCopySubmenu PROTO :DWORD, :DWORD, :DWORD, :DWORD, :DWORD
-UpdateRightClickPasteSubmenu PROTO :DWORD, :DWORD, :DWORD, :DWORD, :DWORD
-UpdateRightClickExportSubmenu PROTO :DWORD, :DWORD, :DWORD, :DWORD, :DWORD
+MenuMainInit                PROTO :DWORD                                    ; Initialize main menu, load bitmaps, set initial state
+MenuMainUpdate              PROTO :DWORD, :DWORD, :DWORD, :DWORD, :DWORD    ; Update menus based on edit state, selected item, selected branch etc
 
-ShowRightClickMenu          PROTO :DWORD
-ShowRightClickAddSubmenu    PROTO :DWORD
+MenuRCInit                  PROTO :DWORD                                    ; Initialize Right Click (RC) shortcut menu (called from MenusInit)
+MenuRCUpdate                PROTO :DWORD, :DWORD, :DWORD, :DWORD, :DWORD    ; Update Right Click (RC) shortcut menu (called from MenusUpdate)
+MenuRCAddInit               PROTO :DWORD                                    ; Initialize 'RC->Add Item' submenu (called from MenuRCInit)
+MenuRCAddUpdate             PROTO :DWORD, :DWORD, :DWORD, :DWORD, :DWORD    ; Update 'RC->Add Item' submenu (called from MenuRCUpdate)
+MenuRCCopyInit              PROTO :DWORD                                    ; Initialize 'RC->Copy' submenu (called from MenuRCInit)
+MenuRCCopyUpdate            PROTO :DWORD, :DWORD, :DWORD, :DWORD, :DWORD    ; Update 'RC->Copy' submenu (called from MenuRCUpdate)
+MenuRCPasteInit             PROTO :DWORD                                    ; Initialize 'RC->Paste' submenu (called from MenuRCInit)
+MenuRCPasteUpdate           PROTO :DWORD, :DWORD, :DWORD, :DWORD, :DWORD    ; Update 'RC->Paste' submenu (called from MenuRCUpdate)
+MenuRCExportInit            PROTO :DWORD                                    ; Initialize 'RC->Export' submenu (called from MenuRCInit)
+MenuRCExportUpdate          PROTO :DWORD, :DWORD, :DWORD, :DWORD, :DWORD    ; Update 'RC->Export' submenu (called from MenuRCUpdate)
 
-ResetMenus                  PROTO :DWORD
-SaveMenuState               PROTO :DWORD, :DWORD
+MenuOptionsUpdate           PROTO :DWORD                                    ; Update 'File->Otions' menu items
+MenuSaveEnable              PROTO :DWORD, :DWORD                            ; Enable/Disable 'File->Save' menu item
+MenuSaveAsEnable            PROTO :DWORD, :DWORD                            ; Enable/Disable 'File->Save As' menu item
+
+MenuRCShow                  PROTO :DWORD                                    ; Show Right Click (RC) shortcut menu
+MenuRCAddShow               PROTO :DWORD                                    ; Show 'RC->Add Item' submenu. Just the 'Add Item' submenu
+
+IniMRULoadListToMenu        PROTO :DWORD                                    ; Loads Most Recently Used (MRU) file list to the Main Menu under the File menu
+IniMRUReloadListToMenu      PROTO :DWORD                                    ; Reloads the MRU list and updates the list under the File menu
+IniMRUEntrySaveFilename     PROTO :DWORD, :DWORD                            ; Saves a new MRU entry name (full filepath to file)
+IniMRUEntryDeleteFilename   PROTO :DWORD, :DWORD                            ; Deletes a new MRU entry name (full filepath to file)
+IniMRUEntryOpenFile         PROTO :DWORD, :DWORD                            ; Opens a file (if it exists) based on the MRU entry name (full filepath to file) 
 
 
 .CONST
 BMP_ABOUT_LETTHELIGHTIN     EQU 101
 
 ; Main menu bitmaps: File
+BMP_FILE_MRU                EQU 200
 BMP_FILE_OPEN				EQU 201
 BMP_FILE_CLOSE				EQU 202
 BMP_FILE_NEW				EQU 203
@@ -99,15 +109,29 @@ IDM_FILE_SAVE               EQU 10005
 IDM_FILE_SAVEAS             EQU 10006
 IDM_EDIT_COPY_TEXT	        EQU 10201
 IDM_EDIT_COPY_VALUE		    EQU 10202
-IDM_EDIT_CUT_ITEM	        EQU 0
-IDM_EDIT_CUT_BRANCH	        EQU 0
-IDM_EDIT_COPY_ITEM	        EQU 10203
-IDM_EDIT_COPY_BRANCH	    EQU 10204
-IDM_EDIT_PASTE_ITEM         EQU 10205
-IDM_EDIT_PASTE_BRANCH       EQU 10206
-IDM_EDIT_PASTE_JSON         EQU 10207
-IDM_EDIT_FIND               EQU 10208
+IDM_EDIT_CUT_ITEM	        EQU 10203
+IDM_EDIT_CUT_BRANCH	        EQU 10204
+IDM_EDIT_COPY_ITEM	        EQU 10205
+IDM_EDIT_COPY_BRANCH	    EQU 10206
+IDM_EDIT_PASTE_ITEM         EQU 10207
+IDM_EDIT_PASTE_BRANCH       EQU 10208
+IDM_EDIT_PASTE_JSON         EQU 10209
+IDM_EDIT_FIND               EQU 10210
+IDM_OPTIONS_EXPANDALL		EQU 10301
+IDM_OPTIONS_CASESEARCH		EQU 10302
 IDM_HELP_ABOUT              EQU 10101
+
+; Main Menu MRU files:
+IDM_MRU_1					EQU 19991 ; Menu MRU File 1
+IDM_MRU_2					EQU 19992 ; Menu MRU File 2
+IDM_MRU_3					EQU 19993 ; Menu MRU File 3
+IDM_MRU_4					EQU 19994 ; Menu MRU File 4
+IDM_MRU_5					EQU 19995 ; Menu MRU File 5
+IDM_MRU_6					EQU 19996 ; Menu MRU File 6
+IDM_MRU_7					EQU 19997 ; Menu MRU File 7
+IDM_MRU_8					EQU 19998 ; Menu MRU File 8
+IDM_MRU_9					EQU 19999 ; Menu MRU File 9
+IDM_MRU_SEP                 EQU 19990
 
 ; Right click menu IDs:
 IDM_CMD_COLLAPSE_BRANCH     EQU 11000
@@ -133,10 +157,10 @@ IDM_CMD_ADD_ITEM_OBJECT     EQU 11025
 ; Right click 'Copy' submenu IDs:
 IDM_CMD_COPY_TEXT           EQU 11030
 IDM_CMD_COPY_VALUE          EQU 11031
-IDM_CMD_CUT_ITEM            EQU 0
-IDM_CMD_CUT_BRANCH          EQU 0
-IDM_CMD_COPY_ITEM           EQU 11032
-IDM_CMD_COPY_BRANCH         EQU 11033
+IDM_CMD_CUT_ITEM            EQU 11032
+IDM_CMD_CUT_BRANCH          EQU 11033
+IDM_CMD_COPY_ITEM           EQU 11034
+IDM_CMD_COPY_BRANCH         EQU 11035
 
 ; Right click 'Paste' submenu IDs:
 IDM_CMD_PASTE_ITEM          EQU 11040
@@ -144,9 +168,9 @@ IDM_CMD_PASTE_BRANCH        EQU 11041
 IDM_CMD_PASTE_JSON          EQU 11042
 
 ; Right click 'Export' submenu IDs:
-IDM_CMD_EXPORT_TREE_CLIP    EQU 11050
+IDM_CMD_EXPORT_ROOT_CLIP    EQU 11050
 IDM_CMD_EXPORT_BRANCH_CLIP  EQU 11051
-IDM_CMD_EXPORT_TREE_FILE    EQU 11052
+IDM_CMD_EXPORT_ROOT_FILE    EQU 11052
 IDM_CMD_EXPORT_BRANCH_FILE  EQU 11053
 
 
@@ -190,6 +214,14 @@ szTVRCMenuExportBranchClip  DB 'Export branch to clipboard',0
 szTVRCMenuExportTreeFile    DB 'Export tree to file',0
 szTVRCMenuExportBranchFile  DB 'Export branch to file',0
 
+; Options
+szOptionsCaseSensitive      DB '&Case Sensitive Search',0
+szOptionsCaseInsensitive    DB '&Case Insensitive Search',0
+
+hBmpFileMRU                 DD 0
+
+szMRUErrorFileNotExist      DB "File does not exist: ",0
+szMRUErrorMessage           DB 512 dup (0)
 
 .DATA
 hTVMenu                     DD ? ; Right click menu
@@ -200,21 +232,21 @@ hTVAddMenu                  DD ? ; 'Add' submenu
 
 
 ;-------------------------------------------------------------------------------------
-; InitMenus - Initialize menus
+; MenusInit - Initialize menus
 ;-------------------------------------------------------------------------------------
-InitMenus PROC hWin:DWORD
+MenusInit PROC hWin:DWORD
 
-    Invoke InitMainMenu, hWin
-    Invoke InitRightClickMenu, hWin
+    Invoke MenuMainInit, hWin
+    Invoke MenuRCInit, hWin
 
     ret
-InitMenus ENDP
+MenusInit ENDP
 
 
 ;-------------------------------------------------------------------------------------
-; InitMainMenu - Initialize main program menu
+; MenuMainInit - Initialize main program menu
 ;-------------------------------------------------------------------------------------
-InitMainMenu PROC hWin:DWORD
+MenuMainInit PROC hWin:DWORD
     LOCAL hMainMenu:DWORD
     LOCAL hBitmap:DWORD
     LOCAL mi:MENUITEMINFO
@@ -304,15 +336,36 @@ InitMainMenu PROC hWin:DWORD
     .ENDIF
     Invoke SetMenuItemInfo, hMainMenu, IDM_EDIT_PASTE_JSON, FALSE, Addr mi    
 
+    ;mov mi.fMask, MIIM_CHECKMARKS	
+    ;mov mi.fState, MFS_CHECKED ; MFS_UNCHECKED	
+    .IF g_ExpandAllOnLoad == TRUE
+        ;mov mi.fState, MFS_CHECKED
+        Invoke CheckMenuItem, hMainMenu, IDM_OPTIONS_EXPANDALL, MF_BYCOMMAND or MF_CHECKED
+    .ELSE
+        ;mov mi.fState, MFS_UNCHECKED
+        Invoke CheckMenuItem, hMainMenu, IDM_OPTIONS_EXPANDALL, MF_BYCOMMAND or MF_UNCHECKED
+    .ENDIF
+    ;Invoke SetMenuItemInfo, hMainMenu, IDM_OPTIONS_EXPANDALL, FALSE, Addr mi
+    .IF g_CaseSensitiveSearch == TRUE
+        ;mov mi.fState, MFS_CHECKED
+        Invoke CheckMenuItem, hMainMenu, IDM_OPTIONS_CASESEARCH, MF_BYCOMMAND or MF_CHECKED
+    .ELSE
+        ;mov mi.fState, MFS_UNCHECKED
+        Invoke CheckMenuItem, hMainMenu, IDM_OPTIONS_CASESEARCH, MF_BYCOMMAND or MF_UNCHECKED
+    .ENDIF
+    ;Invoke SetMenuItemInfo, hMainMenu, IDM_OPTIONS_CASESEARCH, FALSE, Addr mi
+    
+    ;Invoke DrawMenuBar, hWin
+    
     xor eax, eax
     ret
-InitMainMenu ENDP
+MenuMainInit ENDP
 
 
 ;-------------------------------------------------------------------------------------
-; InitRightClickMenu - Initialize treeview right click menu
+; MenuRCInit - Initialize treeview right click menu
 ;-------------------------------------------------------------------------------------
-InitRightClickMenu PROC hWin:DWORD
+MenuRCInit PROC hWin:DWORD
     LOCAL hBitmap:DWORD
     LOCAL hSubMenu:DWORD
     LOCAL mi:MENUITEMINFO
@@ -328,7 +381,7 @@ InitRightClickMenu PROC hWin:DWORD
     Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_EDIT_ITEM, Addr szTVRCMenuEditItem
     
     ; Add submenu 'Add' to rght click menu
-    Invoke InitRightClickAddSubmenu, hWin
+    Invoke MenuRCAddInit, hWin
     mov hSubMenu, eax
     mov mi.cbSize, SIZEOF MENUITEMINFO
     mov mi.fMask, MIIM_SUBMENU + MIIM_STRING + MIIM_ID
@@ -348,7 +401,7 @@ InitRightClickMenu PROC hWin:DWORD
     Invoke AppendMenu, hTVMenu, MF_SEPARATOR, 0, 0
     
     ; Add submenu 'Copy' to right click menu
-    Invoke InitRightClickCopySubmenu, hWin
+    Invoke MenuRCCopyInit, hWin
     mov hSubMenu, eax
     mov mi.cbSize, SIZEOF MENUITEMINFO
     mov mi.fMask, MIIM_SUBMENU + MIIM_STRING + MIIM_ID
@@ -366,7 +419,7 @@ InitRightClickMenu PROC hWin:DWORD
     Invoke AppendMenu, hTVMenu, MF_SEPARATOR, 0, 0
     
     ; Add submenu 'Paste' to right click menu
-    Invoke InitRightClickPasteSubmenu, hWin
+    Invoke MenuRCPasteInit, hWin
     mov hSubMenu, eax
     mov mi.cbSize, SIZEOF MENUITEMINFO
     mov mi.fMask, MIIM_SUBMENU + MIIM_STRING + MIIM_ID
@@ -390,7 +443,7 @@ InitRightClickMenu PROC hWin:DWORD
     Invoke AppendMenu, hTVMenu, MF_SEPARATOR, 0, 0
     
 ;    ; Add submenu 'Export' to rght click menu
-;    Invoke InitRightClickExportSubmenu, hWin
+;    Invoke MenuRCExportInit, hWin
 ;    mov hSubMenu, eax
 ;    mov mi.cbSize, SIZEOF MENUITEMINFO
 ;    mov mi.fMask, MIIM_SUBMENU + MIIM_STRING + MIIM_ID
@@ -407,30 +460,30 @@ InitRightClickMenu PROC hWin:DWORD
     
     
     Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_FIND, Addr szTVRCMenuFindText 
-;    Invoke AppendMenu, hTVMenu, MF_SEPARATOR, 0, 0
-;    Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_COLLAPSE_BRANCH, Addr szTVRCMenuCollapseBranch
-;    Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_EXPAND_BRANCH, Addr szTVRCMenuExpandBranch
-;    Invoke AppendMenu, hTVMenu, MF_SEPARATOR, 0, 0
-;    Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_COLLAPSE_ALL, Addr szTVRCMenuCollapseAll
-;    Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_EXPAND_ALL, Addr szTVRCMenuExpandAll
+    Invoke AppendMenu, hTVMenu, MF_SEPARATOR, 0, 0
+    Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_COLLAPSE_BRANCH, Addr szTVRCMenuCollapseBranch
+    Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_EXPAND_BRANCH, Addr szTVRCMenuExpandBranch
+    Invoke AppendMenu, hTVMenu, MF_SEPARATOR, 0, 0
+    Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_COLLAPSE_ALL, Addr szTVRCMenuCollapseAll
+    Invoke AppendMenu, hTVMenu, MF_STRING, IDM_CMD_EXPAND_ALL, Addr szTVRCMenuExpandAll
 
     ; Load bitmaps for right click menu
     Invoke LoadBitmap, hInstance, BMP_CMD_FIND
     mov hBitmap, eax
     Invoke SetMenuItemBitmaps, hTVMenu, IDM_CMD_FIND, MF_BYCOMMAND, hBitmap, 0
 
-;    Invoke LoadBitmap, hInstance, BMP_CMD_COLLAPSE_BRANCH
-;    mov hBitmap, eax
-;    Invoke SetMenuItemBitmaps, hTVMenu, IDM_CMD_COLLAPSE_BRANCH, MF_BYCOMMAND, hBitmap, 0
-;    Invoke LoadBitmap, hInstance, BMP_CMD_EXPAND_BRANCH
-;    mov hBitmap, eax
-;    Invoke SetMenuItemBitmaps, hTVMenu, IDM_CMD_EXPAND_BRANCH, MF_BYCOMMAND, hBitmap, 0
-;    Invoke LoadBitmap, hInstance, BMP_CMD_COLLAPSE_ALL
-;    mov hBitmap, eax
-;    Invoke SetMenuItemBitmaps, hTVMenu, IDM_CMD_COLLAPSE_ALL, MF_BYCOMMAND, hBitmap, 0
-;    Invoke LoadBitmap, hInstance, BMP_CMD_EXPAND_ALL
-;    mov hBitmap, eax
-;    Invoke SetMenuItemBitmaps, hTVMenu, IDM_CMD_EXPAND_ALL, MF_BYCOMMAND, hBitmap, 0
+    Invoke LoadBitmap, hInstance, BMP_CMD_COLLAPSE_BRANCH
+    mov hBitmap, eax
+    Invoke SetMenuItemBitmaps, hTVMenu, IDM_CMD_COLLAPSE_BRANCH, MF_BYCOMMAND, hBitmap, 0
+    Invoke LoadBitmap, hInstance, BMP_CMD_EXPAND_BRANCH
+    mov hBitmap, eax
+    Invoke SetMenuItemBitmaps, hTVMenu, IDM_CMD_EXPAND_BRANCH, MF_BYCOMMAND, hBitmap, 0
+    Invoke LoadBitmap, hInstance, BMP_CMD_COLLAPSE_ALL
+    mov hBitmap, eax
+    Invoke SetMenuItemBitmaps, hTVMenu, IDM_CMD_COLLAPSE_ALL, MF_BYCOMMAND, hBitmap, 0
+    Invoke LoadBitmap, hInstance, BMP_CMD_EXPAND_ALL
+    mov hBitmap, eax
+    Invoke SetMenuItemBitmaps, hTVMenu, IDM_CMD_EXPAND_ALL, MF_BYCOMMAND, hBitmap, 0
     
     Invoke LoadBitmap, hInstance, BMP_CMD_COPY
     mov hBitmap, eax
@@ -459,26 +512,20 @@ InitRightClickMenu PROC hWin:DWORD
     Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_ADD_ITEM, FALSE, Addr mi
     Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_EDIT_ITEM, FALSE, Addr mi
     Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_DEL_ITEM, FALSE, Addr mi
-    ;Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_COLLAPSE_BRANCH, FALSE, Addr mi
-    ;Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_EXPAND_BRANCH, FALSE, Addr mi
-    ;Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_COLLAPSE_ALL, FALSE, Addr mi
-    ;Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_EXPAND_ALL, FALSE, Addr mi
-    
-    
-    ;Invoke IsClipboardFormatAvailable, CF_TEXT
-    ;.IF eax == TRUE
-    ;    mov mi.fState, MFS_ENABLED
-    ;.ENDIF
-    ;Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_PASTE_JSON, FALSE, Addr mi
+    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_COLLAPSE_BRANCH, FALSE, Addr mi
+    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_EXPAND_BRANCH, FALSE, Addr mi
+    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_COLLAPSE_ALL, FALSE, Addr mi
+    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_EXPAND_ALL, FALSE, Addr mi
+
 
     ret
-InitRightClickMenu ENDP
+MenuRCInit ENDP
 
 
 ;-------------------------------------------------------------------------------------
-; InitRightClickAddSubmenu - Initialize treeview right click 'Add' submenu
+; MenuRCAddInit - Initialize treeview right click 'Add' submenu
 ;-------------------------------------------------------------------------------------
-InitRightClickAddSubmenu PROC hWin:DWORD
+MenuRCAddInit PROC hWin:DWORD
     LOCAL hBitmap:DWORD
     LOCAL hSubMenu:DWORD
     LOCAL mi:MENUITEMINFO
@@ -524,13 +571,13 @@ InitRightClickAddSubmenu PROC hWin:DWORD
     
     mov eax, hSubMenu ; return handle to submenu
     ret
-InitRightClickAddSubmenu ENDP
+MenuRCAddInit ENDP
 
 
 ;-------------------------------------------------------------------------------------
-; InitRightClickCopySubmenu - Initialize treeview right click 'Copy' submenu
+; MenuRCCopyInit - Initialize treeview right click 'Copy' submenu
 ;-------------------------------------------------------------------------------------
-InitRightClickCopySubmenu PROC hWin:DWORD
+MenuRCCopyInit PROC hWin:DWORD
     LOCAL hBitmap:DWORD
     LOCAL hSubMenu:DWORD
     LOCAL mi:MENUITEMINFO
@@ -566,13 +613,13 @@ InitRightClickCopySubmenu PROC hWin:DWORD
     
     mov eax, hSubMenu ; return handle to submenu
     ret
-InitRightClickCopySubmenu ENDP
+MenuRCCopyInit ENDP
 
 
 ;-------------------------------------------------------------------------------------
-; InitRightClickPasteSubmenu - Initialize treeview right click 'Paste' submenu
+; MenuRCPasteInit - Initialize treeview right click 'Paste' submenu
 ;-------------------------------------------------------------------------------------
-InitRightClickPasteSubmenu PROC hWin:DWORD
+MenuRCPasteInit PROC hWin:DWORD
     LOCAL hBitmap:DWORD
     LOCAL hSubMenu:DWORD
     LOCAL mi:MENUITEMINFO
@@ -615,13 +662,13 @@ InitRightClickPasteSubmenu PROC hWin:DWORD
     
     mov eax, hSubMenu ; return handle to submenu
     ret
-InitRightClickPasteSubmenu ENDP
+MenuRCPasteInit ENDP
 
 
 ;-------------------------------------------------------------------------------------
-; InitRightClickExportSubmenu - Initialize treeview right click 'Export' submenu
+; MenuRCExportInit - Initialize treeview right click 'Export' submenu
 ;-------------------------------------------------------------------------------------
-InitRightClickExportSubmenu PROC hWin:DWORD
+MenuRCExportInit PROC hWin:DWORD
     LOCAL hBitmap:DWORD
     LOCAL hSubMenu:DWORD
     LOCAL mi:MENUITEMINFO
@@ -635,35 +682,35 @@ InitRightClickExportSubmenu PROC hWin:DWORD
     mov hSubMenu, eax
     
     ; Strings for 'Export' submenu
-    Invoke AppendMenu, hSubMenu, MF_STRING, IDM_CMD_EXPORT_TREE_CLIP, Addr szTVRCMenuExportTreeClip
+    Invoke AppendMenu, hSubMenu, MF_STRING, IDM_CMD_EXPORT_ROOT_CLIP, Addr szTVRCMenuExportTreeClip
     Invoke AppendMenu, hSubMenu, MF_STRING, IDM_CMD_EXPORT_BRANCH_CLIP, Addr szTVRCMenuExportBranchClip
     Invoke AppendMenu, hSubMenu, MF_SEPARATOR, 0, 0
-    Invoke AppendMenu, hSubMenu, MF_STRING, IDM_CMD_EXPORT_TREE_FILE, Addr szTVRCMenuExportTreeFile
+    Invoke AppendMenu, hSubMenu, MF_STRING, IDM_CMD_EXPORT_ROOT_FILE, Addr szTVRCMenuExportTreeFile
     Invoke AppendMenu, hSubMenu, MF_STRING, IDM_CMD_EXPORT_BRANCH_FILE, Addr szTVRCMenuExportBranchFile
 
     ; Load bitmaps for 'Export' submenu
     Invoke LoadBitmap, hInstance, BMP_CMD_EXPORT_TREE_CLIP
     mov hBitmap, eax
-    Invoke SetMenuItemBitmaps, hSubMenu, IDM_CMD_EXPORT_TREE_CLIP, MF_BYCOMMAND, hBitmap, 0
+    Invoke SetMenuItemBitmaps, hSubMenu, IDM_CMD_EXPORT_ROOT_CLIP, MF_BYCOMMAND, hBitmap, 0
     Invoke LoadBitmap, hInstance, BMP_CMD_EXPORT_BRANCH_CLIP
     mov hBitmap, eax
     Invoke SetMenuItemBitmaps, hSubMenu, IDM_CMD_EXPORT_BRANCH_CLIP, MF_BYCOMMAND, hBitmap, 0
     Invoke LoadBitmap, hInstance, BMP_CMD_EXPORT_TREE_FILE
     mov hBitmap, eax
-    Invoke SetMenuItemBitmaps, hSubMenu, IDM_CMD_EXPORT_TREE_FILE, MF_BYCOMMAND, hBitmap, 0
+    Invoke SetMenuItemBitmaps, hSubMenu, IDM_CMD_EXPORT_ROOT_FILE, MF_BYCOMMAND, hBitmap, 0
     Invoke LoadBitmap, hInstance, BMP_CMD_EXPORT_BRANCH_FILE
     mov hBitmap, eax
     Invoke SetMenuItemBitmaps, hSubMenu, IDM_CMD_EXPORT_BRANCH_FILE, MF_BYCOMMAND, hBitmap, 0
 
     mov eax, hSubMenu ; return handle to submenu
     ret
-InitRightClickExportSubmenu ENDP
+MenuRCExportInit ENDP
 
 
 ;-------------------------------------------------------------------------------------
-; UpdateMenus - Initialize menus
+; MenusUpdate - Initialize menus
 ;-------------------------------------------------------------------------------------
-UpdateMenus PROC USES EBX hWin:DWORD, hItem:DWORD
+MenusUpdate PROC USES EBX hWin:DWORD, hItem:DWORD
     LOCAL tvhi:TV_HITTESTINFO
     LOCAL hCurrentItem:DWORD
     LOCAL bInTV:DWORD
@@ -710,17 +757,17 @@ UpdateMenus PROC USES EBX hWin:DWORD, hItem:DWORD
         mov bRoot, TRUE
     .ENDIF
     
-    Invoke UpdateMainMenu, hWin, bInTV, bHasChildren, bObjectOrArray, bRoot
-    Invoke UpdateRightClickMenu, hWin, bInTV, bHasChildren, bObjectOrArray, bRoot
+    Invoke MenuMainUpdate, hWin, bInTV, bHasChildren, bObjectOrArray, bRoot
+    Invoke MenuRCUpdate, hWin, bInTV, bHasChildren, bObjectOrArray, bRoot
 
     ret
-UpdateMenus ENDP
+MenusUpdate ENDP
 
 
 ;-------------------------------------------------------------------------------------
 ; Update main menu
 ;-------------------------------------------------------------------------------------
-UpdateMainMenu PROC hWin:DWORD, bInTV:DWORD, bHasChildren:DWORD, bObjectOrArray:DWORD, bRoot:DWORD
+MenuMainUpdate PROC hWin:DWORD, bInTV:DWORD, bHasChildren:DWORD, bObjectOrArray:DWORD, bRoot:DWORD
     LOCAL hMainMenu:DWORD
     LOCAL mi:MENUITEMINFO
 
@@ -737,7 +784,7 @@ UpdateMainMenu PROC hWin:DWORD, bInTV:DWORD, bHasChildren:DWORD, bObjectOrArray:
         mov mi.fState, MFS_GRAYED
     .ENDIF
     Invoke SetMenuItemInfo, hMainMenu, IDM_FILE_SAVE, FALSE, Addr mi
-    Invoke SetMenuItemInfo, hMainMenu, IDM_FILE_SAVEAS, FALSE, Addr mi 
+    ;Invoke SetMenuItemInfo, hMainMenu, IDM_FILE_SAVEAS, FALSE, Addr mi 
     
     .IF bInTV == TRUE
         mov mi.fState, MFS_ENABLED
@@ -779,26 +826,52 @@ UpdateMainMenu PROC hWin:DWORD, bInTV:DWORD, bHasChildren:DWORD, bObjectOrArray:
     Invoke SetMenuItemInfo, hMainMenu, IDM_EDIT_PASTE_JSON, FALSE, Addr mi
 
     ret
-UpdateMainMenu ENDP
+MenuMainUpdate ENDP
+
+
+;-------------------------------------------------------------------------------------
+; Update options menu
+;-------------------------------------------------------------------------------------
+MenuOptionsUpdate PROC hWin:DWORD
+    LOCAL hMainMenu:DWORD
+
+    Invoke GetMenu, hWin
+    mov hMainMenu, eax
+    .IF g_ExpandAllOnLoad == TRUE
+        Invoke CheckMenuItem, hMainMenu, IDM_OPTIONS_EXPANDALL, MF_BYCOMMAND or MF_CHECKED
+    .ELSE
+        Invoke CheckMenuItem, hMainMenu, IDM_OPTIONS_EXPANDALL, MF_BYCOMMAND or MF_UNCHECKED
+    .ENDIF
+
+    .IF g_CaseSensitiveSearch == TRUE
+        Invoke CheckMenuItem, hMainMenu, IDM_OPTIONS_CASESEARCH, MF_BYCOMMAND or MF_CHECKED
+    .ELSE
+        Invoke CheckMenuItem, hMainMenu, IDM_OPTIONS_CASESEARCH, MF_BYCOMMAND or MF_UNCHECKED
+    .ENDIF
+    
+    Invoke DrawMenuBar, hWin
+    
+    ret
+MenuOptionsUpdate ENDP
 
 
 ;-------------------------------------------------------------------------------------
 ; Update right click menu
 ;-------------------------------------------------------------------------------------
-UpdateRightClickMenu PROC hWin:DWORD, bInTV:DWORD, bHasChildren:DWORD, bObjectOrArray:DWORD, bRoot:DWORD
+MenuRCUpdate PROC hWin:DWORD, bInTV:DWORD, bHasChildren:DWORD, bObjectOrArray:DWORD, bRoot:DWORD
     LOCAL mi:MENUITEMINFO
     
     mov mi.cbSize, SIZEOF MENUITEMINFO
     mov mi.fMask, MIIM_STATE
     
-;    Invoke TreeViewCountItems, hTV
-;    .IF sdword ptr eax > 0 
-;        mov mi.fState, MFS_ENABLED
-;    .ELSE
-;        mov mi.fState, MFS_GRAYED
-;    .ENDIF
-;    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_COLLAPSE_ALL, FALSE, Addr mi
-;    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_EXPAND_ALL, FALSE, Addr mi
+    Invoke TreeViewCountItems, hTV
+    .IF sdword ptr eax > 0 
+        mov mi.fState, MFS_ENABLED
+    .ELSE
+        mov mi.fState, MFS_GRAYED
+    .ENDIF
+    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_COLLAPSE_ALL, FALSE, Addr mi
+    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_EXPAND_ALL, FALSE, Addr mi
 
     .IF bInTV == TRUE
         mov mi.fState, MFS_ENABLED
@@ -810,13 +883,13 @@ UpdateRightClickMenu PROC hWin:DWORD, bInTV:DWORD, bHasChildren:DWORD, bObjectOr
     Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_COPY, FALSE, Addr mi
     Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_PASTE, FALSE, Addr mi    
 
-;    .IF bInTV == TRUE && (bHasChildren == TRUE || bObjectOrArray == TRUE)
-;        mov mi.fState, MFS_ENABLED
-;    .ELSE
-;        mov mi.fState, MFS_GRAYED
-;    .ENDIF
-;    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_COLLAPSE_BRANCH, FALSE, Addr mi
-;    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_EXPAND_BRANCH, FALSE, Addr mi
+    .IF bInTV == TRUE && (bHasChildren == TRUE || bObjectOrArray == TRUE)
+        mov mi.fState, MFS_ENABLED
+    .ELSE
+        mov mi.fState, MFS_GRAYED
+    .ENDIF
+    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_COLLAPSE_BRANCH, FALSE, Addr mi
+    Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_EXPAND_BRANCH, FALSE, Addr mi
 
 
     .IF bInTV == TRUE && bObjectOrArray == TRUE
@@ -826,19 +899,19 @@ UpdateRightClickMenu PROC hWin:DWORD, bInTV:DWORD, bHasChildren:DWORD, bObjectOr
     .ENDIF
     Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_ADD_ITEM, FALSE, Addr mi
 
-    Invoke UpdateRightClickAddSubmenu, hWin, bInTV, bHasChildren, bObjectOrArray, bRoot
-    Invoke UpdateRightClickCopySubmenu, hWin, bInTV, bHasChildren, bObjectOrArray, bRoot
-    Invoke UpdateRightClickPasteSubmenu, hWin, bInTV, bHasChildren, bObjectOrArray, bRoot
-    Invoke UpdateRightClickExportSubmenu, hWin, bInTV, bHasChildren, bObjectOrArray, bRoot
+    Invoke MenuRCAddUpdate, hWin, bInTV, bHasChildren, bObjectOrArray, bRoot
+    Invoke MenuRCCopyUpdate, hWin, bInTV, bHasChildren, bObjectOrArray, bRoot
+    Invoke MenuRCPasteUpdate, hWin, bInTV, bHasChildren, bObjectOrArray, bRoot
+    Invoke MenuRCExportUpdate, hWin, bInTV, bHasChildren, bObjectOrArray, bRoot
     
     ret
-UpdateRightClickMenu ENDP
+MenuRCUpdate ENDP
 
 
 ;-------------------------------------------------------------------------------------
 ; Update right click menu 'Add' submenu
 ;-------------------------------------------------------------------------------------
-UpdateRightClickAddSubmenu PROC hWin:DWORD, bInTV:DWORD, bHasChildren:DWORD, bObjectOrArray:DWORD, bRoot:DWORD
+MenuRCAddUpdate PROC hWin:DWORD, bInTV:DWORD, bHasChildren:DWORD, bObjectOrArray:DWORD, bRoot:DWORD
     LOCAL mi:MENUITEMINFO
 
     mov mi.cbSize, SIZEOF MENUITEMINFO
@@ -858,13 +931,13 @@ UpdateRightClickAddSubmenu PROC hWin:DWORD, bInTV:DWORD, bHasChildren:DWORD, bOb
     Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_ADD_ITEM_OBJECT, FALSE, Addr mi     
  
     ret
-UpdateRightClickAddSubmenu ENDP
+MenuRCAddUpdate ENDP
 
 
 ;-------------------------------------------------------------------------------------
 ; Update right click menu 'Copy' submenu
 ;-------------------------------------------------------------------------------------
-UpdateRightClickCopySubmenu PROC hWin:DWORD, bInTV:DWORD, bHasChildren:DWORD, bObjectOrArray:DWORD, bRoot:DWORD
+MenuRCCopyUpdate PROC hWin:DWORD, bInTV:DWORD, bHasChildren:DWORD, bObjectOrArray:DWORD, bRoot:DWORD
     LOCAL mi:MENUITEMINFO
 
     mov mi.cbSize, SIZEOF MENUITEMINFO
@@ -893,13 +966,13 @@ UpdateRightClickCopySubmenu PROC hWin:DWORD, bInTV:DWORD, bHasChildren:DWORD, bO
     Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_COPY_BRANCH, FALSE, Addr mi
     
     ret
-UpdateRightClickCopySubmenu ENDP
+MenuRCCopyUpdate ENDP
 
 
 ;-------------------------------------------------------------------------------------
 ; Update right click menu 'Paste' submenu
 ;-------------------------------------------------------------------------------------
-UpdateRightClickPasteSubmenu PROC hWin:DWORD, bInTV:DWORD, bHasChildren:DWORD, bObjectOrArray:DWORD, bRoot:DWORD
+MenuRCPasteUpdate PROC hWin:DWORD, bInTV:DWORD, bHasChildren:DWORD, bObjectOrArray:DWORD, bRoot:DWORD
     LOCAL mi:MENUITEMINFO
 
     mov mi.cbSize, SIZEOF MENUITEMINFO
@@ -929,39 +1002,39 @@ UpdateRightClickPasteSubmenu PROC hWin:DWORD, bInTV:DWORD, bHasChildren:DWORD, b
     Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_PASTE_JSON, FALSE, Addr mi
     
     ret
-UpdateRightClickPasteSubmenu ENDP
+MenuRCPasteUpdate ENDP
 
 
 ;-------------------------------------------------------------------------------------
 ; Update right click menu 'Export' submenu
 ;-------------------------------------------------------------------------------------
-UpdateRightClickExportSubmenu PROC hWin:DWORD, bInTV:DWORD, bHasChildren:DWORD, bObjectOrArray:DWORD, bRoot:DWORD
+MenuRCExportUpdate PROC hWin:DWORD, bInTV:DWORD, bHasChildren:DWORD, bObjectOrArray:DWORD, bRoot:DWORD
     LOCAL mi:MENUITEMINFO
 
     mov mi.cbSize, SIZEOF MENUITEMINFO
     mov mi.fMask, MIIM_STATE
     
     ret
-UpdateRightClickExportSubmenu ENDP
+MenuRCExportUpdate ENDP
 
 
 ;-------------------------------------------------------------------------------------
-; ShowRightClickMenu - shows treeview right click menu
+; MenuRCShow - shows treeview right click menu
 ;-------------------------------------------------------------------------------------
-ShowRightClickMenu PROC hWin:DWORD
+MenuRCShow PROC hWin:DWORD
 	Invoke GetCursorPos, addr TVRCMenuPoint
 	; Focus Main Window - ; Fix for shortcut menu not popping up right
 	Invoke SetForegroundWindow, hWin
 	Invoke TrackPopupMenu, hTVMenu, TPM_LEFTALIGN+TPM_LEFTBUTTON, TVRCMenuPoint.x, TVRCMenuPoint.y, NULL, hWin, NULL
 	Invoke PostMessage, hWin, WM_NULL, 0, 0 ; Fix for shortcut menu not popping up right  
     ret
-ShowRightClickMenu ENDP
+MenuRCShow ENDP
 
 
 ;-------------------------------------------------------------------------------------
-; ShowRightClickAddSubmenu - Show Add Submenu if INSERT key is pressed and conditions are satisfied
+; MenuRCAddShow - Show Add Submenu if INSERT key is pressed and conditions are satisfied
 ;-------------------------------------------------------------------------------------
-ShowRightClickAddSubmenu PROC hWin:DWORD
+MenuRCAddShow PROC hWin:DWORD
     LOCAL tvhi:TV_HITTESTINFO
     LOCAL bShowSubmenu:DWORD
     LOCAL hItem:DWORD
@@ -999,13 +1072,13 @@ ShowRightClickAddSubmenu PROC hWin:DWORD
     .ENDIF
     ret
 
-ShowRightClickAddSubmenu ENDP
+MenuRCAddShow ENDP
 
 
 ;-------------------------------------------------------------------------------------
 ; Reset menus when user closes file
 ;-------------------------------------------------------------------------------------
-ResetMenus PROC hWin:DWORD
+MenusReset PROC hWin:DWORD
     LOCAL hMainMenu:DWORD
     LOCAL mi:MENUITEMINFO
 
@@ -1050,13 +1123,13 @@ ResetMenus PROC hWin:DWORD
     Invoke SetMenuItemInfo, hTVMenu, IDM_CMD_PASTE_JSON, FALSE, Addr mi
     
     ret
-ResetMenus ENDP
+MenusReset ENDP
 
 
 ;-------------------------------------------------------------------------------------
-; Sets the state of save, save as menu items
+; Sets the state of save menu items
 ;-------------------------------------------------------------------------------------
-SaveMenuState PROC hWin:DWORD, bEnable:DWORD
+MenuSaveEnable PROC hWin:DWORD, bEnable:DWORD
     LOCAL hMainMenu:DWORD
     LOCAL mi:MENUITEMINFO
 
@@ -1072,9 +1145,299 @@ SaveMenuState PROC hWin:DWORD, bEnable:DWORD
         mov mi.fState, MFS_GRAYED
     .ENDIF
     Invoke SetMenuItemInfo, hMainMenu, IDM_FILE_SAVE, FALSE, Addr mi
+    ret
+MenuSaveEnable ENDP
+
+
+;-------------------------------------------------------------------------------------
+; Sets the state of save as menu items
+;-------------------------------------------------------------------------------------
+MenuSaveAsEnable PROC hWin:DWORD, bEnable:DWORD
+    LOCAL hMainMenu:DWORD
+    LOCAL mi:MENUITEMINFO
+
+    mov mi.cbSize, SIZEOF MENUITEMINFO
+    mov mi.fMask, MIIM_STATE
+
+    Invoke GetMenu, hWin
+    mov hMainMenu, eax
+    
+    .IF bEnable == TRUE
+        mov mi.fState, MFS_ENABLED
+    .ELSE
+        mov mi.fState, MFS_GRAYED
+    .ENDIF
     Invoke SetMenuItemInfo, hMainMenu, IDM_FILE_SAVEAS, FALSE, Addr mi 
     ret
-SaveMenuState ENDP
+MenuSaveAsEnable ENDP
+
+;--------------------------------------------------------------------------------------
+; IniMRULoadListToMenu - Loads MRU file information from the ini file into file menu
+;--------------------------------------------------------------------------------------
+IniMRULoadListToMenu PROC hWin:DWORD
+	LOCAL szProfile[8]:BYTE
+	LOCAL nProfile:DWORD	
+	LOCAL nTotalMRUs:DWORD
+	LOCAL nMenuID:DWORD
+	LOCAL hMainMenu:DWORD
+
+	Invoke GetMenu, hWin
+	.IF eax == NULL
+		mov eax, FALSE
+		ret 
+	.endif
+	mov hMainMenu, eax
+
+    .IF hBmpFileMRU == 0
+        Invoke LoadBitmap, hInstance, BMP_FILE_MRU
+        mov hBmpFileMRU, eax
+    .ENDIF
+    
+	mov nMenuID, 19991
+	mov nProfile, 1
+	mov nTotalMRUs, 0
+	
+	ReadMRUProfiles:
+	mov eax, nProfile
+	.IF eax < 10 ; 9 MRUs max
+		Invoke dwtoa, nProfile, Addr szProfile
+		Invoke GetPrivateProfileString, Addr szMRUSection, Addr szProfile, Addr szColon, Addr szMRUFilename, SIZEOF szMRUFilename, Addr szIniFilename
+		.IF eax !=0
+			Invoke szCmp, Addr szMRUFilename, Addr szColon
+			.IF eax == 0		
+				Invoke InsertMenu, hMainMenu, IDM_FILE_EXIT, MF_STRING+MF_BYCOMMAND, nMenuID, Addr szMRUFilename
+				Invoke SetMenuItemBitmaps, hMainMenu, nMenuID, MF_BYCOMMAND, hBmpFileMRU, 0
+				inc nTotalMRUs
+			.ENDIF
+		.ENDIF		
+		inc nMenuID
+		inc nProfile
+		mov eax, nProfile
+		jmp ReadMRUProfiles
+	.ENDIF	
+
+	.IF nTotalMRUs > 0
+		Invoke InsertMenu, hMainMenu, IDM_FILE_EXIT, MF_SEPARATOR+MF_BYCOMMAND, IDM_MRU_SEP, NULL
+	.ENDIF
+
+	Invoke DrawMenuBar, hMainMenu
+	
+	mov eax, TRUE
+	ret
+IniMRULoadListToMenu ENDP
+
+
+;--------------------------------------------------------------------------------------
+; IniMRUReloadListToMenu - RELoads MRU file information from the ini file into file menu
+;--------------------------------------------------------------------------------------
+IniMRUReloadListToMenu PROC hWin:DWORD
+	LOCAL nMenuID:DWORD
+	LOCAL hMainMenu:DWORD
+    LOCAL nProfile:DWORD
+	
+	Invoke GetMenu, hWin
+	.IF eax == NULL
+		mov eax, FALSE
+		ret 
+	.endif
+	mov hMainMenu, eax
+	mov nMenuID, 19991
+    mov nProfile, 1
+    
+    RemoveMRUProfiles:
+    mov eax, nProfile
+    .IF eax < 10 ; 9 MRUs max
+        Invoke RemoveMenu, hMainMenu, nMenuID, MF_BYCOMMAND
+		inc nMenuID
+		inc nProfile
+		mov eax, nProfile    
+		jmp RemoveMRUProfiles
+	.ENDIF
+	Invoke RemoveMenu, hMainMenu, IDM_MRU_SEP, MF_BYCOMMAND
+	Invoke DrawMenuBar, hMainMenu
+    Invoke IniMRULoadListToMenu, hWin
+    ret
+IniMRUReloadListToMenu ENDP
+
+
+;--------------------------------------------------------------------------------------
+; IniMRUEntrySaveFilename - Saves a filename to the MRU list 
+;--------------------------------------------------------------------------------------
+IniMRUEntrySaveFilename PROC hWin:DWORD, lpszFilename:DWORD
+	LOCAL nMRUFrom:DWORD
+	LOCAL nMRUTo:DWORD
+	LOCAL szMRUFrom[8]:BYTE
+	LOCAL szMRUTo[8]:BYTE
+
+	; if filename in MRU list already we delete it
+	mov nMRUFrom, 1
+	mov eax, nMRUFrom
+	; Start Loop
+	;====================
+	ScanMRUProfiles:
+	;====================
+	mov eax, nMRUFrom
+	.WHILE eax < 10 ; 9 MRUs
+		Invoke dwtoa, nMRUFrom, Addr szMRUFrom
+		Invoke GetPrivateProfileString, Addr szMRUSection, Addr szMRUFrom, Addr szColon, Addr szMRUFilename, SIZEOF szMRUFilename, Addr szIniFilename
+		.IF eax !=0
+			Invoke szCmp, Addr szMRUFilename, Addr szColon
+			.IF eax == 0		
+				Invoke szCmp, Addr szMRUFilename, lpszFilename
+				.IF eax != 0
+					; Loop onwards and fetch and write data
+					mov eax, nMRUFrom
+					mov nMRUTo, eax
+					inc nMRUFrom
+					mov eax, nMRUFrom
+					.WHILE eax <= 10
+						Invoke dwtoa, nMRUFrom, Addr szMRUFrom
+						Invoke dwtoa, nMRUTo, Addr szMRUTo
+						Invoke GetPrivateProfileString, Addr szMRUSection, Addr szMRUFrom, Addr szColon, Addr szMRUFilename, SIZEOF szMRUFilename, Addr szIniFilename
+						.IF eax !=0
+							Invoke szCmp, Addr szMRUFilename, Addr szColon
+							.IF eax == 0
+								Invoke WritePrivateProfileString, Addr szMRUSection, Addr szMRUTo, Addr szMRUFilename, Addr szIniFilename	
+							.ELSE
+								Invoke WritePrivateProfileString, Addr szMRUSection, Addr szMRUTo, NULL, Addr szIniFilename
+							.ENDIF
+						.ELSE
+							Invoke WritePrivateProfileString, Addr szMRUSection, Addr szMRUTo, NULL, Addr szIniFilename
+						.ENDIF	
+						inc nMRUTo
+						inc nMRUFrom	
+						mov eax, nMRUFrom
+					.ENDW
+					.BREAK
+				.ENDIF
+			.ENDIF
+		.ENDIF
+		inc nMRUFrom
+		mov eax, nMRUFrom
+		jmp ScanMRUProfiles
+	.ENDW		
+
+	mov nMRUFrom, 8
+	mov nMRUTo, 9
+	; Start Loop
+	;====================
+	ReadMRUProfiles:
+	;====================
+	mov eax, nMRUTo
+	.WHILE eax > 0 ; 9 MRUs
+		Invoke dwtoa, nMRUFrom, Addr szMRUFrom
+		Invoke dwtoa, nMRUTo, Addr szMRUTo
+		Invoke GetPrivateProfileString, Addr szMRUSection, Addr szMRUFrom, Addr szColon, Addr szMRUFilename, SIZEOF szMRUFilename, Addr szIniFilename
+		.IF eax !=0
+			Invoke szCmp, Addr szMRUFilename, Addr szColon
+			.IF eax == 0
+				Invoke WritePrivateProfileString, Addr szMRUSection, Addr szMRUTo, Addr szMRUFilename, Addr szIniFilename
+				Invoke WritePrivateProfileString, Addr szMRUSection, Addr szMRUFrom, NULL, Addr szIniFilename
+			.ENDIF
+		.ENDIF		
+		dec nMRUFrom
+		dec nMRUTo	
+		mov eax, nMRUTo
+		jmp ReadMRUProfiles
+	.ENDW	
+	Invoke WritePrivateProfileString, Addr szMRUSection, Addr szMRUTo, lpszFilename, Addr szIniFilename
+	ret
+IniMRUEntrySaveFilename ENDP
+
+
+;--------------------------------------------------------------------------------------
+; IniMRUEntryDeleteFilename - Deletes an entry from the MRU file list - missing file for example
+;--------------------------------------------------------------------------------------
+IniMRUEntryDeleteFilename PROC hWin:DWORD, lpszFilename:DWORD
+	LOCAL nMRUFrom:DWORD
+	LOCAL nMRUTo:DWORD
+	LOCAL szMRUFrom[8]:BYTE
+	LOCAL szMRUTo[8]:BYTE
+	
+	mov nMRUFrom, 1
+	mov eax, nMRUFrom
+	; Start Loop
+	;====================
+	ScanMRUProfiles:
+	;====================
+	mov eax, nMRUFrom
+	.WHILE eax < 10 ; 9 MRUs
+		Invoke dwtoa, nMRUFrom, Addr szMRUFrom
+		Invoke GetPrivateProfileString, Addr szMRUSection, Addr szMRUFrom, Addr szColon, Addr szMRUFilename, SIZEOF szMRUFilename, Addr szIniFilename
+		.IF eax !=0
+			Invoke szCmp, Addr szMRUFilename, Addr szColon
+			.IF eax == 0		
+				Invoke szCmp, Addr szMRUFilename, lpszFilename
+				.IF eax != 0
+					; Loop onwards and fetch and write data
+					mov eax, nMRUFrom
+					mov nMRUTo, eax
+					inc nMRUFrom
+					mov eax, nMRUFrom
+					.WHILE eax <= 10
+						Invoke dwtoa, nMRUFrom, Addr szMRUFrom
+						Invoke dwtoa, nMRUTo, Addr szMRUTo
+						
+						Invoke GetPrivateProfileString, Addr szMRUSection, Addr szMRUFrom, Addr szColon, Addr szMRUFilename, SIZEOF szMRUFilename, Addr szIniFilename
+						.IF eax !=0
+							Invoke szCmp, Addr szMRUFilename, Addr szColon
+							.IF eax == 0
+								Invoke WritePrivateProfileString, Addr szMRUSection, Addr szMRUTo, Addr szMRUFilename, Addr szIniFilename	
+							.ELSE
+								Invoke WritePrivateProfileString, Addr szMRUSection, Addr szMRUTo, NULL, Addr szIniFilename
+							.ENDIF
+						.ELSE
+							Invoke WritePrivateProfileString, Addr szMRUSection, Addr szMRUTo, NULL, Addr szIniFilename
+						.ENDIF	
+						inc nMRUTo
+						inc nMRUFrom	
+						mov eax, nMRUFrom
+					.ENDW
+					.BREAK
+				.ENDIF
+			.ENDIF
+		.ENDIF
+		inc nMRUFrom
+		mov eax, nMRUFrom
+		jmp ScanMRUProfiles
+	.ENDW			
+	ret
+IniMRUEntryDeleteFilename ENDP
+
+
+;--------------------------------------------------------------------------------------
+; IniMRUEntryOpenFile - Opens a file from the MRU file list 
+;--------------------------------------------------------------------------------------
+IniMRUEntryOpenFile	PROC hWin:DWORD, lpszFilename:DWORD
+	
+	Invoke exist, lpszFilename
+	.IF eax == 0
+        Invoke szCopy, Addr szMRUErrorFileNotExist, Addr szMRUErrorMessage
+        Invoke szCatStr, Addr szMRUErrorMessage, lpszFilename
+        Invoke StatusBarSetPanelText, 2, Addr szMRUErrorMessage    		
+		Invoke IniMRUEntryDeleteFilename, hWin, lpszFilename
+		Invoke MessageBox, hWin, Addr szMRUErrorMessage, Addr AppName, MB_OK
+		ret
+	.ENDIF
+    
+    .IF lpszFilename == 0
+        ;PrintText 'IniMRUEntryOpenFile no string'
+        ret
+    .ENDIF
+    
+	Invoke szCopy, lpszFilename, Addr JsonOpenedFilename
+    Invoke JSONFileOpen, hWin, Addr JsonOpenedFilename
+    .IF eax == TRUE
+        ; Start processing JSON file
+        Invoke JSONDataProcess, hWin, Addr JsonOpenedFilename, NULL
+    .ENDIF
+    
+    ;Invoke IniMRUEntrySaveFilename, hWin, Addr JsonOpenedFilename
+    ;Invoke IniMRUReloadListToMenu, hWin
+
+	ret
+IniMRUEntryOpenFile ENDP
+
 
 
 

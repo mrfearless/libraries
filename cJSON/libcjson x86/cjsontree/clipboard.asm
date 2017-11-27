@@ -1,26 +1,19 @@
-PasteJSON                       PROTO :DWORD
-CopyToClipboard                 PROTO :DWORD, :DWORD
-CopyBranchToClipboard           PROTO :DWORD
-CopyItem                        PROTO :DWORD, :DWORD, :DWORD
-PasteItem                       PROTO :DWORD, :DWORD
+JSONCutItem                     PROTO :DWORD                    ; Cut a json treeview item (wrapper for call to JSONCopyItem)
+JSONCopyItem                    PROTO :DWORD, :DWORD            ; Copy (or cut) a json treeview item
+JSONPasteItem                   PROTO :DWORD, :DWORD            ; Paste a previously copied or cut json treeview item (from JSONCopyItem)
+
+JSONCopyBranch                  PROTO :DWORD, :DWORD            ; Copy (or cut) a json treeview branch
+JSONPasteBranch                 PROTO :DWORD, :DWORD            ; Paste a previously copied or cut json treeview branch (from JSONCopyBranch)
+JSONPasteBranchProcessNodes     PROTO :DWORD,:DWORD,:DWORD,:DWORD,:DWORD,:DWORD,:DWORD
+
+PasteJSON                       PROTO :DWORD                    ; Paste / Import Json text from clipboard
+CopyToClipboard                 PROTO :DWORD, :DWORD            ; Copy to clipboard text or text value of treeview item
+
+CopyBranchToClipboard           PROTO :DWORD                    ; DONT USE - wip needs work done
+
+
 
 .DATA
-; JSON Export / Copy
-szJSONExportStart               DB '{',13,10,0
-szJSONExportEnd                 DB '}',13,10,0
-szJSONExportObjectStart         DB '{',13,10,0
-szJSONExportObjectEnd           DB '}',13,10,0
-szJSONExportObjectCommaEnd      DB '},',13,10,0
-szJSONExportArrayStart          DB '[',13,10,0
-szJSONExportArrayEnd            DB ']',13,10,0
-szJSONExportArrayEmpty          DB '[]',13,10,0
-szJSONExportCRLF                DB 13,10,0
-szJSONExportCommaCRLF           DB ',',13,10,0
-szJSONExportMiddleString        DB '": "',0
-szJSONExportMiddleOther         DB '": ',0
-szJSONExportIndentSpaces        DB 32 DUP (32d)
-szJSONExportSpacesBuffer        DB 32 DUP (0)
-
 szCopyTextSuccess               DB 'Copied json item text to clipboard',0
 szCopyValueSuccess              DB 'Copied json item value to clipboard',0
 szCopyTextEmpty                 DB 'json item text is empty, no text copied to clipboard',0
@@ -28,9 +21,9 @@ szCopyValueEmpty                DB 'json item value is empty, no text copied to 
 szCutItemSuccess                DB 'Cut: Currently selected json item copied',0
 szCutBranchSuccess              DB 'Cut: Currently selected json branch item and children copied',0
 szCopyItemSuccess               DB 'Copy: Currently selected json item copied',0
-szCopyBranchSucces              DB 'Copy: Currently selected json branch item and children copied',0
+szCopyBranchSuccess             DB 'Copy: Currently selected json branch item and children copied',0
 szPasteItemSuccess              DB 'Paste: copied json item pasted',0
-szPasteBranchSucces             DB 'Paste: copied json branch item and children pasted',0
+szPasteBranchSuccess            DB 'Paste: copied json branch item and children pasted',0
 
 szJSONLoadedClipData            DB 'Loaded JSON data from clipboard',0
 szClipboardData                 DB '[clipboard data]',0
@@ -40,6 +33,10 @@ szJSONErrorEmptyClipData        DB 'JSON clipboard data is empty',0
 szPasteFromClipboardJSON        DB 'Do you wish to paste JSON text from the clipboard?',0
 
 szCopyPasteNodeText             DB JSON_ITEM_MAX_TEXTLENGTH DUP (0)
+
+hPasteToBranchNode              DD 0
+
+
 
 .CODE
 
@@ -61,7 +58,7 @@ PasteJSON PROC USES EBX hWin:DWORD
         ret
     .ENDIF
     
-    Invoke CloseJSONFile, hWin
+    Invoke JSONFileClose, hWin
 
     Invoke OpenClipboard, hWin
     Invoke GetClipboardData, CF_TEXT
@@ -71,8 +68,19 @@ PasteJSON PROC USES EBX hWin:DWORD
         ret
     .ENDIF
     mov ptrClipData, eax
-    Invoke ProcessJSONData, hWin, NULL, ptrClipData
+    Invoke JSONDataProcess, hWin, NULL, ptrClipData
+    .IF eax == TRUE
+        mov g_Edit, TRUE
+        Invoke MenuSaveEnable, hWin, TRUE
+        Invoke MenuSaveAsEnable, hWin, TRUE
+        Invoke ToolbarButtonSaveEnable, hWin, TRUE
+        Invoke ToolbarButtonSaveAsEnable, hWin, TRUE
+        Invoke MenusUpdate, hWin, NULL
+        Invoke ToolBarUpdate, hWin, NULL    
+    .ENDIF    
     Invoke CloseClipboard
+    
+    
     ret
 PasteJSON ENDP
 
@@ -98,7 +106,7 @@ CopyToClipboard PROC USES EBX hWin:DWORD, bValueOnly:DWORD
     
     Invoke TreeViewGetSelectedText, hTV, Addr szSelectedTreeviewText, SIZEOF szSelectedTreeviewText
     .IF eax == 0
-        Invoke  StatusBarSetPanelText, 2, Addr szCopyTextEmpty
+        Invoke StatusBarSetPanelText, 2, Addr szCopyTextEmpty
         Invoke GlobalFree, ptrClipboardData
         Invoke CloseClipboard
         ret
@@ -109,7 +117,7 @@ CopyToClipboard PROC USES EBX hWin:DWORD, bValueOnly:DWORD
     .IF bValueOnly == TRUE
         Invoke InString, 1, Addr szSelectedTreeviewText, Addr szColon
         .IF eax == 0 ; no match
-            Invoke  StatusBarSetPanelText, 2, Addr szCopyValueEmpty
+            Invoke StatusBarSetPanelText, 2, Addr szCopyValueEmpty
             Invoke GlobalFree, ptrClipboardData
             Invoke CloseClipboard
             ret
@@ -121,7 +129,7 @@ CopyToClipboard PROC USES EBX hWin:DWORD, bValueOnly:DWORD
         .IF sdword ptr eax > 1
             dec eax ; skip any space
         .ELSE
-            Invoke  StatusBarSetPanelText, 2, Addr szCopyValueEmpty
+            Invoke StatusBarSetPanelText, 2, Addr szCopyValueEmpty
             Invoke GlobalFree, ptrClipboardData
             Invoke CloseClipboard
             ret
@@ -130,7 +138,7 @@ CopyToClipboard PROC USES EBX hWin:DWORD, bValueOnly:DWORD
         
         Invoke szLen, ptrClipboardData
         .IF eax == 0
-            Invoke  StatusBarSetPanelText, 2, Addr szCopyValueEmpty
+            Invoke StatusBarSetPanelText, 2, Addr szCopyValueEmpty
             Invoke GlobalFree, ptrClipboardData
             Invoke CloseClipboard
             ret
@@ -142,9 +150,9 @@ CopyToClipboard PROC USES EBX hWin:DWORD, bValueOnly:DWORD
     
     .IF LenData == 0
         .IF bValueOnly == TRUE
-            Invoke  StatusBarSetPanelText, 2, Addr szCopyValueEmpty
+            Invoke StatusBarSetPanelText, 2, Addr szCopyValueEmpty
         .ELSE
-            Invoke  StatusBarSetPanelText, 2, Addr szCopyTextEmpty
+            Invoke StatusBarSetPanelText, 2, Addr szCopyTextEmpty
         .ENDIF
         Invoke GlobalFree, ptrClipboardData
         Invoke CloseClipboard
@@ -179,9 +187,9 @@ CopyToClipboard PROC USES EBX hWin:DWORD, bValueOnly:DWORD
     Invoke GlobalFree, ptrClipboardData
     
     .IF bValueOnly == TRUE
-        Invoke  StatusBarSetPanelText, 2, Addr szCopyValueSuccess
+        Invoke StatusBarSetPanelText, 2, Addr szCopyValueSuccess
     .ELSE
-        Invoke  StatusBarSetPanelText, 2, Addr szCopyTextSuccess
+        Invoke StatusBarSetPanelText, 2, Addr szCopyTextSuccess
     .ENDIF
     
     ret
@@ -652,10 +660,20 @@ CopyBranchToClipboard ENDP
 
 
 ;-------------------------------------------------------------------------------------
+; Cut a node item (calls JSONCopyItem)
+;-------------------------------------------------------------------------------------
+JSONCutItem PROC hItem:DWORD
+    Invoke JSONCopyItem, hItem, TRUE
+    ret
+JSONCutItem ENDP
+
+
+;-------------------------------------------------------------------------------------
 ; Copy node item
 ;-------------------------------------------------------------------------------------
-CopyItem PROC USES EBX hWin:DWORD, hItem:DWORD, bCut:DWORD
+JSONCopyItem PROC USES EBX hItem:DWORD, bCut:DWORD
     LOCAL tvhi:TV_HITTESTINFO
+    LOCAL hJSON:DWORD
     
     .IF hItem == NULL
         Invoke TreeViewGetSelectedItem, hTV
@@ -673,22 +691,28 @@ CopyItem PROC USES EBX hWin:DWORD, hItem:DWORD, bCut:DWORD
     .IF eax != 0
         .IF bCut == TRUE
             mov g_Cut, TRUE
-            Invoke  StatusBarSetPanelText, 2, Addr szCutItemSuccess
+            Invoke TreeViewGetItemParam, hTV, g_hCutCopyNode
+            mov ebx, eax
+            mov eax, [ebx].cJSON.itemtype
+            mov g_CutJsonType, eax
+            Invoke TreeViewGetItemImage, hTV, g_hCutCopyNode
+            mov g_CutIcon, eax
+            Invoke TreeViewGetItemText, hTV, g_hCutCopyNode, Addr g_CutText, SIZEOF g_CutText
+            Invoke JSONRemoveItem, hTV, g_hCutCopyNode
+            Invoke StatusBarSetPanelText, 2, Addr szCutItemSuccess
         .ELSE
             mov g_Cut, FALSE
-            Invoke  StatusBarSetPanelText, 2, Addr szCopyItemSuccess
+            Invoke StatusBarSetPanelText, 2, Addr szCopyItemSuccess
         .ENDIF
     .ENDIF
-    ;PrintDec g_hCutCopyNode
-    
     ret
-CopyItem ENDP
+JSONCopyItem ENDP
 
 
 ;-------------------------------------------------------------------------------------
 ; Paste node item
 ;-------------------------------------------------------------------------------------
-PasteItem PROC USES EBX hWin:DWORD, hItem:DWORD
+JSONPasteItem PROC USES EBX hWin:DWORD, hItem:DWORD
     LOCAL tvhi:TV_HITTESTINFO
     LOCAL tvi:TV_ITEM
     LOCAL hPasteToNode:DWORD
@@ -696,9 +720,7 @@ PasteItem PROC USES EBX hWin:DWORD, hItem:DWORD
     LOCAL hNewNode:DWORD
     LOCAL hJSONCopyFrom:DWORD
     LOCAL hJSONPasteTo:DWORD
-    LOCAL hJSONNew:DWORD
-    LOCAL hJSONPrev:DWORD
-    ;LOCAL dwJsonType:DWORD
+    LOCAL dwJsonType:DWORD
     LOCAL nIcon:DWORD
     LOCAL hItemPrev:DWORD
     
@@ -732,92 +754,259 @@ PasteItem PROC USES EBX hWin:DWORD, hItem:DWORD
     ;PrintDec hPasteToNode
     ENDIF
     
-    ; got copy and paste nodes
-    Invoke RtlZeroMemory, Addr szCopyPasteNodeText, SIZEOF szCopyPasteNodeText
-    Invoke TreeViewGetItemText, hTV, hCopyFromNode, Addr szCopyPasteNodeText, SIZEOF szCopyPasteNodeText
-    Invoke TreeViewGetItemParam, hTV, hCopyFromNode
-    mov hJSONCopyFrom, eax
-    Invoke TreeViewGetItemImage, hTV, hCopyFromNode
-    mov nIcon, eax
-    ; Create a JSON object for our new item
-    Invoke GlobalAlloc, GMEM_FIXED + GMEM_ZEROINIT, SIZEOF cJSON
-    mov hJSONNew, eax
-    ; copy contents
-    Invoke RtlMoveMemory, hJSONNew, hJSONCopyFrom, SIZEOF cJSON
-
-    IFDEF DEBUG32
-    ;PrintDec hJSONCopyFrom
-    ;PrintDec hJSONNew
-    ;PrintDec nIcon
-    ENDIF
-    
-    ;mov ebx, hJSONCopyFrom
-    ;mov eax, [ebx].cJSON.itemtype
-    ;mov dwJsonType, eax
-    
-    ; store our handle to mem inside hJSONNew structure
-    mov ebx, hJSONNew
-    mov eax, hJSONNew
-    mov [ebx].cJSON.valueint, eax ; store handle in this value
-    mov dword ptr [ebx].cJSON.valuedouble, eax ; store handle in this value
-    mov [ebx].cJSON.prev, 0
-    mov [ebx].cJSON.next, 0
-    mov [ebx].cJSON.child, 0
-    
-    ; add new child ref to pasted node if it hasnt got a child already
-    Invoke TreeViewGetItemParam, hTV, hPasteToNode
+    .IF g_Cut == FALSE
+        ; got copy and paste nodes
+        Invoke TreeViewGetItemText, hTV, hCopyFromNode, Addr szCopyPasteNodeText, SIZEOF szCopyPasteNodeText
+        Invoke TreeViewGetItemImage, hTV, hCopyFromNode
+        mov nIcon, eax
+        Invoke TreeViewGetItemParam, hTV, hCopyFromNode
+        mov hJSONCopyFrom, eax
+        mov ebx, eax
+        mov eax, [ebx].cJSON.itemtype
+        mov dwJsonType, eax
+    .ELSE
+        mov eax, g_CutIcon
+        mov nIcon, eax
+        mov eax, g_CutJsonType
+        mov dwJsonType, eax
+        Invoke szCopy, Addr g_CutText, Addr szCopyPasteNodeText
+    .ENDIF
+    Invoke JSONCreateItem, hTV, hPasteToNode, dwJsonType
     mov hJSONPasteTo, eax
-    .IF eax != NULL
-        mov ebx, hJSONPasteTo
-        mov eax, [ebx].cJSON.child
-        .IF eax == 0
-            mov ebx, hJSONPasteTo
-            mov eax, hJSONNew
-            mov [ebx].cJSON.child, eax
-        .ENDIF
+
+    .IF hJSONPasteTo == 0
+        PrintText 'hJSONAdd == 0'
+        ret
     .ENDIF
 
-    Invoke TreeViewInsertItem, hTV, hPasteToNode, Addr szCopyPasteNodeText, g_nTVIndex, TVI_LAST, nIcon, nIcon, hJSONPasteTo
-    mov hNewNode, eax
-    inc g_nTVIndex
+    .IF hJSONPasteTo != 0
+
+        Invoke TreeViewItemInsert, hTV, hPasteToNode, Addr szCopyPasteNodeText, g_nTVIndex, TVI_LAST, nIcon, nIcon, hJSONPasteTo
+        mov hNewNode, eax
+        inc g_nTVIndex
     
-    Invoke SendMessage, hTV, TVM_GETNEXTITEM, TVGN_PREVIOUS, hNewNode
-    .IF eax != NULL
-        mov hItemPrev, eax
-        Invoke TreeViewGetItemParam, hTV, hItemPrev
-        .IF eax != NULL
-            mov hJSONPrev, eax
-            mov ebx, eax
-            mov eax, hJSONNew
-            mov [ebx].cJSON.next, eax
-            
-            mov ebx, hJSONNew
-            mov eax, hJSONPrev
-            mov [ebx].cJSON.prev, eax
+        .IF g_Cut == TRUE
+            mov g_Cut, FALSE
+            mov g_hCutCopyNode, NULL
         .ENDIF
-    .ENDIF
-
-    .IF g_Cut == TRUE
         
-        ; delete previous
-        
-        mov g_Cut, FALSE
-        mov g_hCutCopyNode, NULL
-        
-    .ENDIF
+        Invoke StatusBarSetPanelText, 2, Addr szPasteItemSuccess    
     
-    Invoke  StatusBarSetPanelText, 2, Addr szPasteItemSuccess    
-
-    mov g_Edit, TRUE
-    Invoke SaveMenuState, hWin, TRUE
-    Invoke SaveToolbarState, hWin, TRUE
-
+        mov g_Edit, TRUE
+        Invoke MenuSaveEnable, hWin, TRUE
+        Invoke MenuSaveAsEnable, hWin, TRUE
+        Invoke ToolbarButtonSaveEnable, hWin, TRUE
+        Invoke ToolbarButtonSaveAsEnable, hWin, TRUE
+        
+    .ENDIF
     ;Invoke TreeViewSetSelectedItem, hTV, hNewNode, TRUE
     ;Invoke TreeViewItemExpand, hTV, hNewNode
     
     ret
-PasteItem ENDP
+JSONPasteItem ENDP
 
+
+;-------------------------------------------------------------------------------------
+; Copy node branch and children
+;-------------------------------------------------------------------------------------
+JSONCopyBranch PROC USES EBX hItem:DWORD, bCut:DWORD
+    LOCAL tvhi:TV_HITTESTINFO
+    LOCAL hJSON:DWORD
+    
+    .IF hItem == NULL
+        Invoke TreeViewGetSelectedItem, hTV
+        .IF eax == 0
+            Invoke GetCursorPos, Addr tvhi.pt
+            Invoke ScreenToClient, hTV, addr tvhi.pt
+            Invoke SendMessage, hTV, TVM_HITTEST, 0, Addr tvhi        
+            mov eax, tvhi.hItem
+        .ENDIF
+    .ELSE
+        mov eax, hItem
+    .ENDIF
+    mov g_hCutCopyBranchNode, eax
+    
+    .IF eax != 0
+        .IF g_CutBranch == TRUE
+            mov g_CutBranch, TRUE
+;            Invoke TreeViewGetItemParam, hTV, g_hCutCopyBranchNode
+;            mov ebx, eax
+;            mov eax, [ebx].cJSON.itemtype
+;            mov g_CutJsonType, eax
+;            Invoke TreeViewGetItemImage, hTV, g_hCutCopyBranchNode
+;            mov g_CutIcon, eax
+;            Invoke TreeViewGetItemText, hTV, g_hCutCopyBranchNode, Addr g_CutText, SIZEOF g_CutText
+;            Invoke JSONRemoveItem, hTV, g_hCutCopyBranchNode
+;            Invoke StatusBarSetPanelText, 2, Addr szCutItemSuccess
+        .ELSE
+            mov g_CutBranch, FALSE
+            Invoke StatusBarSetPanelText, 2, Addr szCopyBranchSuccess
+        .ENDIF
+    .ENDIF
+    ret
+JSONCopyBranch ENDP
+
+
+
+;-------------------------------------------------------------------------------------
+; Paste node item
+;-------------------------------------------------------------------------------------
+JSONPasteBranch PROC USES EBX hWin:DWORD, hItem:DWORD
+    LOCAL tvhi:TV_HITTESTINFO
+    LOCAL tvi:TV_ITEM
+    LOCAL hCopyFromNode:DWORD
+    ;LOCAL hNewNode:DWORD
+    LOCAL hJSONCopyFrom:DWORD
+    ;LOCAL hJSONPasteTo:DWORD
+    ;LOCAL dwJsonType:DWORD
+    ;LOCAL nIcon:DWORD
+    ;LOCAL hItemPrev:DWORD
+    
+    .IF g_hCutCopyBranchNode == 0
+        ret
+    .ELSE
+        mov eax, g_hCutCopyBranchNode
+        mov hJSONCopyFrom, eax
+    .ENDIF
+    
+    mov eax, hItem
+    .IF eax == 0
+        Invoke TreeViewGetSelectedItem, hTV
+        .IF eax == 0
+            Invoke GetCursorPos, Addr tvhi.pt
+            Invoke ScreenToClient, hTV, addr tvhi.pt
+            Invoke SendMessage, hTV, TVM_HITTEST, 0, Addr tvhi        
+            mov eax, tvhi.hItem
+        .ENDIF
+    .ELSE
+        mov eax, hItem
+    .ENDIF
+    mov hPasteToBranchNode, eax
+    
+    .IF hPasteToBranchNode == 0
+        ret
+    .ENDIF
+    
+    IFDEF DEBUG32
+    ;PrintDec hCopyFromNode
+    ;PrintDec hPasteToNode
+    ENDIF
+    
+    
+    Invoke TreeViewWalk, hTV, hJSONCopyFrom, Addr JSONPasteBranchProcessNodes, NULL
+    .IF eax == TRUE
+    
+    
+;    .IF g_CutBranch == FALSE
+;        ; got copy and paste nodes
+;        Invoke TreeViewGetItemText, hTV, hCopyFromNode, Addr szCopyPasteNodeText, SIZEOF szCopyPasteNodeText
+;        Invoke TreeViewGetItemImage, hTV, hCopyFromNode
+;        mov nIcon, eax
+;        Invoke TreeViewGetItemParam, hTV, hCopyFromNode
+;        mov hJSONCopyFrom, eax
+;        mov ebx, eax
+;        mov eax, [ebx].cJSON.itemtype
+;        mov dwJsonType, eax
+;    .ELSE
+;;        mov eax, g_CutIcon
+;;        mov nIcon, eax
+;;        mov eax, g_CutJsonType
+;;        mov dwJsonType, eax
+;;        Invoke szCopy, Addr g_CutText, Addr szCopyPasteNodeText
+;    .ENDIF
+;    Invoke JSONCreateItem, hTV, hPasteToNode, dwJsonType
+;    mov hJSONPasteTo, eax
+;
+;    .IF hJSONPasteTo == 0
+;        PrintText 'hJSONAdd == 0'
+;        ret
+;    .ENDIF
+;
+;    .IF hJSONPasteTo != 0
+;
+;        Invoke TreeViewItemInsert, hTV, hPasteToNode, Addr szCopyPasteNodeText, g_nTVIndex, TVI_LAST, nIcon, nIcon, hJSONPasteTo
+;        mov hNewNode, eax
+;        inc g_nTVIndex
+;    
+;        .IF g_CutBranch == TRUE
+;            mov g_CutBranch, FALSE
+;            mov g_hCutCopyBranchNode, NULL
+;        .ENDIF
+        
+        Invoke StatusBarSetPanelText, 2, Addr szPasteBranchSuccess    
+    
+        mov g_Edit, TRUE
+        Invoke MenuSaveEnable, hWin, TRUE
+        Invoke MenuSaveAsEnable, hWin, TRUE
+        Invoke ToolbarButtonSaveEnable, hWin, TRUE
+        Invoke ToolbarButtonSaveAsEnable, hWin, TRUE
+        
+    .ENDIF
+    ;Invoke TreeViewSetSelectedItem, hTV, hNewNode, TRUE
+    ;Invoke TreeViewItemExpand, hTV, hNewNode
+    
+    ret
+JSONPasteBranch ENDP
+
+
+
+;**************************************************************************
+; JSONPasteBranchProcessNodes
+;**************************************************************************
+JSONPasteBranchProcessNodes PROC USES EBX hTreeview:DWORD, hItem:DWORD, dwStatus:DWORD, dwTotalItems:DWORD, dwItemNo:DWORD, dwLevel:DWORD, dwCustomData:DWORD
+    LOCAL hJSONCopyFrom:DWORD
+    LOCAL hJSONPasteTo:DWORD
+    LOCAL hCopyFromNode:DWORD
+    LOCAL hNewNode:DWORD
+    LOCAL dwJsonType:DWORD
+    LOCAL nIcon:DWORD
+    
+
+    mov eax, dwStatus
+    .IF eax == TREEVIEWWALK_ITEM || eax == TREEVIEWWALK_ITEM_START || eax == TREEVIEWWALK_ITEM_FINISH
+    ;-----------------------------------------------------------------------------
+        .IF eax == TREEVIEWWALK_ITEM || eax == TREEVIEWWALK_ITEM_START
+        ;-----------------------------------------------------------------------------
+            mov eax, hItem
+            mov hCopyFromNode, eax
+        
+            Invoke TreeViewGetItemText, hTreeview, hCopyFromNode, Addr szCopyPasteNodeText, SIZEOF szCopyPasteNodeText
+            Invoke TreeViewGetItemImage, hTreeview, hCopyFromNode
+            mov nIcon, eax
+            Invoke TreeViewGetItemParam, hTreeview, hCopyFromNode
+            mov hJSONCopyFrom, eax
+            mov ebx, eax
+            mov eax, [ebx].cJSON.itemtype
+            mov dwJsonType, eax
+
+            Invoke JSONCreateItem, hTreeview, hPasteToBranchNode, dwJsonType
+            mov hJSONPasteTo, eax
+            
+            .IF hJSONPasteTo != 0
+                Invoke TreeViewItemInsert, hTreeview, hPasteToBranchNode, Addr szCopyPasteNodeText, g_nTVIndex, TVI_LAST, nIcon, nIcon, hJSONPasteTo
+                mov hNewNode, eax
+                inc g_nTVIndex
+            .ENDIF            
+        .ENDIF
+        ;-----------------------------------------------------------------------------
+    
+        mov eax, dwStatus
+        .IF eax == TREEVIEWWALK_ITEM_START
+            push hPasteToBranchNode
+            mov eax, hNewNode
+            mov hPasteToBranchNode, eax
+            
+        
+        .ELSEIF eax == TREEVIEWWALK_ITEM_FINISH
+            pop hPasteToBranchNode
+        
+        .ENDIF
+        
+    .ENDIF
+    ;-----------------------------------------------------------------------------
+    
+    ret
+JSONPasteBranchProcessNodes ENDP
 
 
 

@@ -120,3 +120,4 @@ IMG_CMD_EXPORT_TREE_FILE	BITMAP    DISCARDABLE "Images/Menu/Rightclick/Export/Ex
 229						BITMAP    DISCARDABLE "Images/Menu/Main/Edit/EditFind.bmp"
 1511					ICON      DISCARDABLE "Images/Toolbar/TB_FindText.ico"
 1611					ICON      DISCARDABLE "Images/Toolbar/TB_FindText_Grey.ico"
+200						BITMAP    DISCARDABLE "Images/Menu/Main/File/FileMRU.bmp"

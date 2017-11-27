@@ -1,12 +1,12 @@
-InitToolBar			            PROTO :DWORD, :DWORD, :DWORD ; Place in WM_INITDIALOG event
-InitRebar                       PROTO :DWORD
+ToolbarInit			            PROTO :DWORD, :DWORD, :DWORD        ; Initialize the toolbar, load icons for buttons and set initial state
+ToolbarsReset                   PROTO :DWORD                        ; Reset toolbar buttons to initial state
+ToolBarUpdate                   PROTO :DWORD, :DWORD                ; Update toolbar buttons based on edit state, current selected item, selected branch etc
 
-ToolBarUpdate                   PROTO :DWORD, :DWORD
-ToolBarUpdateByKeyboard         PROTO :DWORD, :DWORD
-ToolBarShowDropdownAddMenu      PROTO :DWORD
-ResetToolbars                   PROTO :DWORD
+ToolBarDropdownAddMenuShow      PROTO :DWORD                        ; Show 'Add Item' dropdown menu
+ToolbarButtonSaveEnable         PROTO :DWORD, :DWORD                ; Enable/Disable 'Save' toolbar button
+ToolbarButtonSaveAsEnable       PROTO :DWORD, :DWORD                ; Enable/Disable 'Save As' toolbar button
 
-SaveToolbarState                PROTO :DWORD, :DWORD
+ToolBarTips                     PROTO :DWORD                        ; Show tooltips for toolbar buttons
 
 .CONST
 TB_SETEXTENDEDSTYLE             EQU WM_USER + 84
@@ -115,9 +115,9 @@ ToolBarHeight		            DD ?
 
 
 ;-------------------------------------------------------------------------------------
-; InitToolbar
+; ToolbarInit
 ;-------------------------------------------------------------------------------------
-InitToolbar PROC USES EBX hWin:DWORD, dwToolbarButtonWidth:DWORD, dwToolbarButtonHeight:DWORD
+ToolbarInit PROC USES EBX hWin:DWORD, dwToolbarButtonWidth:DWORD, dwToolbarButtonHeight:DWORD
 	LOCAL bSize:DWORD
 	LOCAL bSizeConnect:DWORD
 	LOCAL tbab:TBADDBITMAP
@@ -276,10 +276,10 @@ InitToolbar PROC USES EBX hWin:DWORD, dwToolbarButtonWidth:DWORD, dwToolbarButto
 ;	mov tbb.fsStyle, TBSTYLE_BUTTON
 ;	Invoke SendMessage, hToolBar, TB_ADDBUTTONS, 1, Addr tbb    
     
-    Invoke ResetToolbars, hWin
+    Invoke ToolbarsReset, hWin
    
 	ret
-InitToolbar ENDP
+ToolbarInit ENDP
 
 
 ;-------------------------------------------------------------------------------------
@@ -369,7 +369,7 @@ ToolBarUpdate PROC hWin:DWORD, hItem:DWORD
     .ENDIF
     mov dwToolbarState, eax
     Invoke SendMessage, hToolBar, TB_SETSTATE, TB_FILE_SAVE, dwToolbarState
-    Invoke SendMessage, hToolBar, TB_SETSTATE, TB_FILE_SAVEAS, dwToolbarState
+    ;Invoke SendMessage, hToolBar, TB_SETSTATE, TB_FILE_SAVEAS, dwToolbarState
 
     ; On a treeview item
 	.IF bInTV == TRUE
@@ -434,7 +434,7 @@ ToolBarUpdate ENDP
 ;-------------------------------------------------------------------------------------
 ; From Toolbar Add button, show dropdown menu
 ;-------------------------------------------------------------------------------------
-ToolBarShowDropdownAddMenu PROC USES EBX hWin:DWORD
+ToolBarDropdownAddMenuShow PROC USES EBX hWin:DWORD
     LOCAL rect:RECT
     LOCAL nLeft:DWORD
     LOCAL nHeight:DWORD
@@ -468,13 +468,13 @@ ToolBarShowDropdownAddMenu PROC USES EBX hWin:DWORD
 	Invoke PostMessage, hWin, WM_NULL, 0, 0 ; Fix for shortcut menu not popping up right      
     ret
 
-ToolBarShowDropdownAddMenu ENDP
+ToolBarDropdownAddMenuShow ENDP
 
 
 ;-------------------------------------------------------------------------------------
-; ResetToolbars
+; ToolbarsReset
 ;-------------------------------------------------------------------------------------
-ResetToolbars PROC hWin:DWORD
+ToolbarsReset PROC hWin:DWORD
     LOCAL dwToolbarState:DWORD
     
     mov eax, TBSTATE_ENABLED
@@ -500,13 +500,13 @@ ResetToolbars PROC hWin:DWORD
     Invoke SendMessage, hToolBar, TB_SETSTATE, TB_ADD_ITEM_OBJECT, dwToolbarState
     ret
 
-ResetToolbars ENDP
+ToolbarsReset ENDP
 
 
 ;-------------------------------------------------------------------------------------
-; Change state of save, save as toolbar buttons
+; Change state of save toolbar buttons
 ;-------------------------------------------------------------------------------------
-SaveToolbarState PROC hWin:DWORD, bEnable:DWORD
+ToolbarButtonSaveEnable PROC hWin:DWORD, bEnable:DWORD
     LOCAL dwToolbarState:DWORD
     
     .IF bEnable == TRUE
@@ -515,15 +515,26 @@ SaveToolbarState PROC hWin:DWORD, bEnable:DWORD
         mov eax, TBSTATE_INDETERMINATE
     .ENDIF
     mov dwToolbarState, eax
-
     Invoke SendMessage, hToolBar, TB_SETSTATE, TB_FILE_SAVE, dwToolbarState
-    Invoke SendMessage, hToolBar, TB_SETSTATE, TB_FILE_SAVEAS, dwToolbarState
-
     ret
-SaveToolbarState ENDP
+ToolbarButtonSaveEnable ENDP
 
 
-
+;-------------------------------------------------------------------------------------
+; Change state of save as toolbar buttons
+;-------------------------------------------------------------------------------------
+ToolbarButtonSaveAsEnable PROC hWin:DWORD, bEnable:DWORD
+    LOCAL dwToolbarState:DWORD
+    
+    .IF bEnable == TRUE
+        mov eax, TBSTATE_ENABLED
+    .ELSE
+        mov eax, TBSTATE_INDETERMINATE
+    .ENDIF
+    mov dwToolbarState, eax
+    Invoke SendMessage, hToolBar, TB_SETSTATE, TB_FILE_SAVEAS, dwToolbarState
+    ret
+ToolbarButtonSaveAsEnable ENDP
 
 
 

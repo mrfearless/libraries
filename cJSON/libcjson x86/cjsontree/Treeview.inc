@@ -43,32 +43,23 @@
 TreeViewClearAll		    PROTO :DWORD                                                    ; hTreeview
 TreeViewDeleteAll           EQU TreeViewClearAll                                            ; hTreeview
 
-TreeViewInsertItem          PROTO :DWORD,:DWORD,:DWORD,:DWORD,:DWORD,:DWORD,:DWORD,:DWORD   ; hTreeview, hNodeParent, lpszNodeText, nNodeIndex, NodePosition, nImage, nImageSelected, dwParam
-
 TreeViewGetSelectedImage    PROTO :DWORD                                                    ; hTreeview, hItem
 TreeViewGetSelectedItem     PROTO :DWORD                                                    ; hTreeview, hItem
 TreeViewGetSelectedParam    PROTO :DWORD                                                    ; hTreeview, hItem
 TreeViewGetSelectedText     PROTO :DWORD,:DWORD,:DWORD                                      ; hTreeview, hItem
+TreeViewSetSelectedItem     PROTO :DWORD,:DWORD,:DWORD                                      ; hTreeview, hItem, bEnsureVisible
 
 TreeViewGetItemText         PROTO :DWORD,:DWORD,:DWORD,:DWORD                               ; hTreeview, hItem
 TreeViewGetItemImage        PROTO :DWORD,:DWORD                                             ; hTreeview, hItem
 TreeViewGetItemParam        PROTO :DWORD,:DWORD                                             ; hTreeview, hItem
-
 TreeViewSetItemText         PROTO :DWORD,:DWORD,:DWORD                                      ; hTreeview, hItem
 TreeViewSetItemImage        PROTO :DWORD,:DWORD,:DWORD                                      ; hTreeview, hItem
 TreeViewSetItemParam        PROTO :DWORD,:DWORD,:DWORD                                      ; hTreeview, hItem
 
-TreeViewItemCollapse        PROTO :DWORD,:DWORD                                             ; hTreeview, hItem
 TreeViewItemDelete          PROTO :DWORD,:DWORD                                             ; hTreeview, hItem
-TreeViewItemExpand          PROTO :DWORD,:DWORD                                             ; hTreeview, hItem
 TreeViewItemHasChildren     PROTO :DWORD,:DWORD                                             ; hTreeview, hItem
+TreeViewItemInsert          PROTO :DWORD,:DWORD,:DWORD,:DWORD,:DWORD,:DWORD,:DWORD,:DWORD   ; hTreeview, hNodeParent, lpszNodeText, nNodeIndex, NodePosition, nImage, nImageSelected, dwParam
 TreeViewItemToggle          PROTO :DWORD,:DWORD                                             ; hTreeview, hItem
-
-TreeViewChildItemsExpand    PROTO :DWORD,:DWORD                                             ; hTreeview, hItem
-TreeViewChildItemsCollapse  PROTO :DWORD,:DWORD                                             ; hTreeview, hItem
-TreeViewChildItemsToggle    PROTO :DWORD,:DWORD                                             ; hTreeview, hItem
-
-TreeViewSetSelectedItem     PROTO :DWORD,:DWORD,:DWORD                                      ; hTreeview, hItem, bEnsureVisible
 
 TreeViewSubClassProc        PROTO :DWORD,:DWORD                                             ; hTreeview, lpdwTVSubClassProc
 TreeViewSubClassData        PROTO :DWORD,:DWORD                                             ; hTreeview, lpdwTVSubClassData
@@ -81,11 +72,46 @@ TreeViewDrawSelectedItemDlg PROTO :DWORD,:DWORD,:DWORD,:DWORD,:DWORD,:DWORD     
 TreeViewCountItems          PROTO :DWORD                                                    ; hTreeview
 TreeViewCountChildren       PROTO :DWORD,:DWORD,:DWORD                                      ; hTreeview, hItem, bRecurse
 
-TreeViewFindItem            PROTO :DWORD,:DWORD,:DWORD                                      ; hTreeview, hItem, lpszFindText
-TreeViewFindItemBranch      PROTO :DWORD,:DWORD,:DWORD                                      ; hTreeview, hItem, lpszFindText
+TreeViewFindItem            PROTO :DWORD,:DWORD,:DWORD,:DWORD                               ; hTreeview, hItem, lpszFindText, bCaseSensitive
 
-TreeViewCollapseAll         PROTO :DWORD                                                    ; hTreeview
-TreeViewExpandAll           PROTO :DWORD                                                    ; hTreeview
+TreeViewRootCollapse        PROTO :DWORD                                                    ; hTreeview
+TreeViewRootExpand          PROTO :DWORD                                                    ; hTreeview
+TreeViewBranchCollapse      PROTO :DWORD,:DWORD                                             ; hTreeview, hItem
+TreeViewBranchExpand        PROTO :DWORD,:DWORD                                             ; hTreeview, hItem
+TreeViewItemCollapse        PROTO :DWORD,:DWORD                                             ; hTreeview, hItem
+TreeViewItemExpand          PROTO :DWORD,:DWORD                                             ; hTreeview, hItem
+
+TreeViewBranchDepth         PROTO :DWORD, :DWORD                                            ; hTreeview, hItem
+
+TreeViewWalk                PROTO :DWORD,:DWORD,:DWORD,:DWORD                               ; hTreeview, hItem, lpTreeViewWalkCallback, lpCustomData
+;TreeViewWalkCallback       PROTO :DWORD,:DWORD,:DWORD,:DWORD,:DWORD,:DWORD,:DWORD          ; hTreeview, hItem, dwStatus, dwTotalItems, dwItemNo, dwLevel, dwCustomData
+
+
+;-----------------------------------------------------------------------------------------
+; LTLI TreeView LIB Constants
+;-----------------------------------------------------------------------------------------
+.CONST
+; TreeView Walk Callback Status (dwStatus):
+TREEVIEWWALK_NULL              EQU 0
+TREEVIEWWALK_ITEM              EQU 1
+TREEVIEWWALK_ITEM_START        EQU 2
+TREEVIEWWALK_ITEM_FINISH       EQU 3
+TREEVIEWWALK_ROOT_START        EQU 4
+TREEVIEWWALK_ROOT_FINISH       EQU 5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
