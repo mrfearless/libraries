@@ -4,6 +4,7 @@ bak/
 *.pdb
 *.ilk
 *.exp
+*.bak
 Help/
 template/
 downloads/
