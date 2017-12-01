@@ -1,0 +1,23 @@
+;-----------------------------------------------------------------------------------------------------
+; Console x64 Library
+;
+; Paste this text at the end of \Radasm\UASM64\uasm64ApiCall.api to add these to Radasm
+;
+;-----------------------------------------------------------------------------------------------------
+ConsolePause,qwConMsgType
+ConsoleStdOut,lpszConText
+ConsoleStdIn,lpszConInputBuffer,qwSizeConInputBuffer
+ConsoleStdInW,lpszWideConInputBuffer,qwSizeWideConInputBuffer
+ConsoleStdErr,lpszErrText
+ConsoleClearScreen
+ConsoleCls
+ConsoleShowCursor
+ConsoleHideCursor
+ConsoleSetIcon,IcoResID
+ConsoleSetTitle,lpszConTitle
+ConsoleSetPosition,qwXpos,qwYpos
+ConsoleStarted
+ConsoleAttach
+ConsoleFree
+ConsoleParseCmdLine,qwParametersArray
+ConsoleCmdLineParam,qwParametersArray,qwParameterToFetch,qwTotalParameters,lpszReturnedParameter

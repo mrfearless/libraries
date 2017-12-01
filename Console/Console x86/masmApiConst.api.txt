@@ -1,0 +1,7 @@
+;-----------------------------------------------------------------------------------------------------
+; Console Library
+;
+; Paste this text at the end of \Radasm\Masm\masmApiConst.api to add these to Radasm
+;
+;-----------------------------------------------------------------------------------------------------
+1ConsolePause,CON_PAUSE_NO_MSG,CON_PAUSE_ANY_KEY_CONTINUE,CON_PAUSE_ANY_KEY_EXIT

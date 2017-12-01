@@ -1,0 +1,23 @@
+;-----------------------------------------------------------------------------------------------------
+; Console Library
+;
+; Paste this text at the end of \Radasm\Masm\masmApiCall.api to add these to Radasm
+;
+;-----------------------------------------------------------------------------------------------------
+ConsolePause,dwConMsgType
+ConsoleStdOut,lpszConText
+ConsoleStdIn,lpszConInputBuffer,dwSizeConInputBuffer
+ConsoleStdInW,lpszWideConInputBuffer,dwSizeWideConInputBuffer
+ConsoleStdErr,lpszErrText
+ConsoleClearScreen
+ConsoleCls
+ConsoleShowCursor
+ConsoleHideCursor
+ConsoleSetIcon,IcoResID
+ConsoleSetTitle,lpszConTitle
+ConsoleSetPosition,dwXpos,dwYpos
+ConsoleStarted
+ConsoleAttach
+ConsoleFree
+ConsoleParseCmdLine,dwParametersArray
+ConsoleCmdLineParam,dwParametersArray,dwParameterToFetch,dwTotalParameters,lpszReturnedParameter
