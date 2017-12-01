@@ -1,8 +1,8 @@
-# Mxml x86
+# Mini-XML x86
 
-mxml static libraries compiled for x86 masm assembler 
+Mini-XML static libraries compiled for x86 masm assembler 
 
-mxml: https://github.com/michaelrsweet/mxml
+Mini-XML: https://github.com/michaelrsweet/mxml
 
 > Tiny XML library
 >

@@ -1,8 +1,8 @@
-# Mxml x64
+# Mini-XML x64
 
-mxml static libraries compiled for x64 uasm assembler 
+Mini-XML static libraries compiled for x64 uasm assembler 
 
-mxml: https://github.com/michaelrsweet/mxml
+Mini-XML: https://github.com/michaelrsweet/mxml
 
 > Tiny XML library
 >
