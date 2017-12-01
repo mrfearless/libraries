@@ -1,4 +1,4 @@
-# ![](../assets/VirtualStack.png)VirtualStack x64
+# ![](../../assets/VirtualStack.png)VirtualStack x64
 
 Static x64 assembler library for creating a virtual stack and manipulating it (push, pop, peek etc)
 
