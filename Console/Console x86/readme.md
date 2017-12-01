@@ -1,4 +1,4 @@
-# ![](../../assets/Console.png)Console x86
+# ![](../../assets/Console.png) Console x86
 
 Static x86 assembler library for console usage
 
