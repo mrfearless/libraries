@@ -6,7 +6,7 @@
 option casemap:none
 include \masm32\macros\macros.asm
 
-DEBUG32 EQU 1
+;DEBUG32 EQU 1
 
 IFDEF DEBUG32
     PRESERVEXMMREGS equ 1

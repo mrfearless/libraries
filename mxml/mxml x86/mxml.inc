@@ -17,7 +17,7 @@
 ;
 
 MXML_MAJOR_VERSION          EQU 2   ; Major version number
-MXML_MINOR_VERSION          EQU 10  ; Minor version number
+MXML_MINOR_VERSION          EQU 11  ; Minor version number
 
 MXML_TAB                    EQU 8   ; Tabs every N columns
 
@@ -137,6 +137,8 @@ mxmlAdd                 PROTO C :DWORD, :DWORD, :DWORD, :DWORD                  
 mxmlDelete              PROTO C :DWORD                                          ; extern void           mxmlDelete(mxml_node_t *node);
 mxmlElementDeleteAttr   PROTO C :DWORD, :DWORD                                  ; extern void           mxmlElementDeleteAttr(mxml_node_t *node, const char *name);
 mxmlElementGetAttr      PROTO C :DWORD, :DWORD                                  ; extern const char     *mxmlElementGetAttr(mxml_node_t *node, const char *name);
+mxmlElementGetAttrByIndex PROTO C :DWORD, :DWORD, :DWORD                        ; extern const char     *mxmlElementGetAttrByIndex(mxml_node_t *node, int idx, const char **name);
+mxmlElementGetAttrCount PROTO C :DWORD                                          ; extern int            mxmlElementGetAttrCount(mxml_node_t *node);
 mxmlElementSetAttr      PROTO C :DWORD, :DWORD, :DWORD                          ; extern void           mxmlElementSetAttr(mxml_node_t *node, const char *name, const char *value);
 ;mxmlElementSetAttrf    PROTO C :DWORD, :DWORD, :DWORD                          ; extern void           mxmlElementSetAttrf(mxml_node_t *node, const char *name, const char *format, ...)
 

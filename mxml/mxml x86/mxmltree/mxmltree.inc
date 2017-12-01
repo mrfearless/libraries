@@ -15,8 +15,9 @@ includelib comctl32.lib
 includelib comdlg32.lib
 includelib masm32.lib
 
-include	msvcrt.inc
-includelib	msvcrt.lib
+;include	msvcrt.inc
+;includelib msvcrt.lib
+;includelib msvcrt14.lib
 
 include mxml.inc
 includelib mxml.lib
