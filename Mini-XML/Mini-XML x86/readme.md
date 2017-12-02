@@ -20,3 +20,14 @@ Includes mxmltree (x86 version) - a demo program was created to show the usage o
 include mxml.inc
 includelib mxml.lib
 ```
+
+## RadASM Autocomplete
+Additional RadASM autocomplete / intellisense type files are also included for ease of use. Each .api.txt file contains instructions as to where to paste their contents to add this feature to RadASM for using this library.
+
+## Functions
+
+Mini-XML Library reference documentation is available on the Mini-XML website: [http://michaelrsweet.github.io/mxml/mxml.html](http://michaelrsweet.github.io/mxml/mxml.html)
+
+## Download
+
+The latest downloadable release is available [here](https://github.com/mrfearless/libraries/blob/master/releases/Mini-XML_x86.zip?raw=true)

@@ -18,3 +18,14 @@ From a post on masm32.com: http://masm32.com/board/index.php?topic=5993.0
 include mxml_x64.inc
 includelib mxml_x64.lib
 ```
+
+## RadASM Autocomplete
+Additional RadASM autocomplete / intellisense type files are also included for ease of use. Each .api.txt file contains instructions as to where to paste their contents to add this feature to RadASM for using this library.
+
+## Functions
+
+Mini-XML Library reference documentation is available on the Mini-XML website: [http://michaelrsweet.github.io/mxml/mxml.html](http://michaelrsweet.github.io/mxml/mxml.html)
+
+## Download
+
+The latest downloadable release is available [here](https://github.com/mrfearless/libraries/blob/master/releases/Mini-XML_x64.zip?raw=true)

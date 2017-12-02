@@ -1,0 +1,49 @@
+;-----------------------------------------------------------------------------------------------------
+; Mini-XML x86 Library 
+;
+; Paste this text at the end of \Radasm\Masm\masmApiConst.api to add these to Radasm
+;
+;-----------------------------------------------------------------------------------------------------
+2mxmlAdd,MXML_ADD_BEFORE,MXML_ADD_AFTER
+3mxmlAdd,MXML_ADD_TO_PARENT,hChild
+1mxmlEntityAddCallback,Addr mxml_entity_cb
+1mxmlEntityRemoveCallback,Addr mxml_entity_cb
+3mxmlFindElement,NULL
+4mxmlFindElement,NULL
+5mxmlFindElement,NULL
+6mxmlFindElement,MXML_DESCEND,MXML_NO_DESCEND,MXML_DESCEND_FIRST
+2mxmlGetText,TRUE,FALSE
+2mxmlIndexNew,NULL
+3mxmlIndexNew,NULL
+3mxmlLoadFd,Addr mxml_load_cb,MXML_INTEGER_CALLBACK,MXML_OPAQUE_CALLBACK,MXML_REAL_CALLBACK,MXML_TEXT_CALLBACK
+3mxmlLoadFile,Addr mxml_load_cb,MXML_INTEGER_CALLBACK,MXML_OPAQUE_CALLBACK,MXML_REAL_CALLBACK,MXML_TEXT_CALLBACK
+3mxmlLoadString,Addr mxml_load_cb,MXML_INTEGER_CALLBACK,MXML_OPAQUE_CALLBACK,MXML_REAL_CALLBACK,MXML_TEXT_CALLBACK
+1mxmlNewCDATA,MXML_NO_PARENT
+1mxmlNewCustom,MXML_NO_PARENT
+3mxmlNewCustom,Addr mxml_custom_destroy_cb,MXML_NO_CALLBACK
+1mxmlNewElement,MXML_NO_PARENT
+1mxmlNewInteger,MXML_NO_PARENT
+1mxmlNewOpaque,MXML_NO_PARENT
+1mxmlNewReal,MXML_NO_PARENT
+1mxmlNewText,XML_NO_PARENT
+2mxmlNewText,TRUE,FALSE
+3mxmlSAXLoadFd,Addr mxml_load_cb,MXML_INTEGER_CALLBACK,MXML_OPAQUE_CALLBACK,MXML_REAL_CALLBACK,MXML_TEXT_CALLBACK
+4mxmlSAXLoadFd,Addr mxml_sax_cb,MXML_NO_CALLBACK
+3mxmlSAXLoadFile,Addr mxml_load_cb,MXML_INTEGER_CALLBACK,MXML_OPAQUE_CALLBACK,MXML_REAL_CALLBACK,MXML_TEXT_CALLBACK
+4mxmlSAXLoadFile,Addr mxml_sax_cb,MXML_NO_CALLBACK
+3mxmlSAXLoadString,Addr mxml_load_cb,MXML_INTEGER_CALLBACK,MXML_OPAQUE_CALLBACK,MXML_REAL_CALLBACK,MXML_TEXT_CALLBACK
+4mxmlSAXLoadString,Addr mxml_sax_cb,MXML_NO_CALLBACK
+2mxmlSaveAllocString,Addr mxml_save_cb,MXML_NO_CALLBACK
+3mxmlSaveFd,Addr mxml_save_cb,MXML_NO_CALLBACK
+3mxmlSaveFile,Addr mxml_save_cb,MXML_NO_CALLBACK
+4mxmlSaveString,Addr mxml_save_cb,MXML_NO_CALLBACK
+1mxmlSetCustomHandlers,Addr mxml_custom_load_cb
+2mxmlSetCustomHandlers,Addr mxml_custom_save_cb
+3mxmlSetCustom,Addr mxml_custom_destroy_cb,MXML_NO_CALLBACK
+2mxmlSetText,TRUE,FALSE
+3mxmlWalkNext,MXML_DESCEND,MXML_NO_DESCEND,MXML_DESCEND_FIRST
+3mxmlWalkPrev,MXML_DESCEND,MXML_NO_DESCEND,MXML_DESCEND_FIRST
+
+
+
+

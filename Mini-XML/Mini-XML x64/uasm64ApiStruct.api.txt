@@ -1,0 +1,20 @@
+;-----------------------------------------------------------------------------------------------------
+; Mini-XML x64 Library 
+;
+; Paste this text at the end of \Radasm\uasm64\uasm64ApiStruct.api to add these to Radasm
+;
+;-----------------------------------------------------------------------------------------------------
+MXML_ATTR_T,attr_name,attr_value
+MXML_ELEMENT_T,element_name,num_attrs,attrs
+MXML_TEXT_T,whitespace,string
+MXML_CUSTOM_T,data,destroy
+MXML_VALUE_T,element,integer,opaque,real,text,custom
+MXML_NODE_T,nodetype,next,prev,parent,child,last_child,node_value,ref_count,user_data
+MXML_INDEX_T,attr,num_nodes,alloc_nodes,cur_node,nodes
+MXML_ATTR_S,attr_name,attr_value
+MXML_ELEMENT_S,element_name,num_attrs,attrs
+MXML_TEXT_S,whitespace,string
+MXML_CUSTOM_S,data,destroy
+MXML_VALUE_S,element,integer,opaque,real,text,custom
+MXML_NODE_S,nodetype,next,prev,parent,child,last_child,node_value,ref_count,user_data
+MXML_INDEX_S,attr,num_nodes,alloc_nodes,cur_node,nodes
