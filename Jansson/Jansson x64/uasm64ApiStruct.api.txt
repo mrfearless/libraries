@@ -1,0 +1,17 @@
+;-----------------------------------------------------------------------------------------------------
+; Jansson x64 Library 
+;
+; Paste this text at the end of \Radasm\uasm64\uasm64ApiStruct.api to add these to Radasm
+;
+;-----------------------------------------------------------------------------------------------------
+JSON_T,type_,refcount
+JSON_ERROR_T,line,column,position,source,text
+JSON_OBJECT_T,json:JSON_T,hashtable,visited
+JSON_ARRAY_T,json:JSON_T,,size_,entries,table,visited
+JSON_STRING_T,json:JSON_T,,value,length_
+JSON_REAL_T,json:JSON_T,,value
+JSON_INTEGER_T,json:JSON_T,,value
+HASHTABLE_LIST,prev,next
+HASHTABLE_PAIR,list:HASHTABLE_LIST,ordered_list:HASHTABLE_LIST,hash,value,key
+HASHTABLE_BUCKET,first,last
+HASHTABLE,size_,buckets,order,list:HASHTABLE_LIST,ordered_list:HASHTABLE_LIST
