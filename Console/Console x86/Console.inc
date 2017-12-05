@@ -44,16 +44,23 @@ ConsoleStdOut           PROTO :DWORD                                    ; lpszCo
 ConsoleStdIn            PROTO :DWORD, :DWORD                            ; lpszConInputBuffer, dwSizeConInputBuffer
 ConsoleStdInW           PROTO :DWORD, :DWORD                            ; lpszWideConInputBuffer, dwSizeWideConInputBuffer
 ConsoleStdErr           PROTO :DWORD                                    ; lpszErrText
-ConsoleClearScreen      PROTO                                           ;
-ConsoleCls              EQU ConsoleClearScreen                          ;
-ConsoleShowCursor       PROTO                                           ;
-ConsoleHideCursor       PROTO                                           ;
-ConsoleSetIcon          PROTO :DWORD                                    ; IcoResID
+
+ConsoleClearScreen      PROTO                                           ; no return
+ConsoleCls              EQU ConsoleClearScreen                          ; no return
+ConsoleShowCursor       PROTO                                           ; no return
+ConsoleHideCursor       PROTO                                           ; no return
+
 ConsoleSetTitle         PROTO :DWORD                                    ; lpszConTitle
 ConsoleSetPosition      PROTO :DWORD, :DWORD                            ; dwXpos, dwYpos
+ConsoleGetTitle         PROTO :DWORD, :DWORD                            ; lpszConTitle, dwSizeConTitle
+ConsoleGetPosition      PROTO :DWORD, :DWORD                            ; lpdwXpos, lpdwYpos
+
+ConsoleSetIcon          PROTO :DWORD                                    ; IcoResID
+
 ConsoleStarted          PROTO                                           ; eax returns TRUE if started via console or FALSE if started via explorer
-ConsoleAttach           EQU AttachConsole
-ConsoleFree             EQU FreeConsole
+ConsoleAttach           PROTO                                           ; no return
+ConsoleFree             PROTO                                           ; no return
+
 ConsoleParseCmdLine     PROTO :DWORD                                    ; dwParametersArray (make sure buffer is large enough for all parameters)
 ConsoleCmdLineParam     PROTO :DWORD, :DWORD, :DWORD, :DWORD            ; dwParametersArray, dwParameterToFetch, dwTotalParameters, lpszReturnedParameter
 

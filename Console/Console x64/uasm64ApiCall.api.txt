@@ -13,9 +13,11 @@ ConsoleClearScreen
 ConsoleCls
 ConsoleShowCursor
 ConsoleHideCursor
-ConsoleSetIcon,IcoResID
 ConsoleSetTitle,lpszConTitle
 ConsoleSetPosition,qwXpos,qwYpos
+ConsoleGetTitle,lpszConTitle,qwSizeConTitle
+ConsoleGetPosition,lpqwXpos,lpqwYpos
+ConsoleSetIcon,IcoResID
 ConsoleStarted
 ConsoleAttach
 ConsoleFree

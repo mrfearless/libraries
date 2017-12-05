@@ -13,21 +13,20 @@ include Console.inc
 .CODE
 
 ;**************************************************************************
-; ConsoleStarted - Return TRUE if initialized via GUI (explorer)or FALSE if
-; started from console
+; ConsoleGetTitle - returns length of chars in buffer or 0
 ;**************************************************************************
-ConsoleStarted PROC
-    LOCAL pidbuffer:DWORD
-    Invoke GetConsoleProcessList, Addr pidbuffer, 2
-    ;PrintDec eax
-    .IF eax == 2
-        ;PrintText 'CON'
-        mov eax, TRUE
-    .ELSE    
-        ;PrintText 'CON'
-        mov eax, FALSE
+ConsoleGetTitle PROC lpszConTitle:DWORD, dwSizeConTitle:DWORD
+    .IF lpszConTitle == 0 || dwSizeConTitle == 0
+        xor eax, eax
+        ret
     .ENDIF
+    Invoke GetConsoleTitle, lpszConTitle, dwSizeConTitle
     ret
-ConsoleStarted ENDP
+ConsoleGetTitle ENDP
 
-END    
+
+END
+
+
+
+

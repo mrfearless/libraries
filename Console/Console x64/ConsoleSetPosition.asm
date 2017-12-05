@@ -18,12 +18,14 @@ includelib kernel32.lib
 include Console.inc
 
 
+
+
 .CODE
 
 ;-----------------------------------------------------------------------------------------
 ; ConsoleSetPos - taken from masm32 lib
 ;-----------------------------------------------------------------------------------------
-ConsoleSetPos PROC FRAME USES RBX qwXpos:QWORD, qwYpos:QWORD
+ConsoleSetPosition PROC FRAME USES RBX qwXpos:QWORD, qwYpos:QWORD
     LOCAL hConOutput:QWORD
 
     Invoke GetStdHandle, STD_OUTPUT_HANDLE
@@ -37,7 +39,7 @@ ConsoleSetPos PROC FRAME USES RBX qwXpos:QWORD, qwYpos:QWORD
 
     Invoke SetConsoleCursorPosition, hConOutput, eax
     ret
-ConsoleSetPos ENDP
+ConsoleSetPosition ENDP
 
 
 

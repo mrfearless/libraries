@@ -21,22 +21,16 @@ include Console.inc
 .CODE
 
 ;**************************************************************************
-; ConsoleStarted - Return TRUE if initialized via GUI (explorer)or FALSE if
-; started from console
+; Console
 ;**************************************************************************
-ConsoleStarted PROC FRAME
-    LOCAL pidbuffer:QWORD
-    Invoke GetConsoleProcessList, Addr pidbuffer, 2
-    ;PrintDec eax
-    .IF rax == 2
-        ;PrintText 'CON'
-        mov rax, TRUE
-    .ELSE    
-        ;PrintText 'CON'
-        mov rax, FALSE
+ConsoleGetTitle PROC FRAME lpszConTitle:QWORD, qwSizeConTitle:QWORD
+    .IF lpszConTitle == 0 || qwSizeConTitle == 0
+        xor eax, eax
+        ret
     .ENDIF
+    Invoke GetConsoleTitle, lpszConTitle, dword ptr qwSizeConTitle
     ret
-ConsoleStarted ENDP
+ConsoleGetTitle ENDP
 
 
 

@@ -17,26 +17,20 @@ includelib kernel32.lib
 
 include Console.inc
 
+.CONST
+IFNDEF ATTACH_PARENT_PROCESS
+ATTACH_PARENT_PROCESS            equ -1
+ENDIF
 
 .CODE
 
 ;**************************************************************************
-; ConsoleStarted - Return TRUE if initialized via GUI (explorer)or FALSE if
-; started from console
+; ConsoleAttach
 ;**************************************************************************
-ConsoleStarted PROC FRAME
-    LOCAL pidbuffer:QWORD
-    Invoke GetConsoleProcessList, Addr pidbuffer, 2
-    ;PrintDec eax
-    .IF rax == 2
-        ;PrintText 'CON'
-        mov rax, TRUE
-    .ELSE    
-        ;PrintText 'CON'
-        mov rax, FALSE
-    .ENDIF
+ConsoleAttach PROC FRAME
+    Invoke AttachConsole, ATTACH_PARENT_PROCESS
     ret
-ConsoleStarted ENDP
+ConsoleAttach ENDP
 
 
 

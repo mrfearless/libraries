@@ -12,7 +12,7 @@ _WIN64 EQU 1
 WINVER equ 0501h
 
 include windows.inc
-include wincon.inc
+;include wincon.inc
 
 includelib kernel32.lib
 

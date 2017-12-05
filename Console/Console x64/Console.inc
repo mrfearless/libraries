@@ -44,16 +44,23 @@ ConsoleStdOut           PROTO :QWORD                                    ; lpszCo
 ConsoleStdIn            PROTO :QWORD, :QWORD                            ; lpszConInputBuffer, qwSizeConInputBuffer
 ConsoleStdInW           PROTO :QWORD, :QWORD                            ; lpszWideConInputBuffer, qwSizeWideConInputBuffer
 ConsoleStdErr           PROTO :QWORD                                    ; lpszErrText
+
 ConsoleClearScreen      PROTO                                           ;
 ConsoleCls              EQU ConsoleClearScreen                          ;
 ConsoleShowCursor       PROTO                                           ;
 ConsoleHideCursor       PROTO                                           ;
-ConsoleSetIcon          PROTO :QWORD                                    ; IcoResID
+
 ConsoleSetTitle         PROTO :QWORD                                    ; lpszConTitle
 ConsoleSetPosition      PROTO :QWORD, :QWORD                            ; qwXpos, qwYpos
+ConsoleGetTitle         PROTO :QWORD, :QWORD                            ; lpszConTitle, qwSizeConTitle
+ConsoleGetPosition      PROTO :QWORD, :QWORD                            ; lpqwXpos, lpqwYpos
+
+ConsoleSetIcon          PROTO :QWORD                                    ; IcoResID
+
 ConsoleStarted          PROTO                                           ; eax returns TRUE if started via console or FALSE if started via explorer
-ConsoleAttach           EQU AttachConsole
-ConsoleFree             EQU FreeConsole
+ConsoleAttach           PROTO                                           ; no return
+ConsoleFree             PROTO                                           ; no return
+
 ConsoleParseCmdLine     PROTO :QWORD                                    ; qwParametersArray (make sure buffer is large enough for all parameters)
 ConsoleCmdLineParam     PROTO :QWORD, :QWORD, :QWORD, :QWORD            ; qwParametersArray, qwParameterToFetch, qwTotalParameters, lpszReturnedParameter
 

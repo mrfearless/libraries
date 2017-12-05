@@ -1,0 +1,19 @@
+Console-library-specific keywords
+Console-library-specific keywords
+consolepause
+consolestdout
+consolestdin
+consolestdinw
+consolestderr
+consoleclearscreen
+consolecls
+consoleshowcursor
+consolehidecursor
+consoleseticon
+consolesettitle
+consolesetposition
+consolestarted
+consoleattach
+consolefree
+consoleparsecmdline
+consolecmdlineparam

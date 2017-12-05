@@ -32,14 +32,14 @@ ConsoleClearScreen PROC FRAME USES RBX
     LOCAL hConOutput:QWORD
     LOCAL noc:QWORD
     LOCAL cnt:DWORD
-    LOCAL sbi:CONSOLE_SCREEN_BUFFER_INFO
+    LOCAL csbi:CONSOLE_SCREEN_BUFFER_INFO
 
     Invoke GetStdHandle, STD_OUTPUT_HANDLE
     mov hConOutput, rax
 
-    Invoke GetConsoleScreenBufferInfo, hConOutput, Addr sbi
+    Invoke GetConsoleScreenBufferInfo, hConOutput, Addr csbi
     xor rax, rax
-    mov eax, sbi.dwSize ; 2 word values returned for screen size
+    mov eax, csbi.dwSize ; 2 word values returned for screen size
 
     ; extract the 2 values and multiply them together
     mov rbx, rax
@@ -48,7 +48,7 @@ ConsoleClearScreen PROC FRAME USES RBX
     mov cnt, eax
 
     Invoke FillConsoleOutputCharacter, hConOutput, 32, cnt, NULL, Addr noc
-    movzx ebx, sbi.wAttributes
+    movzx ebx, csbi.wAttributes
     Invoke FillConsoleOutputAttribute, hConOutput, bx, cnt, NULL, Addr noc
     Invoke SetConsoleCursorPosition, hConOutput, NULL
     ret
