@@ -94,7 +94,7 @@ Include [*PROJECTNAME*].inc
 
 .CODE
 
-start:
+Main PROC
 
     Invoke ConsoleStarted
     .IF eax == TRUE ; Started From Console
@@ -103,7 +103,7 @@ start:
         Invoke ConsoleSetIcon, ICO_MAIN
         Invoke ConsoleGetTitle, Addr szConTitle, SIZEOF szConTitle
         Invoke ConsoleSetTitle, Addr TitleName
-        Invoke [*PROJECTNAME*]ConInfo
+        Invoke [*PROJECTNAME*]ConInfo, CON_OUT_INFO
         
         ; Start main console processing
         Invoke [*PROJECTNAME*]Main
@@ -111,7 +111,7 @@ start:
         
         ;Invoke ConsolePause, CON_PAUSE_ANY_KEY_CONTINUE
         Invoke ConsoleSetTitle, Addr szConTitle
-        Invoke ConsoleSetIcon, 0
+        Invoke ConsoleSetIcon, ICO_CMD
         Invoke ConsoleShowCursor
         Invoke ConsoleFree
 
@@ -120,25 +120,27 @@ start:
 	    Invoke ConsoleAttach
         Invoke ConsoleSetIcon, ICO_MAIN
         Invoke ConsoleSetTitle, Addr TitleName 
-        Invoke [*PROJECTNAME*]ConInfo
-        Invoke [*PROJECTNAME*]ConAbout
-        Invoke [*PROJECTNAME*]ConUsage
+        Invoke [*PROJECTNAME*]ConInfo, CON_OUT_INFO
+        Invoke [*PROJECTNAME*]ConInfo, CON_OUT_ABOUT
+        ;Invoke [*PROJECTNAME*]ConInfo, CON_OUT_USAGE
         Invoke ConsolePause, CON_PAUSE_ANY_KEY_EXIT
-        
-        Invoke ConsoleSetIcon, 0
+        Invoke ConsoleSetIcon, ICO_CMD
         Invoke ConsoleFree
         
     .ENDIF
     
     Invoke  ExitProcess,0
     ret
-    
+Main ENDP
+
 
 ;-------------------------------------------------------------------------------------
 ; [*PROJECTNAME*]Main
 ;-------------------------------------------------------------------------------------
 [*PROJECTNAME*]Main PROC
-    
+
+    Invoke [*PROJECTNAME*]RegisterSwitches
+    Invoke [*PROJECTNAME*]RegisterCommands    
     Invoke [*PROJECTNAME*]ProcessCmdLine
 
     ;---------------------------------------------------------------------------------
@@ -146,20 +148,38 @@ start:
     ;---------------------------------------------------------------------------------
     .IF eax == CMDLINE_NOTHING || eax == CMDLINE_HELP ; no switch provided or /?
 
-        Invoke [*PROJECTNAME*]ConHelp    
+        Invoke [*PROJECTNAME*]ConInfo, CON_OUT_HELP   
 
     ;---------------------------------------------------------------------------------
-    ; ERROR: Invalid Switch / unrecognised parameter
+    ; CMDLINE_FILEIN
     ;---------------------------------------------------------------------------------
-    .ELSEIF eax == CMDLINE_NOT_RECOGNISED
-        Invoke ConsoleStdOut, Addr szError
-        Invoke ConsoleStdOut, Addr szSingleQuote
-        Invoke ConsoleStdOut, Addr CmdLineParameter
-        Invoke ConsoleStdOut, Addr szSingleQuote
-        Invoke ConsoleStdOut, Addr szErrorNotRecognised
-        Invoke ConsoleStdOut, Addr szCRLF
-        Invoke ConsoleStdOut, Addr szCRLF
-        Invoke [*PROJECTNAME*]ConUsage
+    .ELSEIF eax == CMDLINE_FILEIN
+
+    
+    ;---------------------------------------------------------------------------------
+    ; CMDLINE_FILEIN_FILEOUT
+    ;---------------------------------------------------------------------------------    
+    .ELSEIF eax == CMDLINE_FILEIN_FILEOUT
+
+    
+    ;---------------------------------------------------------------------------------
+    ; CMDLINE_FOLDER_FILESPEC
+    ;---------------------------------------------------------------------------------    
+    .ELSEIF eax == CMDLINE_FOLDER_FILESPEC
+
+    
+    ;---------------------------------------------------------------------------------
+    ; CMDLINE_FILEIN_FILESPEC
+    ;---------------------------------------------------------------------------------    
+    .ELSEIF eax == CMDLINE_FILEIN_FILESPEC
+
+    
+    ;---------------------------------------------------------------------------------
+    ; ERROR
+    ;---------------------------------------------------------------------------------    
+    .ELSE
+    
+        Invoke [*PROJECTNAME*]ConErr, eax
         
     .ENDIF
     
@@ -172,6 +192,8 @@ start:
 ;-----------------------------------------------------------------------------------------
 [*PROJECTNAME*]ProcessCmdLine PROC
     LOCAL dwLenCmdLineParameter:DWORD
+    LOCAL bFileIn:DWORD
+    LOCAL bCommand:DWORD
     
     Invoke GetCommandLine
     Invoke ConsoleParseCmdLine, Addr CmdLineParameters
@@ -190,85 +212,631 @@ start:
         ret
     .ENDIF
     
+    .IF TotalCmdLineParameters == 2
+        
+        Invoke ConsoleCmdLineParamType, Addr CmdLineParameters, 1, TotalCmdLineParameters
+        .IF eax == CMDLINE_PARAM_TYPE_ERROR
+            ;PrintText 'ConsoleCmdLineParamType CMDLINE_PARAM_TYPE_ERROR'
+            mov eax, CMDLINE_ERROR
+            ret
+            
+        .ELSEIF eax == CMDLINE_PARAM_TYPE_UNKNOWN
+            ;PrintText 'ConsoleCmdLineParamType CMDLINE_PARAM_TYPE_UNKNOWN'
+            
+        .ELSEIF eax == CMDLINE_PARAM_TYPE_SWITCH
+            ;PrintText 'ConsoleCmdLineParamType CMDLINE_PARAM_TYPE_SWITCH'
+            Invoke ConsoleSwitchID, Addr CmdLineParameter, FALSE
+            .IF eax == SWITCH_HELP || eax == SWITCH_HELP_UNIX || eax == SWITCH_HELP_UNIX2 
+                mov eax, CMDLINE_HELP
+                ret
+            .ELSE
+                mov eax, CMDLINE_UNKNOWN_SWITCH
+                ret
+            .ENDIF
+            
+        .ELSEIF eax == CMDLINE_PARAM_TYPE_COMMAND
+            ;PrintText 'ConsoleCmdLineParamType CMDLINE_PARAM_TYPE_COMMAND'
+            Invoke ConsoleCommandID, Addr CmdLineParameter, FALSE
+            ;PrintDec eax
+            .IF eax == -1 
+                mov eax, CMDLINE_UNKNOWN_COMMAND
+                ret
+            .ELSE
+                mov eax, CMDLINE_COMMAND_WITHOUT_FILEIN
+                ret
+            .ENDIF
+
+        .ELSEIF eax == CMDLINE_PARAM_TYPE_FILESPEC
+            ;PrintText 'ConsoleCmdLineParamType CMDLINE_PARAM_TYPE_FILESPEC'
+            Invoke szCopy, Addr CmdLineParameter, Addr sz[*PROJECTNAME*]InFilename
+            mov eax, CMDLINE_FILEIN_FILESPEC
+            ret            
+            
+        .ELSEIF eax == CMDLINE_PARAM_TYPE_FILENAME
+            ;PrintText 'ConsoleCmdLineParamType CMDLINE_PARAM_TYPE_FILENAME'
+            Invoke szCopy, Addr CmdLineParameter, Addr sz[*PROJECTNAME*]InFilename
+            Invoke exist, Addr sz[*PROJECTNAME*]InFilename
+            .IF eax == TRUE ; does exist
+                mov eax, CMDLINE_FILEIN
+                ret
+            .ELSE
+                mov eax, CMDLINE_FILEIN_NOT_EXIST
+                ret
+            .ENDIF
+                
+        .ELSEIF eax == CMDLINE_PARAM_TYPE_FOLDER
+            ;PrintText 'ConsoleCmdLineParamType CMDLINE_PARAM_TYPE_FOLDER'
+            Invoke szCopy, Addr CmdLineParameter, Addr sz[*PROJECTNAME*]InFilename
+            Invoke exist, Addr sz[*PROJECTNAME*]InFilename
+            .IF eax == TRUE ; does exist
+                ; assume filespec of *.* in folder provided
+                Invoke lstrcat, Addr sz[*PROJECTNAME*]InFilename, Addr szFolderAllFiles
+                mov eax, CMDLINE_FOLDER_FILESPEC
+                ret
+            .ELSE
+                mov eax, CMDLINE_FILEIN_NOT_EXIST
+                ret
+            .ENDIF
+        .ENDIF
+    .ENDIF
+    
     ;-------------------------------------------------------------------------------------
-    ; /?
+    ; FILENAMEIN FILENAMEOUT or OPTION FILENAMEIN/FILESPECIN
+    ;-------------------------------------------------------------------------------------    
+    mov bFileIn, FALSE
+    mov bCommand, FALSE
+    .IF TotalCmdLineParameters == 3
+        Invoke ConsoleCmdLineParamType, Addr CmdLineParameters, 1, TotalCmdLineParameters
+        .IF eax == CMDLINE_PARAM_TYPE_ERROR
+            mov eax, CMDLINE_ERROR
+            ret    
+
+        .ELSEIF eax == CMDLINE_PARAM_TYPE_UNKNOWN
+        
+        .ELSEIF eax == CMDLINE_PARAM_TYPE_SWITCH
+            Invoke ConsoleSwitchID, Addr CmdLineParameter, FALSE
+            .IF eax == SWITCH_HELP || eax == SWITCH_HELP_UNIX || eax == SWITCH_HELP_UNIX2 
+                mov eax, CMDLINE_HELP
+                ret
+            .ELSE
+                mov eax, CMDLINE_UNKNOWN_SWITCH
+                ret
+            .ENDIF
+            
+        .ELSEIF eax == CMDLINE_PARAM_TYPE_COMMAND
+            Invoke ConsoleCommandID, Addr CmdLineParameter, FALSE
+            .IF eax == -1 
+                mov eax, CMDLINE_UNKNOWN_COMMAND
+                ret
+            .ELSE
+                ; check commands
+            .ENDIF
+            mov bCommand, TRUE
+            
+        .ELSEIF eax == CMDLINE_PARAM_TYPE_FILESPEC
+            Invoke szCopy, Addr CmdLineParameter, Addr sz[*PROJECTNAME*]InFilename
+            
+        .ELSEIF eax == CMDLINE_PARAM_TYPE_FILENAME
+            Invoke szCopy, Addr CmdLineParameter, Addr sz[*PROJECTNAME*]InFilename
+            Invoke exist, Addr sz[*PROJECTNAME*]InFilename
+            .IF eax == TRUE ; does exist
+                ;mov bFileIn, TRUE
+                ;mov eax, CMDLINE_FILEIN
+                ;ret
+            .ELSE
+                mov eax, CMDLINE_FILEIN_NOT_EXIST
+                ret
+            .ENDIF            
+            
+        .ELSEIF eax == CMDLINE_PARAM_TYPE_FOLDER
+            Invoke szCopy, Addr CmdLineParameter, Addr sz[*PROJECTNAME*]InFilename
+            Invoke exist, Addr sz[*PROJECTNAME*]InFilename
+            .IF eax == TRUE ; does exist
+                ; assume filespec of *.* in folder provided
+                Invoke lstrcat, Addr sz[*PROJECTNAME*]InFilename, Addr szFolderAllFiles
+            .ELSE
+                mov eax, CMDLINE_FILEIN_NOT_EXIST
+                ret
+            .ENDIF            
+            
+        .ENDIF
+        
+        ; Get 2nd param
+        Invoke ConsoleCmdLineParam, Addr CmdLineParameters, 2, TotalCmdLineParameters, Addr CmdLineParameter
+        .IF sdword ptr eax > 0
+            mov dwLenCmdLineParameter, eax
+        .ELSE
+            mov eax, CMDLINE_ERROR
+            ret
+        .ENDIF
+        
+        Invoke ConsoleCmdLineParamType, Addr CmdLineParameters, 2, TotalCmdLineParameters
+        .IF eax == CMDLINE_PARAM_TYPE_ERROR
+            mov eax, CMDLINE_ERROR
+            ret
+            
+        .ELSEIF eax == CMDLINE_PARAM_TYPE_UNKNOWN
+        
+        .ELSEIF eax == CMDLINE_PARAM_TYPE_SWITCH
+            Invoke ConsoleSwitchID, Addr CmdLineParameter, FALSE
+            .IF eax == SWITCH_HELP || eax == SWITCH_HELP_UNIX || eax == SWITCH_HELP_UNIX2 
+                mov eax, CMDLINE_HELP
+                ret
+            .ELSE
+                mov eax, CMDLINE_UNKNOWN_SWITCH
+                ret
+            .ENDIF
+            
+        .ELSEIF eax == CMDLINE_PARAM_TYPE_COMMAND ; user specified filename/filespec/folder first then command?
+            Invoke ConsoleCommandID, Addr CmdLineParameter, FALSE
+            .IF eax == -1 
+                mov eax, CMDLINE_UNKNOWN_COMMAND
+                ret
+            .ELSE
+                ; check commands
+            .ENDIF
+
+        .ELSEIF eax == CMDLINE_PARAM_TYPE_FILESPEC
+            Invoke szCopy, Addr CmdLineParameter, Addr sz[*PROJECTNAME*]InFilename
+            .IF bCommand == TRUE
+                mov eax, CMDLINE_FILEIN_FILESPEC
+                ret
+            .ELSE
+                mov eax, CMDLINE_FILESPEC_NOT_SUPPORTED
+                ret
+            .ENDIF
+            
+        .ELSEIF eax == CMDLINE_PARAM_TYPE_FILENAME
+            .IF bCommand == TRUE
+                Invoke szCopy, Addr CmdLineParameter, Addr sz[*PROJECTNAME*]InFilename
+                Invoke exist, Addr sz[*PROJECTNAME*]InFilename
+                .IF eax == TRUE ; does exist
+                    mov eax, CMDLINE_FILEIN
+                    ret
+                .ELSE
+                    mov eax, CMDLINE_FILEIN_NOT_EXIST
+                    ret
+                .ENDIF
+            .ELSE
+                Invoke szCopy, Addr CmdLineParameter, Addr sz[*PROJECTNAME*]OutFilename
+                Invoke ConsoleCmdLineParamType, Addr CmdLineParameters, 1, TotalCmdLineParameters
+                .IF eax == CMDLINE_PARAM_TYPE_FILENAME
+                    mov eax, CMDLINE_FILEIN_FILEOUT
+                    ret
+                .ELSEIF eax == CMDLINE_PARAM_TYPE_FILESPEC
+                    mov eax, CMDLINE_FILESPEC_NOT_SUPPORTED
+                    ret
+                .ELSEIF eax == CMDLINE_PARAM_TYPE_FOLDER
+                    mov eax, CMDLINE_FOLDER_NOT_SUPPORTED
+                    ret
+                .ELSE
+                    mov eax, CMDLINE_ERROR
+                    ret
+                .ENDIF
+            .ENDIF
+       
+        .ELSEIF eax == CMDLINE_PARAM_TYPE_FOLDER
+            .IF bCommand == TRUE
+                Invoke szCopy, Addr CmdLineParameter, Addr sz[*PROJECTNAME*]InFilename
+                Invoke exist, Addr sz[*PROJECTNAME*]InFilename
+                .IF eax == TRUE ; does exist
+                    ; assume filespec of *.* in folder provided
+                    Invoke lstrcat, Addr sz[*PROJECTNAME*]InFilename, Addr szFolderAllFiles
+                    mov eax, CMDLINE_FOLDER_FILESPEC
+                    ret
+                .ELSE
+                    mov eax, CMDLINE_FILEIN_NOT_EXIST
+                    ret
+                .ENDIF        
+            .ELSE
+                mov eax, CMDLINE_FILESPEC_NOT_SUPPORTED
+                ret
+            .ENDIF
+        .ENDIF
+    .ENDIF    
+
+
     ;-------------------------------------------------------------------------------------
-    Invoke szCmpi, Addr CmdLineParameter, Addr SwitchHelp, dwLenCmdLineParameter
-    .IF eax == 0 ; match for /?
-        mov eax, CMDLINE_HELP
+    ; OPTION FILENAMEIN FILENAMEOUT
+    ;-------------------------------------------------------------------------------------
+
+    Invoke ConsoleCmdLineParamType, Addr CmdLineParameters, 1, TotalCmdLineParameters
+    .IF eax == CMDLINE_PARAM_TYPE_ERROR
+        mov eax, CMDLINE_ERROR
+        ret
+
+    .ELSEIF eax == CMDLINE_PARAM_TYPE_SWITCH
+        Invoke ConsoleSwitchID, Addr CmdLineParameter, FALSE
+        .IF eax == SWITCH_HELP || eax == SWITCH_HELP_UNIX || eax == SWITCH_HELP_UNIX2 
+            mov eax, CMDLINE_HELP
+            ret
+        .ELSE
+            mov eax, CMDLINE_UNKNOWN_SWITCH
+            ret
+        .ENDIF    
+
+    .ELSEIF eax == CMDLINE_PARAM_TYPE_COMMAND
+        Invoke ConsoleCommandID, Addr CmdLineParameter, FALSE
+        .IF eax == -1 
+            mov eax, CMDLINE_UNKNOWN_COMMAND
+            ret
+        .ELSE
+            ; check commands
+        .ENDIF
+        mov bCommand, TRUE
+    
+    .ELSE
+        mov eax, CMDLINE_ERROR
         ret
     .ENDIF
-
-    ;-------------------------------------------------------------------------------------
-    ; -?
-    ;-------------------------------------------------------------------------------------
-    Invoke szCmpi, Addr CmdLineParameter, Addr SwitchHelpAlt, dwLenCmdLineParameter
-    .IF eax == 0 ; match for -?
-        mov eax, CMDLINE_HELP
+    
+    ; Get 2nd param
+    Invoke ConsoleCmdLineParam, Addr CmdLineParameters, 2, TotalCmdLineParameters, Addr CmdLineParameter
+    .IF sdword ptr eax > 0
+        mov dwLenCmdLineParameter, eax
+    .ELSE
+        mov eax, CMDLINE_ERROR
         ret
     .ENDIF
-
-    ;-------------------------------------------------------------------------------------
-    ; --?
-    ;-------------------------------------------------------------------------------------
-    Invoke szCmpi, Addr CmdLineParameter, Addr SwitchHelpAlt2, dwLenCmdLineParameter
-    .IF eax == 0 ; match for --?
-        mov eax, CMDLINE_HELP
+    
+    Invoke ConsoleCmdLineParamType, Addr CmdLineParameters, 2, TotalCmdLineParameters
+    .IF eax == CMDLINE_PARAM_TYPE_ERROR
+        mov eax, CMDLINE_ERROR
         ret
+
+    .ELSEIF eax == CMDLINE_PARAM_TYPE_FILENAME
+        Invoke szCopy, Addr CmdLineParameter, Addr sz[*PROJECTNAME*]InFilename
+        Invoke exist, Addr sz[*PROJECTNAME*]InFilename
+        .IF eax == TRUE ; does exist
+        .ELSE
+            mov eax, CMDLINE_FILEIN_NOT_EXIST
+            ret
+        .ENDIF
+
+    .ELSEIF eax == CMDLINE_PARAM_TYPE_FILESPEC
+        mov eax, CMDLINE_FILESPEC_NOT_SUPPORTED
+        ret
+    
+    .ELSEIF eax == CMDLINE_PARAM_TYPE_FOLDER
+        mov eax, CMDLINE_FOLDER_NOT_SUPPORTED
+        ret
+    
+    .ELSE
+        mov eax, CMDLINE_ERROR
+        ret
+        
     .ENDIF
 
-    ;-------------------------------------------------------------------------------------
-    ; 
-    ;-------------------------------------------------------------------------------------
-
-
-
-
-    ; else invalid switch or other option not correct
-    mov eax, CMDLINE_NOT_RECOGNISED
+    ; Get 3rd param
+    Invoke ConsoleCmdLineParam, Addr CmdLineParameters, 3, TotalCmdLineParameters, Addr CmdLineParameter
+    .IF sdword ptr eax > 0
+        mov dwLenCmdLineParameter, eax
+    .ELSE
+        mov eax, CMDLINE_ERROR
+        ret
+    .ENDIF
+    
+    Invoke ConsoleCmdLineParamType, Addr CmdLineParameters, 3, TotalCmdLineParameters
+    .IF eax == CMDLINE_PARAM_TYPE_ERROR
+        mov eax, CMDLINE_ERROR
+        ret
+    
+    .ELSEIF eax == CMDLINE_PARAM_TYPE_FILENAME
+        Invoke szCopy, Addr CmdLineParameter, Addr sz[*PROJECTNAME*]OutFilename
+        mov eax, CMDLINE_FILEIN_FILEOUT
+        ret
+        
+    .ELSEIF eax == CMDLINE_PARAM_TYPE_FILESPEC
+        mov eax, CMDLINE_FILESPEC_NOT_SUPPORTED
+        ret
+    
+    .ELSEIF eax == CMDLINE_PARAM_TYPE_FOLDER
+        mov eax, CMDLINE_FOLDER_NOT_SUPPORTED
+        ret
+    
+    .ELSE
+        mov eax, CMDLINE_ERROR
+        ret
+        
+    .ENDIF    
+    
     ret
 [*PROJECTNAME*]ProcessCmdLine ENDP
 
 
 ;-----------------------------------------------------------------------------------------
-; Prints out main header information about the ConsoleTemplate
+; Register switches for use on command line
+;-----------------------------------------------------------------------------------------
+[*PROJECTNAME*]RegisterSwitches PROC
+    Invoke ConsoleSwitchRegister, CTEXT("/?"), SWITCH_HELP
+    Invoke ConsoleSwitchRegister, CTEXT("-?"), SWITCH_HELP_UNIX
+    Invoke ConsoleSwitchRegister, CTEXT("--?"), SWITCH_HELP_UNIX2
+    ret
+[*PROJECTNAME*]RegisterSwitches ENDP
+
+
+;-----------------------------------------------------------------------------------------
+; Register commands for use on command line
+;-----------------------------------------------------------------------------------------
+[*PROJECTNAME*]RegisterCommands PROC
+    ;Invoke ConsoleCommandRegister, CTEXT("c"), COMMAND_COMPRESS
+    ;Invoke ConsoleCommandRegister, CTEXT("d"), COMMAND_DECOMPRESS
+    ret
+[*PROJECTNAME*]RegisterCommands ENDP
+
+
+;-----------------------------------------------------------------------------------------
+; Prints out console information
 ;-----------------------------------------------------------------------------------------
 [*PROJECTNAME*]ConInfo PROC
-    Invoke ConsoleStdOut, Addr sz[*PROJECTNAME*]ConInfo
+    mov eax, dwMsgType
+    .IF eax == CON_OUT_INFO
+        Invoke ConsoleStdOut, Addr sz[*PROJECTNAME*]ConInfo
+    .ELSEIF eax == CON_OUT_ABOUT
+        Invoke ConsoleStdOut, Addr sz[*PROJECTNAME*]ConAbout
+    .ELSEIF eax == CON_OUT_USAGE
+        Invoke ConsoleStdOut, Addr sz[*PROJECTNAME*]ConHelpUsage
+    .ELSEIF eax == CON_OUT_HELP
+        Invoke ConsoleStdOut, Addr sz[*PROJECTNAME*]ConHelp
+    .ENDIF
     ret
 [*PROJECTNAME*]ConInfo ENDP
 
 
 ;-----------------------------------------------------------------------------------------
-; Prints out main help information for ConsoleTemplate
+; Prints out error information to console
 ;-----------------------------------------------------------------------------------------
-[*PROJECTNAME*]ConHelp PROC
-    Invoke ConsoleStdOut, Addr sz[*PROJECTNAME*]ConHelp
+[*PROJECTNAME*]ConErr PROC dwErrorType:DWORD
+    mov eax, dwErrorType
+    .IF eax == CMDLINE_UNKNOWN_SWITCH || eax == CMDLINE_UNKNOWN_COMMAND || eax == CMDLINE_COMMAND_WITHOUT_FILEIN
+        Invoke ConsoleStdOut, Addr szError
+        Invoke ConsoleStdOut, Addr szSingleQuote
+        Invoke ConsoleStdOut, Addr CmdLineParameter
+        Invoke ConsoleStdOut, Addr szSingleQuote
+        mov eax, dwErrorType
+        .IF eax == CMDLINE_UNKNOWN_SWITCH
+            Invoke ConsoleStdOut, Addr szErrorUnknownSwitch
+        .ELSEIF eax == CMDLINE_UNKNOWN_COMMAND
+            Invoke ConsoleStdOut, Addr szErrorUnknownCommand
+        .ELSEIF eax == CMDLINE_COMMAND_WITHOUT_FILEIN
+            Invoke ConsoleStdOut, Addr szErrorCommandWithoutFile
+        .ENDIF
+        Invoke ConsoleStdOut, Addr szCRLF
+        Invoke ConsoleStdOut, Addr szCRLF
+        Invoke [*PROJECTNAME*]ConInfo, CON_OUT_USAGE
+        
+    .ELSEIF eax == CMDLINE_FILEIN_NOT_EXIST
+        Invoke ConsoleStdOut, Addr szError
+        Invoke ConsoleStdOut, Addr szSingleQuote
+        Invoke ConsoleStdOut, Addr sz[*PROJECTNAME*]InFilename
+        Invoke ConsoleStdOut, Addr szSingleQuote
+        Invoke ConsoleStdOut, Addr szErrorFilenameNotExist
+        Invoke ConsoleStdOut, Addr szCRLF
+        Invoke ConsoleStdOut, Addr szCRLF
+        
+    .ELSEIF eax == CMDLINE_ERROR
+        Invoke ConsoleStdOut, Addr szError
+        Invoke ConsoleStdOut, Addr szErrorOther
+        Invoke ConsoleStdOut, Addr szCRLF
+        Invoke ConsoleStdOut, Addr szCRLF
+    
+    .ELSEIF eax == ERROR_FILEIN_IS_EMPTY
+        Invoke ConsoleStdOut, Addr szError
+        Invoke ConsoleStdOut, Addr szSingleQuote
+        Invoke ConsoleStdOut, Addr sz[*PROJECTNAME*]InFilename
+        Invoke ConsoleStdOut, Addr szSingleQuote
+        Invoke ConsoleStdOut, Addr szErrorFileZeroBytes
+        Invoke ConsoleStdOut, Addr szCRLF
+        Invoke ConsoleStdOut, Addr szCRLF
+        
+    .ELSEIF eax == ERROR_OPENING_FILEIN
+        Invoke ConsoleStdOut, Addr szError
+        Invoke ConsoleStdOut, Addr szSingleQuote
+        Invoke ConsoleStdOut, Addr sz[*PROJECTNAME*]InFilename
+        Invoke ConsoleStdOut, Addr szSingleQuote
+        Invoke ConsoleStdOut, Addr szErrorOpeningInFile
+        Invoke ConsoleStdOut, Addr szCRLF
+        Invoke ConsoleStdOut, Addr szCRLF
+            
+    .ELSEIF eax == ERROR_CREATING_FILEOUT
+        Invoke ConsoleStdOut, Addr szError
+        Invoke ConsoleStdOut, Addr szSingleQuote
+        Invoke ConsoleStdOut, Addr sz[*PROJECTNAME*]OutFilename
+        Invoke ConsoleStdOut, Addr szSingleQuote
+        Invoke ConsoleStdOut, Addr szErrorCreatingOutFile
+        Invoke ConsoleStdOut, Addr szCRLF
+        Invoke ConsoleStdOut, Addr szCRLF
+    
+    .ELSEIF eax == ERROR_ALLOC_MEMORY
+        Invoke ConsoleStdOut, Addr szError
+        Invoke ConsoleStdOut, Addr szErrorAllocMemory
+        Invoke ConsoleStdOut, Addr szCRLF
+        Invoke ConsoleStdOut, Addr szCRLF
+    .ENDIF
     ret
 [*PROJECTNAME*]ConHelp ENDP
 
 
-;-----------------------------------------------------------------------------------------
-; Displays usage help only, to console
-;-----------------------------------------------------------------------------------------
-[*PROJECTNAME*]ConUsage PROC
-    Invoke ConsoleStdOut, Addr sz[*PROJECTNAME*]ConHelpUsage
+;-------------------------------------------------------------------------------------
+; [*PROJECTNAME*]FileInOpen - Open file to process
+;-------------------------------------------------------------------------------------
+[*PROJECTNAME*]FileInOpen PROC lpszFilename:DWORD
+
+    .IF lpszFilename == NULL
+        mov eax, FALSE
+        ret
+    .ENDIF
+    
+    ; Tell user we are loading file
+    mov hFileIn, NULL
+    mov hMemMapIn, NULL
+    mov hMemMapInPtr, NULL
+    mov DWORD ptr qwFileSize+4, 0
+    mov DWORD ptr qwFileSize, 0    
+    mov dwFileSize, 0
+    mov dwFileSizeHigh, 0
+
+    Invoke CreateFile, lpszFilename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL
+    .IF eax == INVALID_HANDLE_VALUE
+        ; Tell user that file did not load
+        mov eax, FALSE
+        ret
+    .ENDIF
+    mov hFileIn, eax
+
+    Invoke CreateFileMapping, hFileIn, NULL, PAGE_READONLY, 0, 0, NULL ; Create memory mapped file
+    .IF eax == NULL
+        ; Tell user that file did not map
+        Invoke CloseHandle, hFileIn
+        mov eax, FALSE
+        ret
+    .ENDIF
+    mov hMemMapIn, eax
+
+    Invoke MapViewOfFileEx, hMemMapIn, FILE_MAP_READ, 0, 0, 0, NULL
+    .IF eax == NULL
+        ; Tell user that file did not mapview
+        Invoke CloseHandle, hMemMapIn
+        Invoke CloseHandle, hFileIn
+        mov eax, FALSE
+        ret
+    .ENDIF
+    mov hMemMapInPtr, eax  
+    
+    Invoke GetFileSizeEx, hFileIn, Addr qwFileSize
+    mov	eax, DWORD ptr qwFileSize
+    mov dwFileSize, eax
+	mov	eax, DWORD ptr qwFileSize+4
+	mov dwFileSizeHigh, eax
+	
+    mov eax, TRUE
+    
     ret
-[*PROJECTNAME*]ConUsage ENDP
+
+[*PROJECTNAME*]FileInOpen ENDP
 
 
-;-----------------------------------------------------------------------------------------
-; Displays about info only, to console
-;-----------------------------------------------------------------------------------------
-[*PROJECTNAME*]ConAbout PROC
-    Invoke ConsoleStdOut, Addr sz[*PROJECTNAME*]ConAbout
+;-------------------------------------------------------------------------------------
+; [*PROJECTNAME*]FileInClose - Closes currently opened file
+;-------------------------------------------------------------------------------------
+[*PROJECTNAME*]FileInClose PROC
+
+    .IF hMemMapInPtr != NULL
+        Invoke UnmapViewOfFile, hMemMapInPtr
+        mov hMemMapInPtr, NULL
+    .ENDIF
+    .IF hMemMapIn != NULL
+        Invoke CloseHandle, hMemMapIn
+        mov hMemMapIn, NULL
+    .ENDIF
+    .IF hFileIn != NULL
+        Invoke CloseHandle, hFileIn
+        mov hFileIn, NULL
+    .ENDIF
+    
+    mov DWORD ptr qwFileSize+4, 0
+    mov DWORD ptr qwFileSize, 0
+    mov dwFileSize, 0
+    mov dwFileSizeHigh, 0
+
     ret
-[*PROJECTNAME*]ConAbout ENDP
+[*PROJECTNAME*]FileInClose ENDP
+
+
+;-------------------------------------------------------------------------------------
+; [*PROJECTNAME*]FileOutOpen - Create out file
+;-------------------------------------------------------------------------------------
+[*PROJECTNAME*]FileOutOpen PROC lpszFilename:DWORD
+
+    .IF lpszFilename == NULL
+        mov eax, FALSE
+        ret
+    .ENDIF
+    
+    ; Tell user we are loading file
+    mov hFileOut, NULL
+    mov hMemMapOut, NULL
+    mov hMemMapOutPtr, NULL
+
+    Invoke CreateFile, lpszFilename, GENERIC_READ + GENERIC_WRITE, FILE_SHARE_READ + FILE_SHARE_WRITE + FILE_SHARE_DELETE, NULL, CREATE_ALWAYS, FILE_FLAG_WRITE_THROUGH, NULL
+    .IF eax == INVALID_HANDLE_VALUE
+        ; Tell user that file did not load
+        mov eax, FALSE
+        ret
+    .ENDIF
+    mov hFileOut, eax
+
+    mov eax, TRUE
+    
+    ret
+
+[*PROJECTNAME*]FileOutOpen ENDP
+
+
+;-------------------------------------------------------------------------------------
+; [*PROJECTNAME*]FileOutClose - Closes output file
+;-------------------------------------------------------------------------------------
+[*PROJECTNAME*]FileOutClose PROC
+    .IF hFileOut != NULL
+        Invoke CloseHandle, hFileOut
+        mov hFileOut, NULL
+    .ENDIF
+    ret
+[*PROJECTNAME*]FileOutClose ENDP
 
 
 
+;**************************************************************************
+; Strip path name to just filename with extention
+;**************************************************************************
+JustFnameExt PROC USES ESI EDI szFilePathName:DWORD, szFileName:DWORD
+	LOCAL LenFilePathName:DWORD
+	LOCAL nPosition:DWORD
+	
+	Invoke szLen, szFilePathName
+	mov LenFilePathName, eax
+	mov nPosition, eax
+	
+	.IF LenFilePathName == 0
+	    mov edi, szFileName
+		mov byte ptr [edi], 0
+		mov eax, FALSE
+		ret
+	.ENDIF
+	
+	mov esi, szFilePathName
+	add esi, eax
+	
+	mov eax, nPosition
+	.WHILE eax != 0
+		movzx eax, byte ptr [esi]
+		.IF al == '\' || al == ':' || al == '/'
+			inc esi
+			.BREAK
+		.ENDIF
+		dec esi
+		dec nPosition
+		mov eax, nPosition
+	.ENDW
+	mov edi, szFileName
+	mov eax, nPosition
+	.WHILE eax != LenFilePathName
+		movzx eax, byte ptr [esi]
+		mov byte ptr [edi], al
+		inc edi
+		inc esi
+		inc nPosition
+		mov eax, nPosition
+	.ENDW
+	mov byte ptr [edi], 0h ; null out filename
+	mov eax, TRUE
+	ret
 
-END start
+JustFnameExt ENDP
+
+
+
+END Main
 
 
 
@@ -297,15 +865,20 @@ includelib Console.lib
 ; [*PROJECTNAME*] Prototypes
 ;-----------------------------------------------------------------------------------------
 [*PROJECTNAME*]Main             PROTO
+[*PROJECTNAME*]RegisterSwitches PROTO
+[*PROJECTNAME*]RegisterCommands PROTO
 [*PROJECTNAME*]ProcessCmdLine   PROTO
 
 [*PROJECTNAME*]ConInfo          PROTO
-[*PROJECTNAME*]ConHelp          PROTO
-[*PROJECTNAME*]ConUsage         PROTO
-[*PROJECTNAME*]ConAbout         PROTO
+[*PROJECTNAME*]ConErr           PROTO
+
+[*PROJECTNAME*]FileInOpen       PROTO :DWORD
+[*PROJECTNAME*]FileInClose      PROTO
+[*PROJECTNAME*]FileOutOpen      PROTO :DWORD
+[*PROJECTNAME*]FileOutClose     PROTO
 
 
-
+JustFnameExt                    PROTO :DWORD, :DWORD
 IFNDEF GetCommandLineA
 GetCommandLineA                 PROTO 
 GetCommandLine                  EQU <GetCommandLineA>
@@ -317,11 +890,45 @@ ENDIF
 ; [*PROJECTNAME*] Constants
 ;-----------------------------------------------------------------------------------------
 ICO_MAIN                        EQU 100
+ICO_CMD                         EQU 101
 
-CMDLINE_ERROR                   EQU -2
-CMDLINE_NOT_RECOGNISED          EQU -1
-CMDLINE_NOTHING                 EQU 0
-CMDLINE_HELP                    EQU 1
+; [*PROJECTNAME*]ConInfo dwMsgType:
+CON_OUT_INFO                    EQU 0   ; Header information
+CON_OUT_ABOUT                   EQU 1   ; About information
+CON_OUT_USAGE                   EQU 2   ; Usage information: switches/commands and params
+CON_OUT_HELP                    EQU 3   ; Help information
+
+; Constants for [*PROJECTNAME*]ProcessCmdLine
+; return values and for [*PROJECTNAME*]ConErr
+; dwErrorType:
+ERROR_WRITING_DECOMPRESS_DATA   EQU -15 ; Writefile failed with writing data out
+ERROR_WRITING_COMPRESS_DATA     EQU -14 ; Writefile failed with writing data out
+ERROR_ALLOC_MEMORY              EQU -13 ; GlobalAlloc failed for some reason
+ERROR_CREATING_FILEOUT          EQU -12 ; Couldnt create temporary output file
+ERROR_OPENING_FILEIN            EQU -11 ; Couldnt open input filename
+ERROR_FILEIN_IS_EMPTY           EQU -10 ; 0 byte file
+CMDLINE_COMMAND_WITHOUT_FILEIN  EQU -8  ; User forgot to supply a filename or filespec or folder with command
+CMDLINE_FOLDER_NOT_SUPPORTED    EQU -6  ; A folder (assumes <foldername>\*.* filespec) provided whilst supplying output filename
+CMDLINE_FILESPEC_NOT_SUPPORTED  EQU -5  ; Using *.* etc wildcards whilst supplying output filename
+CMDLINE_FILEIN_NOT_EXIST        EQU -4  ; Filename or filepath provided does not exist
+CMDLINE_ERROR                   EQU -3  ; General error reading parameters
+CMDLINE_UNKNOWN_COMMAND         EQU -2  ; User provided a <X> command that wasnt recognised
+CMDLINE_UNKNOWN_SWITCH          EQU -1  ; User provided a /<X> or -<X> switch that wasnt recognised
+CMDLINE_NOTHING                 EQU 0   ;
+CMDLINE_HELP                    EQU 1   ; User specified /? -? --? as a parameter
+CMDLINE_FILEIN                  EQU 2   ; A single filename was specified
+CMDLINE_FILEIN_FILESPEC         EQU 3   ; A filespec (*.*, *.txt) was specified
+CMDLINE_FILEIN_FILEOUT          EQU 4   ; A filename for input and a filename for output was specified
+CMDLINE_FOLDER_FILESPEC         EQU 5   ; A folder was specified (assumes <foldername>\*.* filespec)
+
+; [*PROJECTNAME*] Switch IDs: /? -? --?
+SWITCH_HELP                     EQU 0   ; /? help switch
+SWITCH_HELP_UNIX                EQU 1   ; -? help switch
+SWITCH_HELP_UNIX2               EQU 2   ; --? help switch
+
+; [*PROJECTNAME*] Command IDs: c d 
+;COMMAND_COMPRESS                EQU 0   ; c - set [*PROJECTNAME*] mode to compress
+;COMMAND_DECOMPRESS              EQU 1   ; d - set [*PROJECTNAME*] mode to decompress
 
 
 .DATA
@@ -333,6 +940,7 @@ TitleName                       DB '[*PROJECTNAME*] Tool v1.0.0.0',0
 szConTitle                      DB MAX_PATH DUP (0)
 CmdLineParameters               DB 512 DUP (0)
 CmdLineParameter                DB 256 DUP (0)
+ErrParameter                    DB 256 DUP (0)
 TotalCmdLineParameters          DD 0
 
 ; Help
@@ -383,7 +991,17 @@ sz[*PROJECTNAME*]ConHelpUsage   DB "Usage: [*PROJECTNAME*] [/?]",13,10
 
 ; Error message
 szError                         DB "[!] Error: ",0
-szErrorNotRecognised            DB " Not recognised as a valid switch/options.",0
+szErrorUnknownSwitch            DB " invalid switch specified.",0
+szErrorUnknownCommand           DB " invalid command specified.",0
+szErrorCommandWithoutFile       DB " command specified but no filename or filespec provided.",0
+szErrorFileSpecNotSupported     DB " wildcard filespec not supported for input file(s) when also specifying output filename as well.",0
+szErrorFilenameNotExist         DB " filename/filepath does not exist.",0
+szErrorOther                    DB "unknown error occured whilst parsing parameters and switches.",0
+szErrorFolderNotSupported       DB " folder (assumes *.*) not supported for input file(s) when also specifying output filename as well.",0
+szErrorFileZeroBytes            DB " file 0 bytes, skipping.",0
+szErrorOpeningInFile            DB " failed to open input file.",0
+szErrorCreatingOutFile          DB " failed to create output file.",0
+szErrorAllocMemory              DB "failed to allocate memory for operation.",0
 
 
 ; Punctuation
@@ -398,21 +1016,37 @@ szRightSquareBracket            DB ']',0
 szQuote                         DB '"',0
 szSingleQuote                   DB "'",0
 szDash                          DB '-',0
+szForwardslash                  DB '/',0
 szWildCardStar                  DB '*',0
+szWildCardQuestion              DB '?',0
 szLF                            DB 10,0
 szCRLF                          DB 13,10,0
+szFolderAllFiles                DB '\*.*',0
 
 SwitchHelp                      DB '/?',0
 SwitchHelpAlt                   DB '-?',0
 SwitchHelpAlt2                  DB '--?',0
 
+; Filename Buffers
+sz[*PROJECTNAME*]SelfFilename   DB MAX_PATH DUP (0)
+sz[*PROJECTNAME*]SelfFilepath   DB MAX_PATH DUP (0)
+sz[*PROJECTNAME*]InFilename     DB MAX_PATH DUP (0)
+sz[*PROJECTNAME*]OutFilename    DB MAX_PATH DUP (0)
 
 
 .DATA?
 ;-----------------------------------------------------------------------------------------
 ; [*PROJECTNAME*] Uninitialized Data
 ;-----------------------------------------------------------------------------------------
-
+hFileIn                         DD ?
+hMemMapIn                       DD ?
+hMemMapInPtr                    DD ?
+hFileOut                        DD ?
+hMemMapOut                      DD ?
+hMemMapOutPtr                   DD ?
+qwFileSize                      DQ ?
+dwFileSize                      DD ?
+dwFileSizeHigh                  DD ?
 
 
 

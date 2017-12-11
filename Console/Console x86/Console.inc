@@ -50,12 +50,17 @@ ConsoleCls              EQU ConsoleClearScreen                          ; no ret
 ConsoleShowCursor       PROTO                                           ; no return
 ConsoleHideCursor       PROTO                                           ; no return
 
-ConsoleSetTitle         PROTO :DWORD                                    ; lpszConTitle
-ConsoleSetPosition      PROTO :DWORD, :DWORD                            ; dwXpos, dwYpos
 ConsoleGetTitle         PROTO :DWORD, :DWORD                            ; lpszConTitle, dwSizeConTitle
 ConsoleGetPosition      PROTO :DWORD, :DWORD                            ; lpdwXpos, lpdwYpos
+ConsoleSetTitle         PROTO :DWORD                                    ; lpszConTitle
+ConsoleSetPosition      PROTO :DWORD, :DWORD                            ; dwXpos, dwYpos
 
 ConsoleSetIcon          PROTO :DWORD                                    ; IcoResID
+ConsoleAnimateIconStart PROTO :DWORD, :DWORD, :DWORD, :DWORD            ; IcoResIDStart, IcoResIDFinish, dwTime, dwTimeIconStep
+ConsoleAnimateIconStop  PROTO                                           ; 
+
+ConsoleSpinnerStart     PROTO :DWORD, :DWORD, :DWORD, :DWORD            ; dwXpos, dwYpos, dwXoffset, dwYoffset
+ConsoleSpinnerStop      PROTO
 
 ConsoleStarted          PROTO                                           ; eax returns TRUE if started via console or FALSE if started via explorer
 ConsoleAttach           PROTO                                           ; no return
@@ -63,6 +68,12 @@ ConsoleFree             PROTO                                           ; no ret
 
 ConsoleParseCmdLine     PROTO :DWORD                                    ; dwParametersArray (make sure buffer is large enough for all parameters)
 ConsoleCmdLineParam     PROTO :DWORD, :DWORD, :DWORD, :DWORD            ; dwParametersArray, dwParameterToFetch, dwTotalParameters, lpszReturnedParameter
+ConsoleCmdLineParamType PROTO :DWORD, :DWORD, :DWORD                    ; dwParametersArray, dwParameterToFetch, dwTotalParameters
+
+ConsoleSwitchRegister   PROTO :DWORD, :DWORD                            ; lpszSwitch, dwSwitchID, bCaseSensitive
+ConsoleSwitchID         PROTO :DWORD, :DWORD                            ; lpszSwitch, bCaseSensitive. Returns in eax dwSwitchID or -1 if fail
+ConsoleCommandRegister  PROTO :DWORD, :DWORD                            ; lpszCommand, dwCommandID, bCaseSensitive
+ConsoleCommandID        PROTO :DWORD, :DWORD                            ; lpszCommand, bCaseSensitive. Returns in eax dwCommandID or -1 if fail
 
 .CONST
 ;-----------------------------------------------------------------------------------------
@@ -74,9 +85,14 @@ CON_PAUSE_NO_MSG            EQU 0
 CON_PAUSE_ANY_KEY_CONTINUE  EQU 1
 CON_PAUSE_ANY_KEY_EXIT      EQU 2
 
-
-
-
+;ConsoleCmdLineParamType return values:
+CMDLINE_PARAM_TYPE_ERROR    EQU -1  ;
+CMDLINE_PARAM_TYPE_UNKNOWN  EQU 0   ;
+CMDLINE_PARAM_TYPE_SWITCH   EQU 1   ; /? /Q
+CMDLINE_PARAM_TYPE_COMMAND  EQU 2   ; Xa C
+CMDLINE_PARAM_TYPE_FILESPEC EQU 3   ; *.*, <filename>.*, *.<ext>
+CMDLINE_PARAM_TYPE_FILENAME EQU 4   ; <filename.ext>
+CMDLINE_PARAM_TYPE_FOLDER   EQU 5   ; C:\Windows, .\MyFolder, ..\OtherFolder
 
 
 

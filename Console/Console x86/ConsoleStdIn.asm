@@ -18,13 +18,17 @@ include Console.inc
 ConsoleStdIn PROC USES EBX lpszConInputBuffer:DWORD, dwSizeConInputBuffer:DWORD
     LOCAL hConInput:DWORD
     LOCAL dwBytesRead:DWORD
+    LOCAL hConOutput:DWORD
 
+    Invoke GetStdHandle, STD_OUTPUT_HANDLE
+    mov hConOutput, eax
+    
     Invoke GetStdHandle, STD_INPUT_HANDLE
     mov hConInput, eax
 
     Invoke SetConsoleMode, hConInput, ENABLE_LINE_INPUT or ENABLE_ECHO_INPUT or ENABLE_PROCESSED_INPUT
     Invoke ReadFile, hConInput, lpszConInputBuffer, dwSizeConInputBuffer, Addr dwBytesRead, NULL
-
+    Invoke SetConsoleMode, hConOutput, ENABLE_PROCESSED_OUTPUT or ENABLE_WRAP_AT_EOL_OUTPUT	
     ; strip the CR LF from the result
     mov ebx, lpszConInputBuffer
     sub ebx, 1

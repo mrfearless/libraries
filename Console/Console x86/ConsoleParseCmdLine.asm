@@ -9,9 +9,18 @@ includelib kernel32.lib
 
 include Console.inc
 
-GetCommandLineA PROTO
-GetCommandLine equ <GetCommandLineA>
+GetCommandLineA             PROTO
+GetCommandLine              EQU <GetCommandLineA>
+ConsoleCmdLineParamInString PROTO :DWORD, :DWORD, :DWORD
 
+
+.DATA
+szDotChar                   DB '.',0 
+szColonChar                 DB ':',0
+szForwardSlashChar          DB '\',0
+szBackSlashChar             DB '/',0
+szAsteriskChar              DB '*',0
+szQuestionChar              DB '?',0
 
 .CODE
 
@@ -117,6 +126,402 @@ ConsoleCmdLineParam PROC USES EBX ESI dwParametersArray:DWORD, dwParameterToFetc
     Invoke lstrlen, lpszReturnedParameter ; Get length of parameter. >0 = success
     ret
 ConsoleCmdLineParam endp
+
+
+;-----------------------------------------------------------------------------------------
+; Attempts to return the type of the parameter in eax
+;-----------------------------------------------------------------------------------------
+ConsoleCmdLineParamType PROC USES EBX dwParametersArray:DWORD, dwParameterToFetch:DWORD, dwTotalParameters:DWORD
+    LOCAL szParameter[256]:BYTE
+    LOCAL dwLenParameter:DWORD
+    LOCAL bDotChar:DWORD
+    LOCAL bColonChar:DWORD
+    LOCAL bForwardSlashChar:DWORD
+    LOCAL bBackSlashChar:DWORD
+    LOCAL bAsteriskChar:DWORD
+    LOCAL bQuestionChar:DWORD
+    
+    Invoke ConsoleCmdLineParam, dwParametersArray, dwParameterToFetch, dwTotalParameters, Addr szParameter
+    .IF sdword ptr eax > 0
+        mov dwLenParameter, eax
+        lea ebx, szParameter
+
+        .IF eax == 0
+            mov eax, CMDLINE_PARAM_TYPE_ERROR
+            ret
+            
+        .ELSEIF eax == 1
+            mov eax, CMDLINE_PARAM_TYPE_COMMAND
+            ret
+        
+        .ELSEIF eax == 2
+            movzx eax, byte ptr [ebx]
+            .IF al == '-' || al == '/' ; -? /?
+                mov eax, CMDLINE_PARAM_TYPE_SWITCH
+                ret
+            .ELSE
+                mov eax, CMDLINE_PARAM_TYPE_COMMAND
+                ret
+            .ENDIF
+        
+        .ELSEIF eax == 3 ; 
+            movzx eax, byte ptr [ebx]
+            .IF al == '-' ; -
+                ;movzx eax, byte ptr [ebx+1]
+                ;.IF al == '-' ; --?
+                    mov eax, CMDLINE_PARAM_TYPE_SWITCH
+                    ret
+                ;.ELSE ; -xa
+                ;    mov eax, CMDLINE_PARAM_TYPE_OPTIONS
+                ;    ret
+                ;.ENDIF
+                
+            .ELSEIF al == '/' ; starts with forward slash
+                mov eax, CMDLINE_PARAM_TYPE_SWITCH
+                ret
+            
+            .ELSEIF al == '*'
+                movzx eax, byte ptr [ebx+1]
+                .IF al == '.'
+                    mov eax, CMDLINE_PARAM_TYPE_FILESPEC
+                    ret
+                .ELSE
+                    mov eax, CMDLINE_PARAM_TYPE_UNKNOWN
+                    ret
+                .ENDIF
+                
+            .ELSE
+                movzx eax, byte ptr [ebx+1]
+                .IF al == '.'
+                    movzx eax, byte ptr [ebx+2]
+                    .IF al == '*'
+                        mov eax, CMDLINE_PARAM_TYPE_FILESPEC
+                        ret
+                    .ENDIF
+                .ENDIF
+                mov eax, CMDLINE_PARAM_TYPE_COMMAND
+                ret
+            .ENDIF
+        
+        .ELSE ; IF eax > 3
+            movzx eax, byte ptr [ebx]
+            .IF al == '-' || al == '/' ; starts with forward slash
+                mov eax, CMDLINE_PARAM_TYPE_SWITCH
+                ret
+            
+            .ELSEIF al == '*'
+                movzx eax, byte ptr [ebx+1]
+                .IF al == '.'
+                    mov eax, CMDLINE_PARAM_TYPE_FILESPEC
+                    ret
+                .ELSE
+                    mov eax, CMDLINE_PARAM_TYPE_UNKNOWN
+                    ret
+                .ENDIF
+            
+            .ELSE
+
+                Invoke ConsoleCmdLineParamInString, 1, Addr szParameter, Addr szDotChar
+                .IF sdword ptr eax > 0
+                    mov bDotChar, TRUE
+                .ELSE
+                    mov bDotChar, FALSE
+                .ENDIF
+                
+                Invoke ConsoleCmdLineParamInString, 1, Addr szParameter, Addr szColonChar
+                .IF sdword ptr eax > 0
+                    mov bColonChar, TRUE
+                .ELSE
+                    mov bColonChar, FALSE
+                .ENDIF
+                
+                Invoke ConsoleCmdLineParamInString, 1, Addr szParameter, Addr szForwardSlashChar
+                .IF sdword ptr eax > 0
+                    mov bForwardSlashChar, TRUE
+                .ELSE
+                    mov bForwardSlashChar, FALSE
+                .ENDIF
+                
+                Invoke ConsoleCmdLineParamInString, 1, Addr szParameter, Addr szBackSlashChar
+                .IF sdword ptr eax > 0
+                    mov bBackSlashChar, TRUE
+                .ELSE
+                    mov bBackSlashChar, FALSE
+                .ENDIF                
+                
+                Invoke ConsoleCmdLineParamInString, 1, Addr szParameter, Addr szAsteriskChar
+                .IF sdword ptr eax > 0
+                    mov bAsteriskChar, TRUE
+                .ELSE
+                    mov bAsteriskChar, FALSE
+                .ENDIF
+                
+                Invoke ConsoleCmdLineParamInString, 1, Addr szParameter, Addr szQuestionChar
+                .IF sdword ptr eax > 0
+                    mov bQuestionChar, TRUE
+                .ELSE
+                    mov bQuestionChar, FALSE
+                .ENDIF                  
+                
+                .IF bColonChar == TRUE
+                    .IF bForwardSlashChar == TRUE || bBackSlashChar == TRUE
+                       .IF bDotChar == TRUE
+                            .IF bAsteriskChar == TRUE || bQuestionChar == TRUE ; .\*.*, ..\*.???
+                                mov eax, CMDLINE_PARAM_TYPE_FILESPEC
+                                ret
+                            .ELSE
+                                lea ebx, szParameter
+                                movzx eax, byte ptr [ebx]
+                                .IF al == '.'
+                                    movzx eax, byte ptr [ebx+1]
+                                    .IF al == '.' || al == '\' || al == '/'
+                                        Invoke ConsoleCmdLineParamInString, 3, Addr szParameter, Addr szDotChar
+                                        .IF sdword ptr eax > 0
+                                            mov eax, CMDLINE_PARAM_TYPE_FILENAME
+                                        .ELSE
+                                            mov eax, CMDLINE_PARAM_TYPE_FOLDER
+                                        .ENDIF
+                                    .ELSE
+                                        mov eax, CMDLINE_PARAM_TYPE_UNKNOWN
+                                        ret
+                                    .ENDIF
+                                .ELSE
+                                    mov eax, CMDLINE_PARAM_TYPE_FILENAME
+                                    ret
+                                .ENDIF
+                            .ENDIF                       
+                        .ELSE
+                            mov eax, CMDLINE_PARAM_TYPE_FOLDER
+                            ret
+                        .ENDIF
+                    .ELSE
+                        .IF bAsteriskChar == TRUE || bQuestionChar == TRUE
+                            mov eax, CMDLINE_PARAM_TYPE_FILESPEC
+                            ret
+                        .ELSE
+                            .IF bDotChar == TRUE
+                                lea ebx, szParameter
+                                movzx eax, byte ptr [ebx]
+                                .IF al == '.'
+                                    movzx eax, byte ptr [ebx+1]
+                                    .IF al == '.' || al == '\' || al == '/'
+                                        Invoke ConsoleCmdLineParamInString, 3, Addr szParameter, Addr szDotChar
+                                        .IF sdword ptr eax > 0
+                                            mov eax, CMDLINE_PARAM_TYPE_FILENAME
+                                        .ELSE
+                                            mov eax, CMDLINE_PARAM_TYPE_FOLDER
+                                        .ENDIF
+                                    .ELSE
+                                        mov eax, CMDLINE_PARAM_TYPE_UNKNOWN
+                                        ret
+                                    .ENDIF
+                                .ELSE
+                                    mov eax, CMDLINE_PARAM_TYPE_FILENAME
+                                    ret
+                                .ENDIF                            
+                            .ELSE
+                                mov eax, CMDLINE_PARAM_TYPE_FOLDER
+                                ret
+                            .ENDIF
+                        .ENDIF
+                    .ENDIF
+                .ENDIF
+
+               .IF bForwardSlashChar == TRUE || bBackSlashChar == TRUE
+                   .IF bDotChar == TRUE
+                        .IF bAsteriskChar == TRUE || bQuestionChar == TRUE
+                            mov eax, CMDLINE_PARAM_TYPE_FILESPEC
+                            ret
+                        .ELSE
+                            lea ebx, szParameter
+                            movzx eax, byte ptr [ebx]
+                            .IF al == '.'
+                                movzx eax, byte ptr [ebx+1]
+                                .IF al == '.' || al == '\' || al == '/'
+                                    Invoke ConsoleCmdLineParamInString, 3, Addr szParameter, Addr szDotChar
+                                    .IF sdword ptr eax > 0
+                                        mov eax, CMDLINE_PARAM_TYPE_FILENAME
+                                    .ELSE
+                                        mov eax, CMDLINE_PARAM_TYPE_FOLDER
+                                    .ENDIF
+                                .ELSE
+                                    mov eax, CMDLINE_PARAM_TYPE_UNKNOWN
+                                    ret
+                                .ENDIF
+                            .ELSE
+                                mov eax, CMDLINE_PARAM_TYPE_FILENAME
+                                ret
+                            .ENDIF                           
+                        .ENDIF    
+                    .ELSE
+                        mov eax, CMDLINE_PARAM_TYPE_FOLDER
+                        ret
+                    .ENDIF
+                .ENDIF
+
+                .IF bDotChar == TRUE
+                    .IF bAsteriskChar == TRUE || bQuestionChar == TRUE
+                        mov eax, CMDLINE_PARAM_TYPE_FILESPEC
+                        ret
+                    .ELSE
+                        lea ebx, szParameter
+                        movzx eax, byte ptr [ebx]
+                        .IF al == '.'
+                            movzx eax, byte ptr [ebx+1]
+                            .IF al == '.' || al == '\' || al == '/'
+                                Invoke ConsoleCmdLineParamInString, 3, Addr szParameter, Addr szDotChar
+                                .IF sdword ptr eax > 0
+                                    mov eax, CMDLINE_PARAM_TYPE_FILENAME
+                                .ELSE
+                                    mov eax, CMDLINE_PARAM_TYPE_FOLDER
+                                .ENDIF
+                            .ELSE
+                                mov eax, CMDLINE_PARAM_TYPE_UNKNOWN
+                                ret
+                            .ENDIF
+                        .ELSE
+                            mov eax, CMDLINE_PARAM_TYPE_FILENAME
+                            ret
+                        .ENDIF
+                    .ENDIF
+                
+                .ELSE
+                    ; folder or options?
+                    mov eax, CMDLINE_PARAM_TYPE_UNKNOWN
+                    ret
+                .ENDIF
+
+            .ENDIF
+        
+        .ENDIF
+
+    .ELSE
+        mov eax, CMDLINE_PARAM_TYPE_ERROR
+        ret
+    .ENDIF
+    
+    ret
+
+ConsoleCmdLineParamType ENDP
+
+
+
+;**************************************************************************
+; InString function taken from masm32 library
+;**************************************************************************
+ConsoleCmdLineParamInString PROC USES EBX ECX EDX EDI ESI startpos:DWORD, lpSource:DWORD, lpPattern:DWORD
+
+  ; ------------------------------------------------------------------
+  ; InString searches for a substring in a larger string and if it is
+  ; found, it returns its position in eax. 
+  ;
+  ; It uses a one (1) based character index (1st character is 1,
+  ; 2nd is 2 etc...) for both the "StartPos" parameter and the returned
+  ; character position.
+  ;
+  ; Return Values.
+  ; If the function succeeds, it returns the 1 based index of the start
+  ; of the substring.
+  ;  0 = no match found
+  ; -1 = substring same length or longer than main string
+  ; -2 = "StartPos" parameter out of range (less than 1 or longer than
+  ; main string)
+  ; ------------------------------------------------------------------
+
+    LOCAL sLen:DWORD
+    LOCAL pLen:DWORD
+
+    ;push ebx
+    ;push esi
+    ;push edi
+
+    invoke lstrlen, lpSource
+    mov sLen, eax           ; source length
+    invoke lstrlen, lpPattern
+    mov pLen, eax           ; pattern length
+
+    cmp startpos, 1
+    jge @F
+    mov eax, -2
+    jmp isOut               ; exit if startpos not 1 or greater
+  @@:
+
+    dec startpos            ; correct from 1 to 0 based index
+
+    cmp  eax, sLen
+    jl @F
+    mov eax, -1
+    jmp isOut               ; exit if pattern longer than source
+  @@:
+
+    sub sLen, eax           ; don't read past string end
+    inc sLen
+
+    mov ecx, sLen
+    cmp ecx, startpos
+    jg @F
+    mov eax, -2
+    jmp isOut               ; exit if startpos is past end
+  @@:
+
+  ; ----------------
+  ; setup loop code
+  ; ----------------
+    mov esi, lpSource
+    mov edi, lpPattern
+    mov al, [edi]           ; get 1st char in pattern
+
+    add esi, ecx            ; add source length
+    neg ecx                 ; invert sign
+    add ecx, startpos       ; add starting offset
+
+    jmp Scan_Loop
+
+    align 16
+
+  ; @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+  Pre_Scan:
+    inc ecx                 ; start on next byte
+
+  Scan_Loop:
+    cmp al, [esi+ecx]       ; scan for 1st byte of pattern
+    je Pre_Match            ; test if it matches
+    inc ecx
+    js Scan_Loop            ; exit on sign inversion
+
+    jmp No_Match
+
+  Pre_Match:
+    lea ebx, [esi+ecx]      ; put current scan address in EBX
+    mov edx, pLen           ; put pattern length into EDX
+
+  Test_Match:
+    mov ah, [ebx+edx-1]     ; load last byte of pattern length in main string
+    cmp ah, [edi+edx-1]     ; compare it with last byte in pattern
+    jne Pre_Scan            ; jump back on mismatch
+    dec edx
+    jnz Test_Match          ; 0 = match, fall through on match
+
+  ; @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+  Match:
+    add ecx, sLen
+    mov eax, ecx
+    inc eax
+    jmp isOut
+    
+  No_Match:
+    xor eax, eax
+
+  isOut:
+    ;pop edi
+    ;pop esi
+    ;pop ebx
+
+    ret
+
+ConsoleCmdLineParamInString ENDP
 
 
 END
