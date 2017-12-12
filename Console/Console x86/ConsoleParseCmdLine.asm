@@ -122,8 +122,12 @@ ConsoleCmdLineParam PROC USES EBX ESI dwParametersArray:DWORD, dwParameterToFetc
     mul ebx ; eax contains the no of parameter we want offset for
     add esi, eax ; Now at offset for parameters string
     ;Invoke szCopy, dword PTR [esi], lpszReturnedParameter ; Copy param to our chosen passed location - make sure enough space in buffer or crashh
-    Invoke lstrcpy, lpszReturnedParameter, DWORD PTR [esi]
-    Invoke lstrlen, lpszReturnedParameter ; Get length of parameter. >0 = success
+    .IF lpszReturnedParameter != NULL
+        Invoke lstrcpy, lpszReturnedParameter, DWORD PTR [esi]
+        Invoke lstrlen, lpszReturnedParameter ; Get length of parameter. >0 = success
+    .ELSE
+        mov eax, 0
+    .ENDIF
     ret
 ConsoleCmdLineParam endp
 

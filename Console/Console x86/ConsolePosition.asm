@@ -122,7 +122,7 @@ ConsoleRowColtoXY ENDP
 ;-----------------------------------------------------------------------------------------
 ; Start a cmd line spinner at x y position. if x y is 0 then set a current location
 ;-----------------------------------------------------------------------------------------
-ConsoleSpinnerStart PROC dwXpos:DWORD, dwYpos:DWORD, dwXoffset:DWORD, dwYoffset:DWORD
+ConsoleSpinnerStart PROC USES EBX dwXpos:DWORD, dwYpos:DWORD, dwXoffset:DWORD, dwYoffset:DWORD
     LOCAL dwX:DWORD
     LOCAL dwY:DWORD
     LOCAL hConOutput:DWORD

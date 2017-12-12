@@ -281,7 +281,7 @@ ConsoleAnimateIconProc ENDP
 ;-----------------------------------------------------------------------------------------
 ; ConsoleAnimateIconStop
 ;-----------------------------------------------------------------------------------------
-ConsoleAnimateIconStop PROC
+ConsoleAnimateIconStop PROC USES EBX
     .IF hQueueAnimateIcon != NULL
         Invoke ChangeTimerQueueTimer, hQueueAnimateIcon, hTimerAnimateIcon, 0FFFFFFEh, 0
         mov dwCurrentIcon, 0
