@@ -4,12 +4,12 @@ Static x64 assembler library for console usage
 
 ## Usage
 
-* Copy `console.inc` to your `uasm\include` folder (or wherever your includes are located)
-* Copy `console.lib` to your `uasm\lib\x64` folder (or wherever your 64bit libraries are located)
+* Copy `Console.inc` to your `uasm\include` folder (or wherever your includes are located)
+* Copy `Console.lib` to your `uasm\lib\x64` folder (or wherever your 64bit libraries are located)
 * Add the following to your project:
 ```assembly
-include console.inc
-includelib console.lib
+include Console.inc
+includelib Console.lib
 ```
 
 ## RadASM Autocomplete

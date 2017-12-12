@@ -50,19 +50,30 @@ ConsoleCls              EQU ConsoleClearScreen                          ;
 ConsoleShowCursor       PROTO                                           ;
 ConsoleHideCursor       PROTO                                           ;
 
-ConsoleSetTitle         PROTO :QWORD                                    ; lpszConTitle
-ConsoleSetPosition      PROTO :QWORD, :QWORD                            ; qwXpos, qwYpos
 ConsoleGetTitle         PROTO :QWORD, :QWORD                            ; lpszConTitle, qwSizeConTitle
 ConsoleGetPosition      PROTO :QWORD, :QWORD                            ; lpqwXpos, lpqwYpos
+ConsoleSetTitle         PROTO :QWORD                                    ; lpszConTitle
+ConsoleSetPosition      PROTO :QWORD, :QWORD                            ; qwXpos, qwYpos
 
 ConsoleSetIcon          PROTO :QWORD                                    ; IcoResID
+ConsoleAnimateIconStart PROTO :QWORD, :QWORD, :QWORD, :QWORD            ; IcoResIDStart, IcoResIDFinish, qwTime, qwTimeIconStep
+ConsoleAnimateIconStop  PROTO     
 
-ConsoleStarted          PROTO                                           ; eax returns TRUE if started via console or FALSE if started via explorer
+ConsoleSpinnerStart     PROTO :QWORD, :QWORD, :QWORD, :QWORD            ; qwXpos, qwYpos, qwXoffset, qwYoffset
+ConsoleSpinnerStop      PROTO
+
+ConsoleStarted          PROTO                                           ; rax returns TRUE if started via console or FALSE if started via explorer
 ConsoleAttach           PROTO                                           ; no return
 ConsoleFree             PROTO                                           ; no return
 
 ConsoleParseCmdLine     PROTO :QWORD                                    ; qwParametersArray (make sure buffer is large enough for all parameters)
 ConsoleCmdLineParam     PROTO :QWORD, :QWORD, :QWORD, :QWORD            ; qwParametersArray, qwParameterToFetch, qwTotalParameters, lpszReturnedParameter
+ConsoleCmdLineParamType PROTO :QWORD, :QWORD, :QWORD                    ; qwParametersArray, qwParameterToFetch, qwTotalParameters
+
+ConsoleSwitchRegister   PROTO :QWORD, :QWORD                            ; lpszSwitch, qwSwitchID, bCaseSensitive
+ConsoleSwitchID         PROTO :QWORD, :QWORD                            ; lpszSwitch, bCaseSensitive. Returns in rax qwSwitchID or -1 if fail
+ConsoleCommandRegister  PROTO :QWORD, :QWORD                            ; lpszCommand, qwCommandID, bCaseSensitive
+ConsoleCommandID        PROTO :QWORD, :QWORD                            ; lpszCommand, bCaseSensitive. Returns in rax qwCommandID or -1 if fail
 
 .CONST
 ;-----------------------------------------------------------------------------------------
@@ -74,8 +85,14 @@ CON_PAUSE_NO_MSG            EQU 0
 CON_PAUSE_ANY_KEY_CONTINUE  EQU 1
 CON_PAUSE_ANY_KEY_EXIT      EQU 2
 
-
-
+;ConsoleCmdLineParamType return values:
+CMDLINE_PARAM_TYPE_ERROR    EQU -1  ;
+CMDLINE_PARAM_TYPE_UNKNOWN  EQU 0   ;
+CMDLINE_PARAM_TYPE_SWITCH   EQU 1   ; /? /Q
+CMDLINE_PARAM_TYPE_COMMAND  EQU 2   ; Xa C
+CMDLINE_PARAM_TYPE_FILESPEC EQU 3   ; *.*, <filename>.*, *.<ext>
+CMDLINE_PARAM_TYPE_FILENAME EQU 4   ; <filename.ext>
+CMDLINE_PARAM_TYPE_FOLDER   EQU 5   ; C:\Windows, .\MyFolder, ..\OtherFolder
 
 
 
