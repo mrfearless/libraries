@@ -1,4 +1,4 @@
-# Snappy x86
+# ![](../../assets/Snappy.png)Snappy x86
 
 Snappy libraries compiled for x86 masm assembler 
 
