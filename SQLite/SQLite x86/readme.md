@@ -1,4 +1,4 @@
-# ![](../../assets/SQLite.png)SQLite x86
+# ![](../../assets/SQLite.png) SQLite x86
 
 SQLite static libraries compiled for x86 masm assembler 
 

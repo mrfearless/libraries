@@ -1,4 +1,4 @@
-# ![](../assets/OpenSSL.png)OpenSSL
+# ![](../assets/OpenSSL.png) OpenSSL
 
 OpenSSL static libraries compiled for x86 and x64 assembler 
 

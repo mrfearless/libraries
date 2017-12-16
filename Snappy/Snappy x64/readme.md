@@ -1,4 +1,4 @@
-# ![](../../assets/Snappy.png)Snappy x64
+# ![](../../assets/Snappy.png) Snappy x64
 
 Snappy static libraries compiled for x64 uasm assembler 
 
