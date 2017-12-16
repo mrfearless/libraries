@@ -41,10 +41,10 @@ includelib  msvcrt.lib
 
 ; basic functions
 zlibVersion             PROTO                                                           ; const char * ZEXPORT zlibVersion OF((void));
-deflateInit             PROTO :DWORD,:DWORD,:DWORD,:DWORD                               ; int ZEXPORT deflateInit OF((z_streamp strm, int level));
+deflateInit             PROTO :DWORD,:DWORD                                             ; int ZEXPORT deflateInit OF((z_streamp strm, int level));
 deflate                 PROTO :DWORD,:DWORD                                             ; int ZEXPORT deflate OF((z_streamp strm, int flush));
 deflateEnd              PROTO :DWORD                                                    ; int ZEXPORT deflateEnd OF((z_streamp strm));
-inflateInit             PROTO :DWORD,:DWORD,:DWORD                                      ; int ZEXPORT inflateInit OF((z_streamp strm));
+inflateInit             PROTO :DWORD                                                    ; int ZEXPORT inflateInit OF((z_streamp strm));
 inflate                 PROTO :DWORD,:DWORD                                             ; int ZEXPORT inflate OF((z_streamp strm, int flush));
 inflateEnd              PROTO :DWORD                                                    ; int ZEXPORT inflateEnd OF((z_streamp strm));
 deflateInit2            PROTO :DWORD,:DWORD,:DWORD,:DWORD,:DWORD,:DWORD                 ; int ZEXPORT deflateInit2 OF((z_streamp strm, int  level, int  method, int  windowBits, int  memLevel, int  strategy));
