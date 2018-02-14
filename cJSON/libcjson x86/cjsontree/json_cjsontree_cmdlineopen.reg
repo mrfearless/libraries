@@ -1,0 +1,18 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\.json]
+@="cjsontree"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\cjsontree]
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\cjsontree\DefaultIcon]
+@=""M:\\radasm\\Masm\\projects\\Test Projects\\cjsontree\\cjsontree.exe",0"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\cjsontree\shell]
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\cjsontree\shell\open]
+"Icon"=""M:\\radasm\\Masm\\projects\\Test Projects\\cjsontree\\cjsontree.exe",0"
+@="&Open with cjsontree"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\cjsontree\shell\open\command]
+@=""M:\\radasm\\Masm\\projects\\Test Projects\\cjsontree\\cjsontree.exe" \"%1\" "

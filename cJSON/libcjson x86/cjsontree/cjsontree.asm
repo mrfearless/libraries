@@ -10,6 +10,11 @@ include \masm32\macros\macros.asm
 ;EXPERIMENTAL_ARRAYNAME_STACK EQU 1 ; Experimental, doesnt seem to work properly, so use if you uncomment, use with caution
 
 IFDEF DEBUG32
+    echo
+    echo ------------------------------------------
+    echo DEBUG32 - Debugging Enabled
+    echo ------------------------------------------
+    echo
     PRESERVEXMMREGS equ 1
     includelib M:\Masm32\lib\Debug32.lib
     DBG32LIB equ 1
@@ -630,6 +635,13 @@ InitGUI PROC USES EBX hWin:DWORD
     Invoke GetDlgItem, hWin, IDC_EdtText
     mov hEdtText, eax
     Invoke SendMessage, hEdtText, WM_SETFONT, hFontCourier, TRUE
+    .IF g_ShowEditBox == 1
+        Invoke EnableWindow, hEdtText, TRUE
+        Invoke ShowWindow, hEdtText, SW_SHOW
+    .ELSE
+        Invoke EnableWindow, hEdtText, FALSE
+        Invoke ShowWindow, hEdtText, SW_HIDE
+    .ENDIF
     
     Invoke LoadIcon, hInstance, ICO_MAIN
     mov hICO_MAIN, eax
@@ -864,7 +876,7 @@ JSONFileOpen PROC hWin:DWORD, lpszJSONFile:DWORD
     Invoke szCatStr, Addr szJSONErrorMessage, lpszJSONFile
     Invoke StatusBarSetPanelText, 2, Addr szJSONErrorMessage
     ;Invoke StatusBarSetPanelText, 2, lpszJSONFile
-    
+
     Invoke CreateFile, lpszJSONFile, GENERIC_READ + GENERIC_WRITE, FILE_SHARE_READ + FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL
     .IF eax == INVALID_HANDLE_VALUE
         ; Tell user via statusbar that JSON file did not load
@@ -1845,6 +1857,13 @@ NewLineReplace PROC USES EBX EDI ESI src:DWORD,dst:DWORD
 NewLineReplace ENDP
 
 
+
+IFDEF DEBUG32
+    echo
+    echo ------------------------------------------
+    echo DEBUG32 - Debugging Enabled
+    echo ------------------------------------------
+ENDIF
 
 end start
 

@@ -47,7 +47,7 @@
 #define IMG_CMD_EXPORT_TREE_CLIP		290
 #define IMG_CMD_EXPORT_TREE_FILE		291
 1						MANIFEST  DISCARDABLE "cjsontree.xml"
-ICO_MAIN				ICON      DISCARDABLE "Images/class_module.ico"
+ICO_MAIN				ICON      DISCARDABLE "Images/j.ico"
 ICO_JSON_STRING			ICON      DISCARDABLE "Images/json_string.ico"
 ICO_JSON_INTEGER		ICON      DISCARDABLE "Images/json_integer.ico"
 ICO_JSON_FLOAT			ICON      DISCARDABLE "Images/json_float.ico"
