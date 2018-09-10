@@ -12,3 +12,5 @@
 *.bmp binary
 *.png binary
 *.jpg binary
+*.tpl linguist-language=Text
+*.inc linguist-language=Assembly
