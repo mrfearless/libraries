@@ -43,8 +43,24 @@ ENDIF
 ;
 ; http://www.winasm.net/forum/index.php?showtopic=3934
 ;
+; if dwStartCol == -1 & dwEndCol == -1 will search all columns
+; Otherwise can be used to search a particular column only.
+;
+; if dwStartItem == -1, will start at begining of listview, otherwise
+; will start at item specified.
+;
+; Returns in EAX: 
+; -1 an error occured
+; -2 not found, no more items left to search
+; otherwise ITEM that was found to match
+;
+; Returns in EBX: 
+; -1 an error occured
+; -2 not found, no more items left to search
+; otherwise SUBITEM that was found to match
+;
 ;**************************************************************************	
-ListViewFindItem PROC USES EBX hListview:HWND, lpszFindString:DWORD, dwStartCol:DWORD, dwEndCol:DWORD, bShowFoundItem:DWORD, bCaseSensitive:DWORD
+ListViewFindItem PROC hListview:HWND, lpszFindString:DWORD, dwStartItem:DWORD, dwStartSubItem:DWORD, dwStartCol:DWORD, dwEndCol:DWORD, bShowFoundItem:DWORD, bCaseSensitive:DWORD
     LOCAL lvi:LV_ITEM
     LOCAL buffer[256]:DWORD
     LOCAL findstring[256]:DWORD
@@ -56,10 +72,13 @@ ListViewFindItem PROC USES EBX hListview:HWND, lpszFindString:DWORD, dwStartCol:
     LOCAL LenBufferString:DWORD
     LOCAL nStartCol:DWORD
     LOCAL nEndCol:DWORD
+    LOCAL nStartItem:DWORD
+    LOCAL bSubItemStart:DWORD
     
     Invoke lstrlen, lpszFindString
     .IF eax == 0
         mov eax, -1
+        mov ebx, -1
         ret
     .ENDIF
     mov LenFindString, eax
@@ -88,9 +107,13 @@ ListViewFindItem PROC USES EBX hListview:HWND, lpszFindString:DWORD, dwStartCol:
     mov eax, nStartCol
     .IF eax > nEndCol
         mov eax, -1
+        mov ebx, -1
         ret
     .ENDIF
-
+    
+    mov eax, dwStartItem
+    mov nStartItem, eax
+    
     Invoke lstrcpy, Addr findstring, lpszFindString
     .IF bCaseSensitive == FALSE
         Invoke _LVFindItemUpperString, Addr findstring
@@ -99,34 +122,69 @@ ListViewFindItem PROC USES EBX hListview:HWND, lpszFindString:DWORD, dwStartCol:
     Invoke ListViewGetItemCount, hListview
     mov nRows, eax
     
-    ;mov lvi.imask, LVIF_TEXT
-    ;mov lvi.cchTextMax,256
-    ;lea eax,buffer
-    ;mov lvi.pszText,eax
-    ;-- Delete the current focus
-    ;mov lvi.stateMask, LVIS_SELECTED + LVIS_FOCUSED
-    ;mov lvi.state,0
-    ;invoke SendMessage, hListview, LVM_SETITEMSTATE, -1, Addr lvi
-    
     Invoke ListViewDeselectAll, hListview
     
-    mov nItem, 0
-    mov eax, 0
-    .while eax < nRows
-        
-        mov eax, nStartCol
+    ; If we are starting search from a subitem
+    ; we set a flag so its only triggered once
+    ; then normal start col to end col search
+    ; continues as normal
+    mov eax, dwStartSubItem
+    .IF eax == -1
+        mov bSubItemStart, FALSE
+    .ELSE
+        ; check start subitem is within search cols
+        .IF eax < nStartCol 
+            mov eax, -1
+            mov ebx, -1
+            ret
+        .ELSEIF eax > nEndCol 
+            mov eax, nStartItem
+            inc eax
+            .IF eax < nRows ; try next item if possible
+                inc nStartItem
+                mov bSubItemStart, FALSE
+            .ELSE
+                mov eax, -2
+                mov ebx, -2
+                ret
+            .ENDIF
+        .ELSE
+            mov bSubItemStart, TRUE
+        .ENDIF
+    .ENDIF
+    
+    ; Check start item
+    mov eax, nStartItem
+    .IF eax == -1
+        mov eax, 0
+    .ELSEIF eax >= nRows
+        mov eax, -2
+        mov ebx, -2
+        ret
+    .ELSE
+        mov eax, nStartItem
+    .ENDIF
+    mov nItem, eax
+    
+    .WHILE eax < nRows
+    
+        .IF bSubItemStart == TRUE
+            mov bSubItemStart, FALSE
+            mov eax, dwStartSubItem
+        .ELSE
+            mov eax, nStartCol
+        .ENDIF
         mov nSubItem, eax
+        
         mov ebx, nStartCol
-        .while ebx <= nEndCol
-            
+        .WHILE ebx <= nEndCol
             Invoke ListViewGetItemText, hListview, nItem, nSubItem, Addr buffer, SIZEOF buffer
             .IF eax == 0
                 inc nSubItem
                 mov ebx, nSubItem
                 .continue
             .ENDIF 
-            ;invoke SendMessage, hListview, LVM_GETITEM, 0, Addr lvi
-            
+
             Invoke lstrlen, Addr buffer
             mov LenBufferString, eax
             .IF eax == 0
@@ -139,67 +197,47 @@ ListViewFindItem PROC USES EBX hListview:HWND, lpszFindString:DWORD, dwStartCol:
                 Invoke _LVFindItemUpperString, Addr buffer
             .ENDIF
             
-            
-            IFDEF DEBUG32
-            lea eax, buffer
-            mov DbgVar1, eax
-            
-            mov eax, lpszFindString
-            mov DbgVar2, eax
-            
-            PrintStringByAddr DbgVar1
-            PrintStringByAddr DbgVar2
-            
-            ENDIF
+;            IFDEF DEBUG32
+;            lea eax, buffer
+;            mov DbgVar1, eax
+;            mov eax, lpszFindString
+;            mov DbgVar2, eax
+;            PrintStringByAddr DbgVar1
+;            PrintStringByAddr DbgVar2
+;            ENDIF
             
             mov eax, LenFindString
             .IF eax == LenBufferString ; if same do str compare
-            
                 Invoke lstrcmpi, Addr buffer, Addr findstring ;lpszFindString
                 .IF eax == 0
                     .IF bShowFoundItem == TRUE
-                        ;// Set the focus
-                        ;mov eax,LVIS_SELECTED + LVIS_FOCUSED
-                        ;mov lvi.stateMask,eax
-                        ;mov lvi.state,eax
-                        ;invoke SendMessage, hListview, LVM_SETITEMSTATE, ebx, Addr lvi
-                        ;invoke SendMessage, hListview, LVM_ENSUREVISIBLE , ebx, TRUE
                         Invoke ListViewSetSelected, hListview, nItem
                         Invoke ListViewEnsureVisible, hListview, nItem
-                        ;invoke SetFocus, hListview
                         mov eax, nItem
+                        mov ebx, nSubItem
                         ret
                     .ELSE
                         mov eax, nItem
+                        mov ebx, nSubItem
                         ret
                     .ENDIF
-                    
                 .ENDIF
 
             .ELSEIF eax < LenBufferString
-                
                 Invoke _LVFindItemInStringSearch, 1, Addr buffer, Addr findstring ;lpszFindString
                 IFDEF DEBUG32
                 PrintDec eax
                 ENDIF
                 .IF eax > 0
-                
-                ;invoke lstrcmpi, Addr buffer, lpszFindString
-                ;.if eax == 0 ;==0
                     .IF bShowFoundItem == TRUE
-                        ;// Set the focus
-                        ;mov eax,LVIS_SELECTED + LVIS_FOCUSED
-                        ;mov lvi.stateMask,eax
-                        ;mov lvi.state,eax
-                        ;invoke SendMessage, hListview, LVM_SETITEMSTATE, ebx, Addr lvi
-                        ;invoke SendMessage, hListview, LVM_ENSUREVISIBLE , ebx, TRUE
                         Invoke ListViewSetSelected, hListview, nItem
                         Invoke ListViewEnsureVisible, hListview, nItem
-                        ;invoke SetFocus, hListview
                         mov eax, nItem
+                        mov ebx, nSubItem
                         ret
                     .ELSE
                         mov eax, nItem
+                        mov ebx, nSubItem
                         ret
                     .ENDIF
                 .ENDIF
@@ -209,13 +247,14 @@ ListViewFindItem PROC USES EBX hListview:HWND, lpszFindString:DWORD, dwStartCol:
             .ENDIF
             inc nSubItem
             mov ebx, nSubItem            
-        .endw
+        .ENDW
         inc nItem
         mov eax, nItem
-    .endw
+    .ENDW
     
-    ;xor eax,eax
-    mov eax, -1
+    ;Nothing found / end of listview
+    mov eax, -2
+    mov ebx, -2
     ret
 ListViewFindItem endp
 

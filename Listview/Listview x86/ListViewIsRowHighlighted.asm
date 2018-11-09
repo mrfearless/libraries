@@ -65,7 +65,7 @@ ListViewEnableHighlighting endp
 
 
 ;**************************************************************************	
-; Enables row highlighting
+; Disables row highlighting
 ;**************************************************************************	
 ListViewDisableHighlighting PROC hListview:DWORD, nItemIndex:DWORD
     

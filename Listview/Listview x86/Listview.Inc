@@ -40,83 +40,81 @@
 ; LTLI Listview LIB Prototypes
 ;-----------------------------------------------------------------------------------------
 
-ListViewSelectAll		    PROTO :DWORD
-ListViewDeselectAll         PROTO :DWORD
+ListViewSelectAll		    PROTO :DWORD                                                    ; hListview
+ListViewDeselectAll         PROTO :DWORD                                                    ; hListview
 
-ListViewClearAll		    PROTO :DWORD
+ListViewClearAll		    PROTO :DWORD                                                    ; hListview
 ListViewDeleteAll           EQU ListViewClearAll
 
-ListViewDeleteItem          PROTO :DWORD, :DWORD
+ListViewDeleteItem          PROTO :DWORD,:DWORD                                             ; hListview, nItemIndex
 
-ListViewInsertItem		    PROTO :DWORD, :DWORD, :DWORD, :DWORD
-ListViewInsertSubItem	    PROTO :DWORD, :DWORD, :DWORD, :DWORD
+ListViewInsertItem		    PROTO :DWORD,:DWORD,:DWORD,:DWORD                               ; hListview, nItemIndex, lpszItemText, nImageListIndex
+ListViewInsertSubItem	    PROTO :DWORD,:DWORD,:DWORD,:DWORD                               ; hListview, nItemIndex, nSubItemIndex, lpszSubItemText
 
-ListViewCheckboxSet		    PROTO :DWORD, :DWORD, :DWORD
-ListViewCheckboxToggle      PROTO :DWORD, :DWORD
+ListViewCheckboxSet		    PROTO :DWORD,:DWORD,:DWORD                                      ; hListview, nItemIndex, dwCheckedState
+ListViewCheckboxToggle      PROTO :DWORD,:DWORD                                             ; hListview, nItemIndex
     
-ListViewSetSelected	        PROTO :DWORD, :DWORD
-ListViewGetSelected	        PROTO :DWORD
-ListViewSetFocused          PROTO :DWORD, :DWORD
+ListViewSetSelected	        PROTO :DWORD,:DWORD                                             ; hListview, nItemIndex
+ListViewGetSelected	        PROTO :DWORD                                                    ; hListview
+ListViewSetFocused          PROTO :DWORD,:DWORD                                             ; hListview, nItemIndex
 
-ListViewGetItemText		    PROTO :DWORD, :DWORD, :DWORD, :DWORD, :DWORD
-ListViewSetItemText		    PROTO :DWORD, :DWORD, :DWORD, :DWORD
+ListViewGetItemText		    PROTO :DWORD,:DWORD,:DWORD,:DWORD,:DWORD                        ; hListview, nItemIndex, nSubItemIndex, lpszItemText, lpszItemTextSize
+ListViewSetItemText		    PROTO :DWORD,:DWORD,:DWORD,:DWORD                               ; hListview, nItemIndex, nSubItemIndex, lpszItemText
 
-ListViewSetItemImage		PROTO :DWORD, :DWORD, :DWORD
-ListViewGetItemImage		PROTO :DWORD, :DWORD
+ListViewSetItemImage		PROTO :DWORD,:DWORD,:DWORD                                      ; hListview, nItemIndex, nImageListIndex
+ListViewGetItemImage		PROTO :DWORD,:DWORD                                             ; hListview, nItemIndex
 
-ListViewSetItemParam	    PROTO :DWORD, :DWORD, :DWORD
-ListViewGetItemParam	    PROTO :DWORD, :DWORD
+ListViewSetItemParam	    PROTO :DWORD,:DWORD,:DWORD                                      ; hListview, nItemIndex, dwParamValue
+ListViewGetItemParam	    PROTO :DWORD,:DWORD                                             ; hListview, nItemIndex
 
-ListViewGetItemState        PROTO :DWORD, :DWORD, :DWORD
-ListViewSetItemState        PROTO :DWORD, :DWORD, :DWORD, :DWORD
+ListViewGetItemState        PROTO :DWORD,:DWORD,:DWORD                                      ; hListview, nItemIndex, dwState
+ListViewSetItemState        PROTO :DWORD,:DWORD,:DWORD,:DWORD                               ; hListview, nItemIndex, dwStateMask, dwState
 
-ListViewGetItemRect         PROTO :DWORD, :DWORD, :DWORD
-ListViewGetSubItemRect      PROTO :DWORD, :DWORD, :DWORD
-ListViewGetItemSelectedState PROTO :DWORD, :DWORD
+ListViewGetItemRect         PROTO :DWORD,:DWORD,:DWORD                                      ; hListview, nItemIndex, dwPtrRect
+ListViewGetSubItemRect      PROTO :DWORD,:DWORD,:DWORD                                      ; hListview, nItemIndex, dwPtrRect
+ListViewGetItemSelectedState PROTO :DWORD,:DWORD                                            ; hListview, nItemIndex
 
-ListViewAltRowColor         PROTO :DWORD, :DWORD
-ListViewAltRowColorDlg      PROTO :DWORD, :DWORD, :DWORD ;, :DWORD, :DWORD, :DWORD, :DWORD, :DWORD, :DWORD
-ListViewARCBoldItem         PROTO :DWORD, :DWORD, :DWORD, :DWORD, :DWORD
-ListViewARCBoldItemDlg      PROTO :DWORD, :DWORD, :DWORD, :DWORD, :DWORD, :DWORD
+ListViewAltRowColor         PROTO :DWORD,:DWORD                                             ; lParam, dwAltRowColor
+ListViewAltRowColorDlg      PROTO :DWORD,:DWORD,:DWORD                                      ; hWin, lParam, dwAltRowColor
+ListViewARCBoldItem         PROTO :DWORD,:DWORD,:DWORD,:DWORD,:DWORD                        ; lParam, dwAltRowColor, nBoldItem, hBoldFont, hNormalFont
+ListViewARCBoldItemDlg      PROTO :DWORD,:DWORD,:DWORD,:DWORD,:DWORD,:DWORD                 ; hWin, lParam, dwAltRowColor, nBoldItem, hBoldFont, hNormalFont
 
-ListViewSubClassProc        PROTO :DWORD, :DWORD
-ListViewSubClassData        PROTO :DWORD, :DWORD
+ListViewSubClassProc        PROTO :DWORD,:DWORD                                             ; hListview, lpdwLVSubClassProc
+ListViewSubClassData        PROTO :DWORD,:DWORD                                             ; hListview, lpdwLVSubClassData
 
-ListViewStyleGridlines		PROTO :DWORD
-ListViewStyleCheckboxes		PROTO :DWORD
-ListViewStyleFullRowSelect  PROTO :DWORD
-ListViewStyleSubItemImages  PROTO :DWORD
-ListViewStyleHdrDragDrop    PROTO :DWORD
-ListViewStyleBorderSelect   PROTO :DWORD
-ListViewStyleDoubleBuffer   PROTO :DWORD
-ListViewStyleNoColumnResize PROTO :DWORD
-ListViewStyleToggle         PROTO :DWORD, :DWORD
+ListViewStyleGridlines		PROTO :DWORD                                                    ; hListview
+ListViewStyleCheckboxes		PROTO :DWORD                                                    ; hListview
+ListViewStyleFullRowSelect  PROTO :DWORD                                                    ; hListview
+ListViewStyleSubItemImages  PROTO :DWORD                                                    ; hListview
+ListViewStyleHdrDragDrop    PROTO :DWORD                                                    ; hListview
+ListViewStyleBorderSelect   PROTO :DWORD                                                    ; hListview
+ListViewStyleDoubleBuffer   PROTO :DWORD                                                    ; hListview
+ListViewStyleNoColumnResize PROTO :DWORD                                                    ; hListview
+ListViewStyleToggle         PROTO :DWORD,:DWORD                                             ; hListview, dwExStyle
 
-ListViewLinkImagelist       PROTO :DWORD, :DWORD, :DWORD
+ListViewLinkImagelist       PROTO :DWORD,:DWORD,:DWORD                                      ; hListview, hImagelist, ImagelistType
 
-ListViewGetColumnCount      PROTO :DWORD
-ListViewGetColumnWidth      PROTO :DWORD, :DWORD
-ListViewGetColumnFormat     PROTO :DWORD, :DWORD
-ListViewGetItemCount        PROTO :DWORD
+ListViewGetColumnCount      PROTO :DWORD                                                    ; hListview
+ListViewGetColumnWidth      PROTO :DWORD,:DWORD                                             ; hListview, nCol
+ListViewGetColumnFormat     PROTO :DWORD,:DWORD                                             ; hListview, nCol
+ListViewGetItemCount        PROTO :DWORD                                                    ; hListview
 
-ListViewInsertColumn        PROTO :DWORD, :DWORD, :DWORD, :DWORD
-ListViewInsertColumnImage   PROTO :DWORD, :DWORD, :DWORD, :DWORD, :DWORD
-ListViewSetColumnText       PROTO :DWORD, :DWORD, :DWORD
+ListViewInsertColumn        PROTO :DWORD,:DWORD,:DWORD,:DWORD                               ; hListview, dwFormat, dwWidth, lpszColumnText
+ListViewInsertColumnImage   PROTO :DWORD,:DWORD,:DWORD,:DWORD,:DWORD                        ; hListview, dwFormat, dwWidth, lpszColumnText, nImageListIndex
+ListViewSetColumnText       PROTO :DWORD,:DWORD,:DWORD                                      ; hListview, nColumnIndex, lpszColumnText
 
+ListViewIsRowSelected       PROTO :DWORD,:DWORD                                             ; hListview, nItemIndex
+ListViewIsRowHighlighted    PROTO :DWORD,:DWORD                                             ; hListview, nItemIndex
+ListViewEnableHighlighting  PROTO :DWORD,:DWORD                                             ; hListview, nItemIndex
+ListViewDisableHighlighting PROTO :DWORD,:DWORD                                             ; hListview, nItemIndex
 
-ListViewIsRowSelected       PROTO :DWORD, :DWORD
-ListViewIsRowHighlighted    PROTO :DWORD, :DWORD
-ListViewEnableHighlighting  PROTO :DWORD, :DWORD
-ListViewDisableHighlighting PROTO :DWORD, :DWORD
+ListViewShowItemContextMenu PROTO :DWORD,:DWORD,:DWORD,:DWORD                               ; hWin, hListview, hRightClickMenu, dwRequiresSelection
+ListViewEnsureVisible       PROTO :DWORD,:DWORD
+ListViewEnsureSubItemVisible PROTO :DWORD,:DWORD                                            ; hListview, dwSubItem
+ListViewFindItem            PROTO :DWORD,:DWORD,:DWORD,:DWORD,:DWORD,:DWORD,:DWORD,:DWORD   ; hListview, lpszFindString, dwStartItem, dwStartSubItem, dwStartCol, dwEndCol, bShowFoundItem, bCaseSensitive 
 
-
-ListViewShowItemContextMenu PROTO :DWORD, :DWORD, :DWORD, :DWORD                    ; hWin:DWORD, hListview:DWORD, hRightClickMenu:DWORD, dwRequiresSelection
-ListViewEnsureVisible       PROTO :DWORD, :DWORD
-ListViewEnsureSubItemVisible PROTO :DWORD, :DWORD                                   ; hListview:DWORD, dwSubItem:DWORD
-ListViewFindItem            PROTO :DWORD, :DWORD, :DWORD, :DWORD, :DWORD, :DWORD
-
-ListViewGetItemClicked      PROTO :DWORD, :DWORD, :DWORD, :DWORD                    ; hListview:DWORD, lParam:DWORD, lpdwItem:DWORD, lpdwSubItem:DWORD
-ListViewGetSubItemClicked   PROTO :DWORD, :DWORD, :DWORD                            ; hListview:DWORD, lpdwItem:DWORD, lpdwSubItem:DWORD
+ListViewGetItemClicked      PROTO :DWORD,:DWORD,:DWORD,:DWORD                               ; hListview, lParam, lpdwItem, lpdwSubItem
+ListViewGetSubItemClicked   PROTO :DWORD,:DWORD,:DWORD                                      ; hListview, lpdwItem, lpdwSubItem
 
 
 ; For ListViewCheckboxSet

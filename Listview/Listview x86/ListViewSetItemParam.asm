@@ -14,13 +14,13 @@ include Listview.inc
 ;**************************************************************************
 ; Sets the lParam of the specified index. ParamValue is a 32bit dword value
 ;**************************************************************************
-ListViewSetItemParam PROC PUBLIC hListview:DWORD, nItemIndex:DWORD, ParamValue:DWORD
+ListViewSetItemParam PROC PUBLIC hListview:DWORD, nItemIndex:DWORD, dwParamValue:DWORD
 	LOCAL LVItem:LV_ITEM
 	mov LVItem.imask,LVIF_PARAM
 	mov eax, nItemIndex
 	mov LVItem.iItem, eax
 	mov LVItem.iSubItem,0 
-	mov eax, ParamValue
+	mov eax, dwParamValue
 	push eax
 	pop LVItem.lParam
 	invoke SendMessage, hListview, LVM_SETITEM, 0, Addr LVItem
