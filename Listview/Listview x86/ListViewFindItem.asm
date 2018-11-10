@@ -23,6 +23,10 @@ EXTERNDEF ListViewGetItemText       :PROTO :DWORD, :DWORD, :DWORD, :DWORD, :DWOR
 EXTERNDEF ListViewEnsureVisible     :PROTO :DWORD, :DWORD
 EXTERNDEF ListViewSetSelected       :PROTO :DWORD, :DWORD
 
+.CONST
+LVFI_ERR    EQU -2
+LVFI_END    EQU -1
+
 .data
 IFDEF DEBUG32
 DbgVar1 dd 0 
@@ -49,15 +53,15 @@ ENDIF
 ; if dwStartItem == -1, will start at begining of listview, otherwise
 ; will start at item specified.
 ;
-; Returns in EAX: 
-; -1 an error occured
-; -2 not found, no more items left to search
-; otherwise ITEM that was found to match
+; Returns in EAX:
+; * Item (>=0)    - Item that was found to match.
+; * LVFI_END (-1) - Not found, no more items left to search.
+; * LVFI_ERR (-2) - An error occured.
 ;
 ; Returns in EBX: 
-; -1 an error occured
-; -2 not found, no more items left to search
-; otherwise SUBITEM that was found to match
+; * SubItem (>=0) - SubItem that was found to match.
+; * LVFI_END (-1) - Not found, no more items left to search.
+; * LVFI_ERR (-2) - An error occured.
 ;
 ;**************************************************************************	
 ListViewFindItem PROC hListview:HWND, lpszFindString:DWORD, dwStartItem:DWORD, dwStartSubItem:DWORD, dwStartCol:DWORD, dwEndCol:DWORD, bShowFoundItem:DWORD, bCaseSensitive:DWORD
@@ -77,8 +81,8 @@ ListViewFindItem PROC hListview:HWND, lpszFindString:DWORD, dwStartItem:DWORD, d
     
     Invoke lstrlen, lpszFindString
     .IF eax == 0
-        mov eax, -1
-        mov ebx, -1
+        mov eax, LVFI_ERR
+        mov ebx, LVFI_ERR
         ret
     .ENDIF
     mov LenFindString, eax
@@ -106,8 +110,8 @@ ListViewFindItem PROC hListview:HWND, lpszFindString:DWORD, dwStartItem:DWORD, d
     
     mov eax, nStartCol
     .IF eax > nEndCol
-        mov eax, -1
-        mov ebx, -1
+        mov eax, LVFI_ERR
+        mov ebx, LVFI_ERR
         ret
     .ENDIF
     
@@ -122,7 +126,9 @@ ListViewFindItem PROC hListview:HWND, lpszFindString:DWORD, dwStartItem:DWORD, d
     Invoke ListViewGetItemCount, hListview
     mov nRows, eax
     
-    Invoke ListViewDeselectAll, hListview
+;    .IF dwStartItem == -1 && dwStartSubItem == -1
+;        Invoke ListViewDeselectAll, hListview
+;    .ENDIF
     
     ; If we are starting search from a subitem
     ; we set a flag so its only triggered once
@@ -132,24 +138,29 @@ ListViewFindItem PROC hListview:HWND, lpszFindString:DWORD, dwStartItem:DWORD, d
     .IF eax == -1
         mov bSubItemStart, FALSE
     .ELSE
-        ; check start subitem is within search cols
-        .IF eax < nStartCol 
-            mov eax, -1
-            mov ebx, -1
-            ret
-        .ELSEIF eax > nEndCol 
-            mov eax, nStartItem
-            inc eax
-            .IF eax < nRows ; try next item if possible
-                inc nStartItem
-                mov bSubItemStart, FALSE
-            .ELSE
-                mov eax, -2
-                mov ebx, -2
-                ret
-            .ENDIF
+        mov eax, dwStartCol
+        .IF eax == dwEndCol ; if columns the same, ignore startcol
+            mov bSubItemStart, FALSE
         .ELSE
-            mov bSubItemStart, TRUE
+            ; check start subitem is within search cols
+            .IF eax < nStartCol 
+                mov eax, LVFI_ERR
+                mov ebx, LVFI_ERR
+                ret
+            .ELSEIF eax > nEndCol 
+                mov eax, nStartItem
+                inc eax
+                .IF eax < nRows ; try next item if possible
+                    inc nStartItem
+                    mov bSubItemStart, FALSE
+                .ELSE
+                    mov eax, LVFI_END
+                    mov ebx, LVFI_END
+                    ret
+                .ENDIF
+            .ELSE
+                mov bSubItemStart, TRUE
+            .ENDIF
         .ENDIF
     .ENDIF
     
@@ -158,8 +169,8 @@ ListViewFindItem PROC hListview:HWND, lpszFindString:DWORD, dwStartItem:DWORD, d
     .IF eax == -1
         mov eax, 0
     .ELSEIF eax >= nRows
-        mov eax, -2
-        mov ebx, -2
+        mov eax, LVFI_END
+        mov ebx, LVFI_END
         ret
     .ELSE
         mov eax, nStartItem
@@ -211,6 +222,7 @@ ListViewFindItem PROC hListview:HWND, lpszFindString:DWORD, dwStartItem:DWORD, d
                 Invoke lstrcmpi, Addr buffer, Addr findstring ;lpszFindString
                 .IF eax == 0
                     .IF bShowFoundItem == TRUE
+                        Invoke ListViewDeselectAll, hListview
                         Invoke ListViewSetSelected, hListview, nItem
                         Invoke ListViewEnsureVisible, hListview, nItem
                         mov eax, nItem
@@ -230,6 +242,7 @@ ListViewFindItem PROC hListview:HWND, lpszFindString:DWORD, dwStartItem:DWORD, d
                 ENDIF
                 .IF eax > 0
                     .IF bShowFoundItem == TRUE
+                        Invoke ListViewDeselectAll, hListview
                         Invoke ListViewSetSelected, hListview, nItem
                         Invoke ListViewEnsureVisible, hListview, nItem
                         mov eax, nItem
@@ -253,8 +266,8 @@ ListViewFindItem PROC hListview:HWND, lpszFindString:DWORD, dwStartItem:DWORD, d
     .ENDW
     
     ;Nothing found / end of listview
-    mov eax, -2
-    mov ebx, -2
+    mov eax, LVFI_END
+    mov ebx, LVFI_END
     ret
 ListViewFindItem endp
 
