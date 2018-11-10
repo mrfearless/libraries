@@ -41,17 +41,21 @@ ENDIF
 ;
 ; LVM_FINDITEM can only find a string in the first Column
 ;
-; This function search a string in all Column
+; This function will search for a matching string, 
+; (which can be case-sensitive) in all columns / subitems specified, and
+; optionally select the matching item.
 ;
-; Return set cursel on all found items
+; Adapted from: http://www.winasm.net/forum/index.php?showtopic=3934
 ;
-; http://www.winasm.net/forum/index.php?showtopic=3934
+; if dwStartCol is -1 & dwEndCol is -1, search will include all columns.
+; Otherwise can be used to limit search to a particular column / subitem.
 ;
-; if dwStartCol == -1 & dwEndCol == -1 will search all columns
-; Otherwise can be used to search a particular column only.
+; if dwStartItem is -1 or -2, search will start at listview item 0
+; Otherwise search will start at item specified.
 ;
-; if dwStartItem == -1, will start at begining of listview, otherwise
-; will start at item specified.
+; if dwStartSubItem is -1 or -2, search will start at dwStartCol 
+; (or column 0 if dwStartCol is -1) 
+; Otherwise search will start at column / subitem specified.
 ;
 ; Returns in EAX:
 ; * Item (>=0)    - Item that was found to match.
@@ -62,6 +66,41 @@ ENDIF
 ; * SubItem (>=0) - SubItem that was found to match.
 ; * LVFI_END (-1) - Not found, no more items left to search.
 ; * LVFI_ERR (-2) - An error occured.
+;
+;
+; Example: Searching a single column / subitem
+;
+; .DATA
+; FoundItem     DD -1
+; FoundSubitem  DD -1
+; TotalItems    DD 0
+; .CODE
+; Invoke ListViewGetItemCount, hLV
+; mov TotalItems, eax
+; ...
+; ...
+; Invoke ListViewFindItem, hLV, Addr szFindStuff, FoundItem, FoundSubitem, 1, 1, TRUE, FALSE
+; mov FoundItem, eax
+; mov FoundSubitem, ebx
+; .IF eax >= 0 ; match found
+;     ; Do some processing on found item and subitem if required.
+;     ; Once done with that, increment FoundItem to prepare next search
+;     ; to start from the last found item. 
+;     ; Or start from beginning again if we are at the last item in listview.
+;     mov eax, FoundItem
+;     inc eax
+;     .IF eax < TotalItems
+;         inc FoundItem
+;         mov FoundSubitem, -1
+;     .ELSE
+;         mov FoundItem, -1
+;         mov FoundSubitem, -1
+;     .ENDIF
+; .ELSE
+;     ; Nothing found, all items where searched
+;     ; or an error occured.
+; .ENDIF
+;
 ;
 ;**************************************************************************	
 ListViewFindItem PROC hListview:HWND, lpszFindString:DWORD, dwStartItem:DWORD, dwStartSubItem:DWORD, dwStartCol:DWORD, dwEndCol:DWORD, bShowFoundItem:DWORD, bCaseSensitive:DWORD
@@ -135,7 +174,7 @@ ListViewFindItem PROC hListview:HWND, lpszFindString:DWORD, dwStartItem:DWORD, d
     ; then normal start col to end col search
     ; continues as normal
     mov eax, dwStartSubItem
-    .IF eax == -1
+    .IF eax == -1 || eax == -2
         mov bSubItemStart, FALSE
     .ELSE
         mov eax, dwStartCol
@@ -166,7 +205,7 @@ ListViewFindItem PROC hListview:HWND, lpszFindString:DWORD, dwStartItem:DWORD, d
     
     ; Check start item
     mov eax, nStartItem
-    .IF eax == -1
+    .IF eax == -1 || eax == -2
         mov eax, 0
     .ELSEIF eax >= nRows
         mov eax, LVFI_END
