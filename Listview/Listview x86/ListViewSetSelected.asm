@@ -14,16 +14,28 @@ include Listview.inc
 ;**************************************************************************	
 ; Set the currently selected item to a specified index
 ;**************************************************************************	
-ListViewSetSelected PROC PUBLIC USES EAX hListview:DWORD, nItemIndex:DWORD
+ListViewSetSelected PROC PUBLIC hListview:DWORD, nItemIndex:DWORD, bFocused:DWORD
 	LOCAL LVItem:LV_ITEM
 	
+	; Release current focus, deselects all
 	mov LVItem.imask, LVIF_STATE
 	mov LVItem.state, 0
-	mov LVItem.stateMask, LVIS_SELECTED ;+ LVIS_FOCUSED
-	invoke SendMessage, hListview, LVM_SETITEMSTATE, -1, addr LVItem            ; Release current focus, deselects all
-	mov LVItem.state, LVIS_SELECTED
-	mov LVItem.stateMask, LVIS_SELECTED 
-	invoke SendMessage, hListview, LVM_SETITEMSTATE, nItemIndex, addr LVItem    ; Set current focus
+	.IF bFocused == TRUE
+	    mov LVItem.stateMask, LVIS_SELECTED or LVIS_FOCUSED
+	.ELSE
+	    mov LVItem.stateMask, LVIS_SELECTED
+	.ENDIF
+	Invoke SendMessage, hListview, LVM_SETITEMSTATE, -1, addr LVItem
+	
+	; Set current focus
+	.IF bFocused == TRUE
+	    mov LVItem.state, LVIS_SELECTED or LVIS_FOCUSED
+	    mov LVItem.stateMask, LVIS_SELECTED or LVIS_FOCUSED
+	.ELSE
+	    mov LVItem.state, LVIS_SELECTED
+	    mov LVItem.stateMask, LVIS_SELECTED
+	.ENDIF	
+	Invoke SendMessage, hListview, LVM_SETITEMSTATE, nItemIndex, addr LVItem
 	ret
 ListViewSetSelected endp
 

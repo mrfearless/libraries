@@ -261,8 +261,8 @@ ListViewFindItem PROC hListview:HWND, lpszFindString:DWORD, dwStartItem:DWORD, d
                 Invoke lstrcmpi, Addr buffer, Addr findstring ;lpszFindString
                 .IF eax == 0
                     .IF bShowFoundItem == TRUE
-                        Invoke ListViewDeselectAll, hListview
-                        Invoke ListViewSetSelected, hListview, nItem
+                        ;Invoke ListViewDeselectAll, hListview
+                        Invoke ListViewSetSelected, hListview, nItem, TRUE
                         Invoke ListViewEnsureVisible, hListview, nItem
                         mov eax, nItem
                         mov ebx, nSubItem
@@ -281,8 +281,8 @@ ListViewFindItem PROC hListview:HWND, lpszFindString:DWORD, dwStartItem:DWORD, d
                 ENDIF
                 .IF eax > 0
                     .IF bShowFoundItem == TRUE
-                        Invoke ListViewDeselectAll, hListview
-                        Invoke ListViewSetSelected, hListview, nItem
+                        ;Invoke ListViewDeselectAll, hListview
+                        Invoke ListViewSetSelected, hListview, nItem, TRUE
                         Invoke ListViewEnsureVisible, hListview, nItem
                         mov eax, nItem
                         mov ebx, nSubItem

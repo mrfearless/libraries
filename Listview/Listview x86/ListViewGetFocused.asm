@@ -12,16 +12,11 @@ include Listview.inc
 .code
 
 ;**************************************************************************	
-; Set the currently focused item to a specified index
+; Get the currently focused item
 ;**************************************************************************	
-ListViewSetFocused PROC PUBLIC hListview:DWORD, nItemIndex:DWORD
-	LOCAL LVItem:LV_ITEM
-	
-	mov LVItem.imask, LVIF_STATE
-	mov LVItem.state, LVIS_FOCUSED
-	mov LVItem.stateMask, LVIS_FOCUSED 
-	Invoke SendMessage, hListview, LVM_SETITEMSTATE, nItemIndex, addr LVItem    ; Set current focus
+ListViewGetFocused PROC PUBLIC hListview:DWORD
+	Invoke SendMessage, hListview, LVM_GETNEXTITEM, -1, LVNI_FOCUSED
 	ret
-ListViewSetFocused endp
+ListViewGetFocused endp
 
 end

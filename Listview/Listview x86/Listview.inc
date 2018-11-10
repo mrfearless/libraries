@@ -41,7 +41,7 @@
 ;-----------------------------------------------------------------------------------------
 
 ListViewSelectAll		    PROTO :DWORD                                                    ; hListview
-ListViewDeselectAll         PROTO :DWORD                                                    ; hListview
+ListViewDeselectAll         PROTO :DWORD,:DWORD                                             ; hListview, bFocused
 
 ListViewClearAll		    PROTO :DWORD                                                    ; hListview
 ListViewDeleteAll           EQU ListViewClearAll
@@ -54,9 +54,10 @@ ListViewInsertSubItem	    PROTO :DWORD,:DWORD,:DWORD,:DWORD                     
 ListViewCheckboxSet		    PROTO :DWORD,:DWORD,:DWORD                                      ; hListview, nItemIndex, dwCheckedState
 ListViewCheckboxToggle      PROTO :DWORD,:DWORD                                             ; hListview, nItemIndex
     
-ListViewSetSelected	        PROTO :DWORD,:DWORD                                             ; hListview, nItemIndex
-ListViewGetSelected	        PROTO :DWORD                                                    ; hListview
+ListViewSetSelected	        PROTO :DWORD,:DWORD,:DWORD                                      ; hListview, nItemIndex, bFocused
+ListViewGetSelected	        PROTO :DWORD,:DWORD                                             ; hListview, bFocused
 ListViewSetFocused          PROTO :DWORD,:DWORD                                             ; hListview, nItemIndex
+ListViewGetFocused          PROTO :DWORD                                                    ; hListview
 
 ListViewGetItemText		    PROTO :DWORD,:DWORD,:DWORD,:DWORD,:DWORD                        ; hListview, nItemIndex, nSubItemIndex, lpszItemText, lpszItemTextSize
 ListViewSetItemText		    PROTO :DWORD,:DWORD,:DWORD,:DWORD                               ; hListview, nItemIndex, nSubItemIndex, lpszItemText
@@ -69,10 +70,10 @@ ListViewGetItemParam	    PROTO :DWORD,:DWORD                                    
 
 ListViewGetItemState        PROTO :DWORD,:DWORD,:DWORD                                      ; hListview, nItemIndex, dwState
 ListViewSetItemState        PROTO :DWORD,:DWORD,:DWORD,:DWORD                               ; hListview, nItemIndex, dwStateMask, dwState
+ListViewGetItemSelectedState PROTO :DWORD,:DWORD                                            ; hListview, nItemIndex
 
 ListViewGetItemRect         PROTO :DWORD,:DWORD,:DWORD                                      ; hListview, nItemIndex, dwPtrRect
 ListViewGetSubItemRect      PROTO :DWORD,:DWORD,:DWORD                                      ; hListview, nItemIndex, dwPtrRect
-ListViewGetItemSelectedState PROTO :DWORD,:DWORD                                            ; hListview, nItemIndex
 
 ListViewAltRowColor         PROTO :DWORD,:DWORD                                             ; lParam, dwAltRowColor
 ListViewAltRowColorDlg      PROTO :DWORD,:DWORD,:DWORD                                      ; hWin, lParam, dwAltRowColor
