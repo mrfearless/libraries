@@ -40,80 +40,83 @@
 ; LTLI Listview Prototypes
 ;-----------------------------------------------------------------------------------------
 
+ListViewSelectAll		    PROTO :QWORD                                                    ; hListview
+ListViewDeselectAll         PROTO :QWORD,:QWORD                                             ; hListview, bFocused
 
-;-----------------------------------------------------------------------------------------
-; LTLI Listview Structures
-;-----------------------------------------------------------------------------------------
-
-ListViewSelectAll		    PROTO :QWORD
-ListViewDeselectAll         PROTO :QWORD
-
-ListViewClearAll		    PROTO :QWORD
+ListViewClearAll		    PROTO :QWORD                                                    ; hListview
 ListViewDeleteAll           EQU ListViewClearAll
 
-ListViewDeleteItem          PROTO :QWORD, :QWORD
+ListViewDeleteItem          PROTO :QWORD,:QWORD                                             ; hListview, nItemIndex
 
-ListViewInsertItem		    PROTO :QWORD, :QWORD, :QWORD, :QWORD
-ListViewInsertSubItem	    PROTO :QWORD, :QWORD, :QWORD, :QWORD
+ListViewInsertItem		    PROTO :QWORD,:QWORD,:QWORD,:QWORD                               ; hListview, nItemIndex, lpszItemText, nImageListIndex
+ListViewInsertSubItem	    PROTO :QWORD,:QWORD,:QWORD,:QWORD                               ; hListview, nItemIndex, nSubItemIndex, lpszSubItemText
 
-ListViewCheckboxSet		    PROTO :QWORD, :QWORD, :QWORD
-ListViewCheckboxToggle      PROTO :QWORD, :QWORD
+ListViewCheckboxSet		    PROTO :QWORD,:QWORD,:QWORD                                      ; hListview, nItemIndex, qwCheckedState
+ListViewCheckboxToggle      PROTO :QWORD,:QWORD                                             ; hListview, nItemIndex
     
-ListViewSetSelected	        PROTO :QWORD, :QWORD
-ListViewGetSelected	        PROTO :QWORD
-ListViewSetFocused          PROTO :QWORD, :QWORD
+ListViewSetSelected	        PROTO :QWORD,:QWORD,:QWORD                                      ; hListview, nItemIndex, bFocused
+ListViewGetSelected	        PROTO :QWORD,:QWORD                                             ; hListview, bFocused
+ListViewSetFocused          PROTO :QWORD,:QWORD                                             ; hListview, nItemIndex
+ListViewGetFocused          PROTO :QWORD                                                    ; hListview
 
-ListViewGetItemText		    PROTO :QWORD, :QWORD, :QWORD, :QWORD, :QWORD
-ListViewSetItemText		    PROTO :QWORD, :QWORD, :QWORD, :QWORD
+ListViewGetItemText		    PROTO :QWORD,:QWORD,:QWORD,:QWORD,:QWORD                        ; hListview, nItemIndex, nSubItemIndex, lpszItemText, lpszItemTextSize
+ListViewSetItemText		    PROTO :QWORD,:QWORD,:QWORD,:QWORD                               ; hListview, nItemIndex, nSubItemIndex, lpszItemText
 
-ListViewSetItemImage		PROTO :QWORD, :QWORD, :QWORD
-ListViewGetItemImage		PROTO :QWORD, :QWORD
+ListViewSetItemImage		PROTO :QWORD,:QWORD,:QWORD                                      ; hListview, nItemIndex, nImageListIndex
+ListViewGetItemImage		PROTO :QWORD,:QWORD                                             ; hListview, nItemIndex
 
-ListViewSetItemParam	    PROTO :QWORD, :QWORD, :QWORD
-ListViewGetItemParam	    PROTO :QWORD, :QWORD
+ListViewSetItemParam	    PROTO :QWORD,:QWORD,:QWORD                                      ; hListview, nItemIndex, qwParamValue
+ListViewGetItemParam	    PROTO :QWORD,:QWORD                                             ; hListview, nItemIndex
 
-ListViewGetItemState        PROTO :QWORD, :QWORD, :QWORD
-ListViewSetItemState        PROTO :QWORD, :QWORD, :QWORD, :QWORD
+ListViewGetItemState        PROTO :QWORD,:QWORD,:QWORD                                      ; hListview, nItemIndex, qwState
+ListViewSetItemState        PROTO :QWORD,:QWORD,:QWORD,:QWORD                               ; hListview, nItemIndex, qwStateMask, qwState
+ListViewGetItemSelectedState PROTO :QWORD,:QWORD                                            ; hListview, nItemIndex
 
-ListViewGetItemRect         PROTO :QWORD, :QWORD, :QWORD
+ListViewGetItemRect         PROTO :QWORD,:QWORD,:QWORD                                      ; hListview, nItemIndex, qwPtrRect
+ListViewGetSubItemRect      PROTO :QWORD,:QWORD,:QWORD                                      ; hListview, nItemIndex, qwPtrRect
 
-ListViewGetItemSelectedState PROTO :QWORD, :QWORD
+ListViewAltRowColor         PROTO :QWORD,:QWORD                                             ; lParam, qwAltRowColor
+ListViewAltRowColorDlg      PROTO :QWORD,:QWORD,:QWORD                                      ; hWin, lParam, qwAltRowColor
+ListViewARCBoldItem         PROTO :QWORD,:QWORD,:QWORD,:QWORD,:QWORD                        ; lParam, qwAltRowColor, nBoldItem, hBoldFont, hNormalFont
+ListViewARCBoldItemDlg      PROTO :QWORD,:QWORD,:QWORD,:QWORD,:QWORD,:QWORD                 ; hWin, lParam, qwAltRowColor, nBoldItem, hBoldFont, hNormalFont
 
-ListViewAltRowColor         PROTO :QWORD, :QWORD
-ListViewAltRowColorDlg      PROTO :QWORD, :QWORD, :QWORD
-ListViewARCBoldItem         PROTO :QWORD, :QWORD, :QWORD, :QWORD, :QWORD
-ListViewARCBoldItemDlg      PROTO :QWORD, :QWORD, :QWORD, :QWORD, :QWORD, :QWORD
+ListViewSubClassProc        PROTO :QWORD,:QWORD                                             ; hListview, lpqwLVSubClassProc
+ListViewSubClassData        PROTO :QWORD,:QWORD                                             ; hListview, lpqwLVSubClassData
 
-ListViewSubClassProc        PROTO :QWORD, :QWORD
-ListViewSubClassData        PROTO :QWORD, :QWORD
+ListViewStyleGridlines		PROTO :QWORD                                                    ; hListview
+ListViewStyleCheckboxes		PROTO :QWORD                                                    ; hListview
+ListViewStyleFullRowSelect  PROTO :QWORD                                                    ; hListview
+ListViewStyleSubItemImages  PROTO :QWORD                                                    ; hListview
+ListViewStyleHdrDragDrop    PROTO :QWORD                                                    ; hListview
+ListViewStyleBorderSelect   PROTO :QWORD                                                    ; hListview
+ListViewStyleDoubleBuffer   PROTO :QWORD                                                    ; hListview
+ListViewStyleNoColumnResize PROTO :QWORD                                                    ; hListview
+ListViewStyleToggle         PROTO :QWORD,:QWORD                                             ; hListview, qwExStyle
 
-ListViewStyleGridlines		PROTO :QWORD
-ListViewStyleCheckboxes		PROTO :QWORD
-ListViewStyleFullRowSelect  PROTO :QWORD
-ListViewStyleSubItemImages  PROTO :QWORD
-ListViewStyleHdrDragDrop    PROTO :QWORD
-ListViewStyleBorderSelect   PROTO :QWORD
-ListViewStyleDoubleBuffer   PROTO :QWORD
-ListViewStyleNoColumnResize PROTO :QWORD
-ListViewStyleToggle         PROTO :QWORD, :QWORD
+ListViewLinkImagelist       PROTO :QWORD,:QWORD,:QWORD                                      ; hListview, hImagelist, ImagelistType
 
-ListViewLinkImagelist       PROTO :QWORD, :QWORD, :QWORD
+ListViewGetColumnCount      PROTO :QWORD                                                    ; hListview
+ListViewGetColumnWidth      PROTO :QWORD,:QWORD                                             ; hListview, nCol
+ListViewGetColumnFormat     PROTO :QWORD,:QWORD                                             ; hListview, nCol
+ListViewGetItemCount        PROTO :QWORD                                                    ; hListview
 
-ListViewGetColumnCount      PROTO :QWORD
-ListViewGetItemCount        PROTO :QWORD
+ListViewInsertColumn        PROTO :QWORD,:QWORD,:QWORD,:QWORD                               ; hListview, qwFormat, qwWidth, lpszColumnText
+ListViewInsertColumnImage   PROTO :QWORD,:QWORD,:QWORD,:QWORD,:QWORD                        ; hListview, qwFormat, qwWidth, lpszColumnText, nImageListIndex
+ListViewSetColumnText       PROTO :QWORD,:QWORD,:QWORD                                      ; hListview, nColumnIndex, lpszColumnText
 
-ListViewInsertColumn        PROTO :QWORD, :QWORD, :QWORD, :QWORD
-ListViewInsertColumnImage   PROTO :QWORD, :QWORD, :QWORD, :QWORD, :QWORD
-ListViewSetColumnText       PROTO :QWORD, :QWORD, :QWORD
+ListViewIsRowSelected       PROTO :QWORD,:QWORD                                             ; hListview, nItemIndex
+ListViewIsRowHighlighted    PROTO :QWORD,:QWORD                                             ; hListview, nItemIndex
+ListViewEnableHighlighting  PROTO :QWORD,:QWORD                                             ; hListview, nItemIndex
+ListViewDisableHighlighting PROTO :QWORD,:QWORD                                             ; hListview, nItemIndex
 
+ListViewShowItemContextMenu PROTO :QWORD,:QWORD,:QWORD,:QWORD                               ; hWin, hListview, hRightClickMenu, qwRequiresSelection
+ListViewEnsureVisible       PROTO :QWORD,:QWORD
+ListViewEnsureSubItemVisible PROTO :QWORD,:QWORD                                            ; hListview, qwSubItem
+ListViewFindItem            PROTO :QWORD,:QWORD,:QWORD,:QWORD,:QWORD,:QWORD,:QWORD,:QWORD   ; hListview, lpszFindString, qwStartItem, qwStartSubItem, qwStartCol, qwEndCol, bShowFoundItem, bCaseSensitive 
 
-ListViewIsRowSelected       PROTO :QWORD, :QWORD
-ListViewIsRowHighlighted    PROTO :QWORD, :QWORD
-ListViewEnableHighlighting  PROTO :QWORD, :QWORD
-ListViewDisableHighlighting PROTO :QWORD, :QWORD
+ListViewGetItemClicked      PROTO :QWORD,:QWORD,:QWORD,:QWORD                               ; hListview, lParam, lpqwItem, lpqwSubItem
+ListViewGetSubItemClicked   PROTO :QWORD,:QWORD,:QWORD                                      ; hListview, lpqwItem, lpqwSubItem
 
-
-ListViewShowItemContextMenu PROTO :QWORD, :QWORD, :QWORD
 
 ; For ListViewCheckboxSet
 LVCB_UNCHECKED              EQU 0 

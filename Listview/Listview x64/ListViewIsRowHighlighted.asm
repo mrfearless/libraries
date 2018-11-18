@@ -25,7 +25,7 @@ EXTERNDEF ListViewSetItemState :PROTO :QWORD, :QWORD, :QWORD, :QWORD
 ;**************************************************************************	
 ; Checks if row specified is selected
 ;**************************************************************************	
-ListViewIsRowSelected PROC FRAME  hListview:QWORD, nItemIndex:QWORD
+ListViewIsRowSelected PROC FRAME hListview:QWORD, nItemIndex:QWORD
     Invoke ListViewGetItemState, hListview, nItemIndex, LVIS_SELECTED
     .IF rax != 0
         mov rax, TRUE
@@ -40,7 +40,7 @@ ListViewIsRowSelected ENDP
 ;**************************************************************************	
 ; Checks if row specified is highlighted
 ;**************************************************************************	
-ListViewIsRowHighlighted PROC FRAME  hListview:QWORD, nItemIndex:QWORD
+ListViewIsRowHighlighted PROC FRAME hListview:QWORD, nItemIndex:QWORD
 ;  // We check if row is selected.
 ;  // We also check if window has focus. This was because the original listview
 ;  //  control I created did not have style LVS_SHOWSELALWAYS. So if the listview

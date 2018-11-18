@@ -22,7 +22,7 @@ include Listview.inc
 ;**************************************************************************	
 ; Allow sub items to have images
 ;**************************************************************************	
-ListViewStyleSubItemImages PROC FRAME  USES RAX hListview:QWORD
+ListViewStyleSubItemImages PROC FRAME hListview:QWORD
 
     Invoke SendMessage, hListview, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0   ; Get current extended styles 
 	AND rax, LVS_EX_SUBITEMIMAGES                                          ; Checkboxes

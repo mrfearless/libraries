@@ -21,8 +21,12 @@ include Listview.inc
 ;**************************************************************************	
 ; Get Index of Currently Selected Item in Listview. Returns it in RAX
 ;**************************************************************************	
-ListViewGetSelected PROC FRAME  hListview:QWORD
-	Invoke SendMessage, hListview, LVM_GETNEXTITEM, -1, LVNI_FOCUSED or LVNI_SELECTED	
+ListViewGetSelected PROC FRAME hListview:QWORD, bFocused:QWORD
+    .IF bFocused == TRUE
+	    Invoke SendMessage, hListview, LVM_GETNEXTITEM, -1, LVNI_SELECTED or LVNI_FOCUSED
+	.ELSE
+	    Invoke SendMessage, hListview, LVM_GETNEXTITEM, -1, LVNI_SELECTED
+	.ENDIF	
 	ret
 ListViewGetSelected ENDP
 

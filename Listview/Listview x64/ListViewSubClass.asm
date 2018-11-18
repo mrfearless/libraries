@@ -28,7 +28,7 @@ include Listview.inc
 ; Returns in eax, pointer to older proc required for subclass to use
 ; NULL if failure
 ;**************************************************************************
-ListViewSubClassProc PROC FRAME  hListview:QWORD, lpdqLVSubClassProc:QWORD
+ListViewSubClassProc PROC FRAME hListview:QWORD, lpdqLVSubClassProc:QWORD
 	.IF lpdqLVSubClassProc != NULL
 	    Invoke SetWindowLongPtr, hListview, GWLP_WNDPROC, lpdqLVSubClassProc
 	.ELSE
@@ -47,7 +47,7 @@ ListViewSubClassProc ENDP
 ; Returns in eax, pointer to older proc required for subclass to use
 ; NULL if failure
 ;**************************************************************************
-ListViewSubClassData PROC FRAME  hListview:QWORD, lpdqLVSubClassData:QWORD
+ListViewSubClassData PROC FRAME hListview:QWORD, lpdqLVSubClassData:QWORD
 	.IF lpdqLVSubClassData != NULL
         Invoke SetWindowLongPtr, hListview, GWLP_USERDATA, lpdqLVSubClassData
     .ELSE

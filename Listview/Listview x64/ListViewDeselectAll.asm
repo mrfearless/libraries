@@ -22,10 +22,13 @@ include Listview.inc
 ;**************************************************************************	
 ; Deselect all items in listview
 ;**************************************************************************	
-ListViewDeselectAll PROC FRAME  hListview:QWORD
+ListViewDeselectAll PROC FRAME hListview:QWORD, bFocused:QWORD
 	LOCAL LVItem:LV_ITEM
-
-	mov LVItem.stateMask, LVIS_SELECTED
+    .IF bFocused == TRUE
+	    mov LVItem.stateMask, LVIS_SELECTED or LVIS_FOCUSED
+	.ELSE
+	    mov LVItem.stateMask, LVIS_SELECTED
+	.ENDIF
 	mov LVItem.state, NULL
 	invoke SendMessage, hListview, LVM_SETITEMSTATE, -1, ADDR LVItem    ; Deselect everything
 

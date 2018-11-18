@@ -1,7 +1,7 @@
 ;-----------------------------------------------------------------------------------------------------
 ; LTLT Listview Additions 18/11/2018
 ;
-; Paste this text at the end of \Radasm\JWasm\JWasmApiCall.api to add these to Radasm
+; Paste this text at the end of \Radasm\UASM64\UASM64ApiCall.api to add these to Radasm
 ;
 ;-----------------------------------------------------------------------------------------------------
 ListViewSelectAll,hListview

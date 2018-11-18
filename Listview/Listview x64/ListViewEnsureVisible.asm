@@ -20,16 +20,14 @@ include Listview.inc
 .code
 
 ;**************************************************************************	
-; Set the currently selected item to a specified index
+; Ensures item is visible in listview
 ;**************************************************************************	
-ListViewSetFocused PROC FRAME hListview:QWORD, nItemIndex:QWORD
-	LOCAL LVItem:LV_ITEM
-	
-	mov LVItem.mask_, LVIF_STATE
-	mov LVItem.state, LVIS_FOCUSED
-	mov LVItem.stateMask, LVIS_FOCUSED 
-	invoke SendMessage, hListview, LVM_SETITEMSTATE, nItemIndex, addr LVItem    ; Set current focus
-	ret
-ListViewSetFocused endp
+ListViewEnsureVisible PROC FRAME hListview:QWORD, nItemIndex:QWORD
+    
+    Invoke SendMessage, hListview, LVM_ENSUREVISIBLE, nItemIndex, FALSE
+    ret
+
+ListViewEnsureVisible ENDP
+
 
 end

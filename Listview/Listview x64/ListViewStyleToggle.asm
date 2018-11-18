@@ -23,7 +23,7 @@ include Listview.inc
 ;**************************************************************************	
 ; Toggles Extended Listview Style  On/Off
 ;**************************************************************************
-ListViewStyleToggle	PROC FRAME  USES RAX hListview:QWORD, dqExStyle:QWORD
+ListViewStyleToggle	PROC FRAME hListview:QWORD, dqExStyle:QWORD
 
     Invoke SendMessage, hListview, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0   ; Get current extended styles 
 	AND rax, dqExStyle                                          ; Checkboxes

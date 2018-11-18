@@ -22,7 +22,7 @@ include Listview.inc
 ;**************************************************************************	
 ; Toggles Checkbox Column  On/Off
 ;**************************************************************************
-ListViewStyleCheckboxes PROC FRAME  USES RAX hListview:QWORD
+ListViewStyleCheckboxes PROC FRAME hListview:QWORD
 	Invoke SendMessage, hListview, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0	; Get current extended styles like gridlines
 	AND rax, LVS_EX_CHECKBOXES                                          ; Checkboxes
 	.IF rax == LVS_EX_CHECKBOXES

@@ -22,7 +22,7 @@ include Listview.inc
 ;**************************************************************************	
 ; Toggles Listview Gridlines On/Off
 ;**************************************************************************	
-ListViewStyleDoubleBuffer PROC FRAME  USES RAX hListview:QWORD
+ListViewStyleDoubleBuffer PROC FRAME hListview:QWORD
 
     Invoke SendMessage, hListview, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0   ; Get current extended styles 
 	AND rax, LVS_EX_DOUBLEBUFFER                                          ; Checkboxes

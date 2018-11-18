@@ -31,12 +31,14 @@ include Listview.inc
 ;	            Invoke ListViewShowItemContextMenu, hWin, hMyListview, hLVRCMenu ; if no item is selected in listview, no menu is shown
 ;	            
 ;**************************************************************************
-ListViewShowItemContextMenu PROC FRAME  hWin:QWORD, hListview:QWORD, hRightClickMenu:QWORD
+ListViewShowItemContextMenu PROC FRAME hWin:QWORD, hListview:QWORD, hRightClickMenu:QWORD, qwRequiresSelection:QWORD
 	LOCAL LVMenuPoint:POINT
-
-    Invoke SendMessage, hListview , LVM_GETNEXTITEM, -1, LVNI_FOCUSED+LVNI_SELECTED
-    .IF eax == -1
-        ret ; no need to show menu as nothing selected
+    
+    .IF qwRequiresSelection == TRUE
+        Invoke SendMessage, hListview , LVM_GETNEXTITEM, -1, LVNI_FOCUSED or LVNI_SELECTED
+        .IF eax == -1
+            ret ; no need to show menu as nothing selected
+        .ENDIF
     .ENDIF
 	
 	Invoke GetCursorPos, Addr LVMenuPoint 
