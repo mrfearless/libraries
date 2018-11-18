@@ -1,4 +1,4 @@
-# ![](../assets/BearSSL.png) BearSSL x86
+# ![](../../assets/BearSSL.png) BearSSL x86
 
 BearSSL static libraries compiled for x86 assembler 
 
