@@ -19,7 +19,7 @@ includelib zstd_x64.lib
 
 ## Functions
 
-Zstandard Library reference documentation is available on the Zstandard website: [http://facebook.github.io/zstd/zstd_manual.html)
+Zstandard Library reference documentation is available on the Zstandard website: [http://facebook.github.io/zstd/zstd_manual.html](http://facebook.github.io/zstd/zstd_manual.html)
 
 ## Download
 
