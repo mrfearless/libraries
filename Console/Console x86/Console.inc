@@ -41,12 +41,16 @@
 ;-----------------------------------------------------------------------------------------
 ConsolePause            PROTO :DWORD                                    ; dwConMsgType
 ConsoleStdOut           PROTO :DWORD                                    ; lpszConText
+ConsoleText             PROTO :DWORD                                    ; lpszConText (ConsoleText is alias for ConsoleStdOut)
+ConsoleStdOutColor      PROTO :DWORD, :DWORD                            ; lpszConText, Color
+ConsoleTextColor        PROTO :DWORD, :DWORD                            ; lpszConText, Color (ConsoleTextColor is alias for ConsoleStdOutColor)
 ConsoleStdIn            PROTO :DWORD, :DWORD                            ; lpszConInputBuffer, dwSizeConInputBuffer
 ConsoleStdInW           PROTO :DWORD, :DWORD                            ; lpszWideConInputBuffer, dwSizeWideConInputBuffer
 ConsoleStdErr           PROTO :DWORD                                    ; lpszErrText
+ConsoleError            PROTO :DWORD                                    ; lpszErrText (ConsoleError is alias for ConsoleStdErr)
 
 ConsoleClearScreen      PROTO                                           ; no return
-ConsoleCls              EQU ConsoleClearScreen                          ; no return
+ConsoleCls              PROTO                                           ; no return
 ConsoleShowCursor       PROTO                                           ; no return
 ConsoleHideCursor       PROTO                                           ; no return
 
@@ -63,7 +67,9 @@ ConsoleSpinnerStart     PROTO :DWORD, :DWORD, :DWORD, :DWORD            ; dwXpos
 ConsoleSpinnerStop      PROTO
 
 ConsoleStarted          PROTO                                           ; eax returns TRUE if started via console or FALSE if started via explorer
+ConsoleAlloc            TEXTEQU <AllocConsole>
 ConsoleAttach           PROTO                                           ; no return
+ConsoleAttachProcess    PROTO :DWORD
 ConsoleFree             PROTO                                           ; no return
 
 ConsoleParseCmdLine     PROTO :DWORD                                    ; dwParametersArray (make sure buffer is large enough for all parameters)
@@ -94,7 +100,34 @@ CMDLINE_PARAM_TYPE_FILESPEC EQU 3   ; *.*, <filename>.*, *.<ext>
 CMDLINE_PARAM_TYPE_FILENAME EQU 4   ; <filename.ext>
 CMDLINE_PARAM_TYPE_FOLDER   EQU 5   ; C:\Windows, .\MyFolder, ..\OtherFolder
 
+; Colors for ConsoleStdOutColor
+FOREGROUND_WHITE		    EQU (FOREGROUND_RED or FOREGROUND_BLUE or FOREGROUND_GREEN)
+FOREGROUND_YELLOW       	EQU (FOREGROUND_RED or FOREGROUND_GREEN)
+FOREGROUND_CYAN		        EQU (FOREGROUND_BLUE or FOREGROUND_GREEN)
+FOREGROUND_MAGENTA	        EQU (FOREGROUND_RED or FOREGROUND_BLUE)
+FOREGROUND_BLACK		    EQU 0
 
+FOREGROUND_INTENSE_RED		EQU (FOREGROUND_RED or FOREGROUND_INTENSITY)
+FOREGROUND_INTENSE_GREEN	EQU (FOREGROUND_GREEN or FOREGROUND_INTENSITY)
+FOREGROUND_INTENSE_BLUE		EQU (FOREGROUND_BLUE or FOREGROUND_INTENSITY)
+FOREGROUND_INTENSE_WHITE	EQU (FOREGROUND_WHITE or FOREGROUND_INTENSITY)
+FOREGROUND_INTENSE_YELLOW	EQU (FOREGROUND_YELLOW or FOREGROUND_INTENSITY)
+FOREGROUND_INTENSE_CYAN		EQU (FOREGROUND_CYAN or FOREGROUND_INTENSITY)
+FOREGROUND_INTENSE_MAGENTA	EQU (FOREGROUND_MAGENTA or FOREGROUND_INTENSITY)
+
+BACKGROUND_WHITE		    EQU (BACKGROUND_RED or BACKGROUND_BLUE or BACKGROUND_GREEN)
+BACKGROUND_YELLOW	        EQU (BACKGROUND_RED or BACKGROUND_GREEN)
+BACKGROUND_CYAN		        EQU (BACKGROUND_BLUE or BACKGROUND_GREEN)
+BACKGROUND_MAGENTA	        EQU (BACKGROUND_RED or BACKGROUND_BLUE)
+BACKGROUND_BLACK		    EQU 0
+
+BACKGROUND_INTENSE_RED		EQU (BACKGROUND_RED or BACKGROUND_INTENSITY)
+BACKGROUND_INTENSE_GREEN	EQU (BACKGROUND_GREEN or BACKGROUND_INTENSITY)
+BACKGROUND_INTENSE_BLUE		EQU (BACKGROUND_BLUE or BACKGROUND_INTENSITY)
+BACKGROUND_INTENSE_WHITE	EQU (BACKGROUND_WHITE or BACKGROUND_INTENSITY)
+BACKGROUND_INTENSE_YELLOW	EQU (BACKGROUND_YELLOW or BACKGROUND_INTENSITY)
+BACKGROUND_INTENSE_CYAN		EQU (BACKGROUND_CYAN or BACKGROUND_INTENSITY)
+BACKGROUND_INTENSE_MAGENTA	EQU (BACKGROUND_MAGENTA or BACKGROUND_INTENSITY)
 
 
 

@@ -1,4 +1,6 @@
-.486                        ; force 32 bit code
+.686
+.MMX
+.XMM
 .model flat, stdcall        ; memory model & calling convention
 option casemap :none        ; case sensitive
 
@@ -11,6 +13,16 @@ include Console.inc
 
 
 .CODE
+
+
+;**************************************************************************
+; ConsoleError - alias for ConsoleStdErr
+;**************************************************************************
+ConsoleError PROC lpszErrText:DWORD
+    Invoke ConsoleStdErr, lpszErrText
+    ret
+ConsoleError ENDP
+
 
 ;**************************************************************************
 ; ConsoleStdErr - taken from masm32 lib

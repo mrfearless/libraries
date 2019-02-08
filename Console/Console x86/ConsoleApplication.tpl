@@ -568,7 +568,7 @@ Main ENDP
 ;-----------------------------------------------------------------------------------------
 ; Prints out console information
 ;-----------------------------------------------------------------------------------------
-[*PROJECTNAME*]ConInfo PROC
+[*PROJECTNAME*]ConInfo PROC dwMsgType:DWORD
     mov eax, dwMsgType
     .IF eax == CON_OUT_INFO
         Invoke ConsoleStdOut, Addr sz[*PROJECTNAME*]ConInfo
@@ -654,7 +654,7 @@ Main ENDP
         Invoke ConsoleStdOut, Addr szCRLF
     .ENDIF
     ret
-[*PROJECTNAME*]ConHelp ENDP
+[*PROJECTNAME*]ConErr ENDP
 
 
 ;-------------------------------------------------------------------------------------
@@ -869,8 +869,8 @@ includelib Console.lib
 [*PROJECTNAME*]RegisterCommands PROTO
 [*PROJECTNAME*]ProcessCmdLine   PROTO
 
-[*PROJECTNAME*]ConInfo          PROTO
-[*PROJECTNAME*]ConErr           PROTO
+[*PROJECTNAME*]ConInfo          PROTO :DWORD
+[*PROJECTNAME*]ConErr           PROTO :DWORD
 
 [*PROJECTNAME*]FileInOpen       PROTO :DWORD
 [*PROJECTNAME*]FileInClose      PROTO

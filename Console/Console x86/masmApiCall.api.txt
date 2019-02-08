@@ -6,9 +6,13 @@
 ;-----------------------------------------------------------------------------------------------------
 ConsolePause,dwConMsgType
 ConsoleStdOut,lpszConText
+ConsoleText,lpszConText
+ConsoleStdOutColor,lpszConText,Color
+ConsoleTextColor,lpszConText,Color
 ConsoleStdIn,lpszConInputBuffer,dwSizeConInputBuffer
 ConsoleStdInW,lpszWideConInputBuffer,dwSizeWideConInputBuffer
 ConsoleStdErr,lpszErrText
+ConsoleError,lpszErrText
 ConsoleClearScreen
 ConsoleCls
 ConsoleShowCursor
@@ -20,6 +24,7 @@ ConsoleGetPosition,lpdwXpos,lpdwYpos
 ConsoleSetIcon,IcoResID
 ConsoleStarted
 ConsoleAttach
+ConsoleAttachProcess,dwProcessID
 ConsoleFree
 ConsoleParseCmdLine,dwParametersArray
 ConsoleCmdLineParam,dwParametersArray,dwParameterToFetch,dwTotalParameters,lpszReturnedParameter

@@ -1,4 +1,4 @@
-.486                        ; force 32 bit code
+.686
 .model flat, stdcall        ; memory model & calling convention
 option casemap :none        ; case sensitive
 
@@ -103,7 +103,6 @@ ConsoleParseCmdLine ENDP
 ;             the string value of the parameter and eax contains the lenght of parameter
 ;-----------------------------------------------------------------------------------------
 ConsoleCmdLineParam PROC USES EBX ESI dwParametersArray:DWORD, dwParameterToFetch:DWORD, dwTotalParameters:DWORD, lpszReturnedParameter:DWORD
-    
     .IF dwParametersArray == 0
         mov eax, -1
         ret
@@ -121,7 +120,7 @@ ConsoleCmdLineParam PROC USES EBX ESI dwParametersArray:DWORD, dwParameterToFetc
     mov ebx, 4
     mul ebx ; eax contains the no of parameter we want offset for
     add esi, eax ; Now at offset for parameters string
-    ;Invoke szCopy, dword PTR [esi], lpszReturnedParameter ; Copy param to our chosen passed location - make sure enough space in buffer or crashh
+
     .IF lpszReturnedParameter != NULL
         Invoke lstrcpy, lpszReturnedParameter, DWORD PTR [esi]
         Invoke lstrlen, lpszReturnedParameter ; Get length of parameter. >0 = success
@@ -171,15 +170,9 @@ ConsoleCmdLineParamType PROC USES EBX dwParametersArray:DWORD, dwParameterToFetc
         .ELSEIF eax == 3 ; 
             movzx eax, byte ptr [ebx]
             .IF al == '-' ; -
-                ;movzx eax, byte ptr [ebx+1]
-                ;.IF al == '-' ; --?
-                    mov eax, CMDLINE_PARAM_TYPE_SWITCH
-                    ret
-                ;.ELSE ; -xa
-                ;    mov eax, CMDLINE_PARAM_TYPE_OPTIONS
-                ;    ret
-                ;.ENDIF
-                
+                mov eax, CMDLINE_PARAM_TYPE_SWITCH
+                ret
+
             .ELSEIF al == '/' ; starts with forward slash
                 mov eax, CMDLINE_PARAM_TYPE_SWITCH
                 ret
@@ -405,9 +398,7 @@ ConsoleCmdLineParamType PROC USES EBX dwParametersArray:DWORD, dwParameterToFetc
     .ENDIF
     
     ret
-
 ConsoleCmdLineParamType ENDP
-
 
 
 ;**************************************************************************

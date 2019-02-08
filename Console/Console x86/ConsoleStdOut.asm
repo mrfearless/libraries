@@ -1,4 +1,6 @@
-.486                        ; force 32 bit code
+.686
+.MMX
+.XMM
 .model flat, stdcall        ; memory model & calling convention
 option casemap :none        ; case sensitive
 
@@ -11,6 +13,15 @@ include Console.inc
 
 
 .CODE
+
+
+;**************************************************************************
+; ConsoleText - alias for ConsoleStdOut
+;**************************************************************************
+ConsoleText PROC lpszConText:DWORD
+    Invoke ConsoleStdOut, lpszConText
+ConsoleText ENDP
+
 
 ;**************************************************************************
 ; ConsoleStdOut - taken from masm32 lib

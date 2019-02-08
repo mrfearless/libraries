@@ -1,4 +1,6 @@
-.486                        ; force 32 bit code
+.686
+.MMX
+.XMM
 .model flat, stdcall        ; memory model & calling convention
 option casemap :none        ; case sensitive
 
@@ -11,6 +13,13 @@ include Console.inc
 
 
 .CODE
+
+
+ConsoleCls PROC
+    Invoke ConsoleClearScreen
+    ret
+ConsoleCls ENDP
+
 
 ;-----------------------------------------------------------------------------------------
 ; ClearConsoleScreen - taken from masm32 lib

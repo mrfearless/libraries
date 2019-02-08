@@ -1,0 +1,9 @@
+bak/
+*.undo
+*.obj
+*.pdb
+*.ilk
+*.exp
+*.bak
+
+

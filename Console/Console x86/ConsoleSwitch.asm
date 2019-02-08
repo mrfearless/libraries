@@ -1,4 +1,6 @@
-.486                        ; force 32 bit code
+.686
+.MMX
+.XMM
 .model flat, stdcall        ; memory model & calling convention
 option casemap :none        ; case sensitive
 
@@ -10,7 +12,6 @@ includelib kernel32.lib
 include Console.inc
 
 ConsoleStringLength             PROTO :DWORD
-ConsoleStringUpper              PROTO :DWORD
 ConsoleStringCompareSensitive   PROTO :DWORD, :DWORD
 ConsoleStringCompareInsensitive PROTO :DWORD, :DWORD
 
@@ -65,7 +66,7 @@ db 240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,255
 ;-----------------------------------------------------------------------------------------
 ; ConsoleSwitchRegister - register a switch for use with cmdline. / or - or -- start
 ;-----------------------------------------------------------------------------------------
-ConsoleSwitchRegister PROC USES EBX lpszSwitch:DWORD, dwSwitchID:DWORD;, bCaseSensitive:DWORD
+ConsoleSwitchRegister PROC USES EBX lpszSwitch:DWORD, dwSwitchID:DWORD
     LOCAL ptrCurrentSwitchEntry:DWORD
     
     .IF lpszSwitch == NULL
@@ -100,20 +101,11 @@ ConsoleSwitchRegister PROC USES EBX lpszSwitch:DWORD, dwSwitchID:DWORD;, bCaseSe
     lea ebx, RegisteredSwitches
     add eax, ebx
     mov ptrCurrentSwitchEntry, eax
-        
-;    .IF bCaseSensitive == TRUE
-        mov ebx, ptrCurrentSwitchEntry
-        mov eax, lpszSwitch
-        lea ebx, [ebx].SWITCHDEF.lpszSwitch
-        Invoke lstrcpyn, ebx, eax, SWITCH_NAME_MAX_LENGTH
-;    .ELSE
-;        mov eax, lpszSwitch
-;        Invoke lstrcpyn, Addr CmdLineSwitchBuffer, eax, SWITCH_NAME_MAX_LENGTH
-;        Invoke ConsoleStringUpper, Addr CmdLineSwitchBuffer
-;        mov ebx, ptrCurrentSwitchEntry
-;        lea ebx, [ebx].SWITCHDEF.lpszSwitch
-;        Invoke lstrcpyn, ebx, Addr CmdLineSwitchBuffer, SWITCH_NAME_MAX_LENGTH
-;    .ENDIF
+    
+    mov ebx, ptrCurrentSwitchEntry
+    mov eax, lpszSwitch
+    lea ebx, [ebx].SWITCHDEF.lpszSwitch
+    Invoke lstrcpyn, ebx, eax, SWITCH_NAME_MAX_LENGTH
 
     mov ebx, ptrCurrentSwitchEntry
     mov eax, dwSwitchID
@@ -129,7 +121,7 @@ ConsoleSwitchRegister ENDP
 ;-----------------------------------------------------------------------------------------
 ; ConsoleCommandRegister - register a command for use with cmdline. (no / or - start)
 ;-----------------------------------------------------------------------------------------
-ConsoleCommandRegister PROC USES EBX lpszCommand:DWORD, dwCommandID:DWORD;, bCaseSensitive:DWORD
+ConsoleCommandRegister PROC USES EBX lpszCommand:DWORD, dwCommandID:DWORD
     LOCAL ptrCurrentCmdEntry:DWORD
     
     .IF lpszCommand == NULL
@@ -165,19 +157,10 @@ ConsoleCommandRegister PROC USES EBX lpszCommand:DWORD, dwCommandID:DWORD;, bCas
     add eax, ebx
     mov ptrCurrentCmdEntry, eax
         
-;    .IF bCaseSensitive == TRUE
-        mov ebx, ptrCurrentCmdEntry
-        mov eax, lpszCommand
-        lea ebx, [ebx].COMMANDDEF.lpszCommand
-        Invoke lstrcpyn, ebx, eax, COMMAND_NAME_MAX_LENGTH
-;    .ELSE
-;        mov eax, lpszCommand
-;        Invoke lstrcpyn, Addr CmdLineCommandBuffer, eax, COMMAND_NAME_MAX_LENGTH
-;        Invoke ConsoleStringUpper, Addr CmdLineCommandBuffer
-;        mov ebx, ptrCurrentCmdEntry
-;        lea ebx, [ebx].COMMANDDEF.lpszCommand
-;        Invoke lstrcpyn, ebx, Addr CmdLineCommandBuffer, COMMAND_NAME_MAX_LENGTH
-;    .ENDIF
+    mov ebx, ptrCurrentCmdEntry
+    mov eax, lpszCommand
+    lea ebx, [ebx].COMMANDDEF.lpszCommand
+    Invoke lstrcpyn, ebx, eax, COMMAND_NAME_MAX_LENGTH
 
     mov ebx, ptrCurrentCmdEntry
     mov eax, dwCommandID
@@ -187,7 +170,6 @@ ConsoleCommandRegister PROC USES EBX lpszCommand:DWORD, dwCommandID:DWORD;, bCas
     mov eax, TRUE
     
     ret
-
 ConsoleCommandRegister ENDP
 
 
@@ -206,16 +188,7 @@ ConsoleSwitchID PROC USES EBX lpszSwitch:DWORD, bCaseSensitive:DWORD
     .IF eax == 0
         mov eax, -1
         ret
-    ;.ELSEIF sdword ptr eax > SWITCH_NAME_MAX_LENGTH
-    ;    mov eax, -1
-    ;    ret
     .ENDIF
-    
-;    .IF bCaseSensitive == FALSE
-;        mov eax, lpszSwitch
-;        Invoke lstrcpyn, Addr CmdLineSwitchBuffer, eax, SWITCH_NAME_MAX_LENGTH
-;        Invoke ConsoleStringUpper, Addr CmdLineSwitchBuffer
-;    .ENDIF
     
     lea eax, RegisteredSwitches
     mov ptrCurrentSwitchEntry, eax
@@ -244,26 +217,9 @@ ConsoleSwitchID PROC USES EBX lpszSwitch:DWORD, bCaseSensitive:DWORD
                 mov ebx, ptrCurrentSwitchEntry
                 mov eax, [ebx].SWITCHDEF.dwSwitchID
                 ret
-            .ENDIF            
+            .ENDIF
         .ENDIF
 
-;        .IF bCaseSensitive == FALSE
-;            lea eax, CmdLineSwitchBuffer
-;            lea ebx, [ebx].SWITCHDEF.lpszSwitch
-;        .ELSE
-;            mov eax, lpszSwitch
-;            lea ebx, [ebx].SWITCHDEF.lpszSwitch
-;        .ENDIF
-        ; compare
-        ;Invoke ConsoleStringCompareSensitive, ebx, eax
-;        .IF eax == 0 ; no match
-;            ; continue and try next entry
-;        .ELSE
-;            mov ebx, ptrCurrentSwitchEntry
-;            mov eax, [ebx].SWITCHDEF.dwSwitchID
-;            ret
-;        .ENDIF
-        
         add ptrCurrentSwitchEntry, SIZEOF SWITCHDEF
         inc nCurrentSwitch
         mov eax, nCurrentSwitch
@@ -271,7 +227,6 @@ ConsoleSwitchID PROC USES EBX lpszSwitch:DWORD, bCaseSensitive:DWORD
     
     mov eax, -1
     ret
-
 ConsoleSwitchID ENDP
 
 
@@ -290,17 +245,8 @@ ConsoleCommandID PROC USES EBX lpszCommand:DWORD, bCaseSensitive:DWORD
     .IF eax == 0
         mov eax, -1
         ret
-    ;.ELSEIF sdword ptr eax > COMMAND_NAME_MAX_LENGTH
-    ;    mov eax, -1
-    ;    ret
     .ENDIF
-    
-;    .IF bCaseSensitive == FALSE
-;        mov eax, lpszCommand
-;        Invoke lstrcpyn, Addr CmdLineCommandBuffer, eax, COMMAND_NAME_MAX_LENGTH
-;        Invoke ConsoleStringUpper, Addr CmdLineCommandBuffer
-;    .ENDIF
-    
+
     lea eax, RegisteredCommands
     mov ptrCurrentCmdEntry, eax
     
@@ -331,23 +277,6 @@ ConsoleCommandID PROC USES EBX lpszCommand:DWORD, bCaseSensitive:DWORD
             .ENDIF            
         .ENDIF
         
-;        .IF bCaseSensitive == FALSE
-;            lea eax, CmdLineCommandBuffer
-;            lea ebx, [ebx].COMMANDDEF.lpszCommand
-;        .ELSE
-;            mov eax, lpszCommand
-;            lea ebx, [ebx].COMMANDDEF.lpszCommand
-;        .ENDIF
-;        ; compare
-;        Invoke ConsoleStringCompareSensitive, ebx, eax
-;        .IF eax == 0 ; no match
-;            ; continue and try next entry
-;        .ELSE
-;            mov ebx, ptrCurrentCmdEntry
-;            mov eax, [ebx].COMMANDDEF.dwCommandID
-;            ret
-;        .ENDIF
-        
         add ptrCurrentCmdEntry, SIZEOF COMMANDDEF
         inc nCurrentCmd
         mov eax, nCurrentCmd
@@ -355,37 +284,7 @@ ConsoleCommandID PROC USES EBX lpszCommand:DWORD, bCaseSensitive:DWORD
     
     mov eax, -1
     ret
-
 ConsoleCommandID ENDP
-
-
-;**************************************************************************
-; szUpper function taken from masm32 library
-;**************************************************************************
-OPTION PROLOGUE:NONE 
-OPTION EPILOGUE:NONE 
-align 4
-ConsoleStringUpper PROC text:DWORD
-    mov eax, [esp+4]
-    dec eax
-
-  @@:
-    add eax, 1
-    cmp BYTE PTR [eax], 0
-    je @F
-    cmp BYTE PTR [eax], "a"
-    jb @B
-    cmp BYTE PTR [eax], "z"
-    ja @B
-    sub BYTE PTR [eax], 32
-    jmp @B
-  @@:
-
-    mov eax, [esp+4]
-    ret 4
-ConsoleStringUpper ENDP
-OPTION PROLOGUE:PrologueDef 
-OPTION EPILOGUE:EpilogueDef 
 
 
 ;**************************************************************************
@@ -394,11 +293,12 @@ OPTION EPILOGUE:EpilogueDef
 OPTION PROLOGUE:NONE 
 OPTION EPILOGUE:NONE 
 align 16
-ConsoleStringCompareSensitive PROC USES EBX ECX EDX ESI str1:DWORD, str2:DWORD
+ConsoleStringCompareSensitive PROC str1:DWORD, str2:DWORD
     mov ecx, [esp+4]
     mov edx, [esp+8]
-    ;push ebx
-    ;push esi
+    
+    push ebx
+    push esi
     mov eax, -1
     mov esi, 1
     align 4
@@ -417,14 +317,14 @@ cmst:
     jne no_match
     test ebx, ebx       ; check for terminator
     jne cmst
-retlen:               ; length is in EAX
-    ;pop esi
-    ;pop ebx
+retlen:                 ; length is in EAX
+    pop esi
+    pop ebx
     ret 8
 no_match:
     xor eax, eax        ; return zero on no match
-    ;pop esi
-    ;pop ebx
+    pop esi
+    pop ebx
     ret 8
 ConsoleStringCompareSensitive ENDP
 OPTION PROLOGUE:PrologueDef 
@@ -438,7 +338,6 @@ OPTION PROLOGUE:NONE
 OPTION EPILOGUE:NONE 
 align 16
 ConsoleStringCompareInsensitive PROC src:DWORD,dst:DWORD
-
     push ebx
     push esi
     push edi
@@ -466,7 +365,6 @@ ConsoleStringCompareInsensitive PROC src:DWORD,dst:DWORD
     pop ebx
 
     ret 8
-
 ConsoleStringCompareInsensitive ENDP
 OPTION PROLOGUE:PrologueDef 
 OPTION EPILOGUE:EpilogueDef 

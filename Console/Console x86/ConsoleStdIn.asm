@@ -1,4 +1,4 @@
-.486                        ; force 32 bit code
+.686
 .model flat, stdcall        ; memory model & calling convention
 option casemap :none        ; case sensitive
 
