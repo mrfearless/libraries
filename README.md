@@ -19,6 +19,7 @@ Hopefully you find them useful in your coding.
 - [Jansson - C library for encoding, decoding and manipulating JSON data](https://github.com/mrfearless/libraries/tree/master/Jansson)
 - [Keystone - lightweight multi-platform, multi-architecture assembler framework](https://github.com/mrfearless/libraries/tree/master/Keystone)
 - [Listview - library for handling windows listview controls](https://github.com/mrfearless/libraries/tree/master/Listview)
+- [Lua - embeddable scripting language](https://github.com/mrfearless/libraries/tree/master/Lua)
 - [LZ4 - Extremely Fast Compression algorithm](https://github.com/mrfearless/libraries/tree/master/LZ4)
 - [Masm64 - x64 assembler port of Steve Hutchesson's Masm32 library](https://github.com/mrfearless/libraries/tree/master/Masm64)
 - [Mini-XML - Tiny XML library](https://github.com/mrfearless/libraries/tree/master/Mini-XML)
