@@ -1,0 +1,3 @@
+#include "Res/OpenCLDetectionMnu.rc"
+#include "Res/OpenCLDetectionDlg.rc"
+#include "Res/OpenCLDetectionRes.rc"
