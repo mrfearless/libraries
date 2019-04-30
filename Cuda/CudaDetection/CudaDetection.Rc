@@ -1,0 +1,4 @@
+#include "Res/CudaDetectionMnu.rc"
+#include "Res/CudaDetectionVer.rc"
+#include "Res/CudaDetectionDlg.rc"
+#include "Res/CudaDetectionRes.rc"
