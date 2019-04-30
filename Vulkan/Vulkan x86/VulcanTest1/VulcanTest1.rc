@@ -1,0 +1,4 @@
+#include "Res/VulcanTest1Mnu.rc"
+#include "Res/VulcanTest1Ver.rc"
+#include "Res/VulcanTest1Dlg.rc"
+#include "Res/VulcanTest1Res.rc"
