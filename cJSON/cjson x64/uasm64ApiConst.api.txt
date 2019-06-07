@@ -1,0 +1,12 @@
+;------------------------------------------------------------------------------
+; cJSON v1.7.12 x64 Library Additions 2019
+;
+; Paste this text at the end of \Radasm\uasm64\uasm64ApiConst.api to add these to Radasm
+;
+;------------------------------------------------------------------------------
+2cJSON_ParseWithOpts,TRUE,FALSE
+3cJSON_ParseWithOpts,TRUE,FALSE
+3cJSON_PrintBuffered,TRUE,FALSE
+4cJSON_PrintPreallocated,TRUE,FALSE
+2cJSON_Duplicate,TRUE,FALSE
+3cJSON_Compare,TRUE,FALSE

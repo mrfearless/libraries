@@ -1,7 +1,6 @@
-# cJSON - libcjson x64
+# cJSON - cjson x64
 
-**Depreciated - use the newer version of cjson library instead.**
-libcjson v1.6.0 static library compiled for x64 uasm assemble
+cjson v1.7.12 static library compiled for x64 uasm assembler
 
 cJSON: https://github.com/DaveGamble/cJSON
 
@@ -9,16 +8,16 @@ cJSON: https://github.com/DaveGamble/cJSON
 
 From a post on tuts4you.com: https://forum.tuts4you.com/topic/39996-how-to-read-json-correctly/
 
-Includes x64 cjsontree - a demo program created to show the usage of the libcjson library
+Includes x64 cjsontree - a demo program created to show the usage of the cjson library
 
 ## Usage
 
-* Copy `libcjson_x64.inc` to your `uasm\include` folder (or wherever your includes are located)
-* Copy `libcjson_x64.lib` to your `uasm\lib\x64` folder (or wherever your 64bit libraries are located)
+* Copy `cjson_x64.inc` to your `uasm\include` folder (or wherever your includes are located)
+* Copy `cjson_x64.lib` to your `uasm\lib\x64` folder (or wherever your 64bit libraries are located)
 * Add the following to your project:
 ```assembly
-include libcjson_x64.inc
-includelib libcjson_x64.lib
+include cjson_x64.inc
+includelib cjson_x64.lib
 ```
 
 ## RadASM Autocomplete
