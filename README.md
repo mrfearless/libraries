@@ -25,6 +25,7 @@ Hopefully you find them useful in your coding.
 - [Mini-XML - Tiny XML library](https://github.com/mrfearless/libraries/tree/master/Mini-XML)
 - [OpenCL - x64 assembler port of Khronos OpenCL SDK](https://github.com/mrfearless/libraries/tree/master/OpenCL)
 - [OpenSSL - toolkit for the TLS and SSL protocols and cryptography](https://github.com/mrfearless/libraries/tree/master/OpenSSL)
+- [RPC - Remote Procedure Calls](https://github.com/mrfearless/libraries/tree/master/RPC)
 - [Snappy - fast compressor/decompressor by Google](https://github.com/mrfearless/libraries/tree/master/Snappy)
 - [SQLite - transactional SQL database engine](https://github.com/mrfearless/libraries/tree/master/SQLite)
 - [Treeview - library for handling windows treeview controls](https://github.com/mrfearless/libraries/tree/master/Treeview)
