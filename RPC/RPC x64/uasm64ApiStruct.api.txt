@@ -1,0 +1,7 @@
+;------------------------------------------------------------------------------------------------
+; RPC x64 Library
+;
+; Paste this text at the end of \Radasm\UASM64\uasm64ApiStruct.api to add these to Radasm
+;
+;------------------------------------------------------------------------------------------------
+RPC_HANDLE,hConnect,hInternet,hRequest,bSecure,qwStatusCode,lpszHostAddress,lpszUrl,lpszPathVariable,lpszQueryParameters,lpszAcceptHeader,lpszContentHeader,lpszAuthHeader 

@@ -1,0 +1,26 @@
+;------------------------------------------------------------------------------------------------
+; RPC x64 Library
+;
+; Paste this text at the end of \Radasm\UASM64\uasm64ApiCall.api to add these to Radasm
+;
+;------------------------------------------------------------------------------------------------
+RpcCheckConnection,lpszHostAddress,lpszPort,bSecure
+RpcConnect,lpszHostAddress,lpszPort,bSecure,lpszUserAgent,lpqwRpcHandle
+RpcDisconnect,hRpc
+RpcSetCookie,hRpc,lpszCookieData
+RpcSetAuthBasic,hRpc,lpszUsername,lpszPassword
+RpcSetAcceptType,hRpc,lpszAcceptTypes,qwAcceptType
+RpcSetContentType,hRpc,lpszContentType,qwContentType
+RpcSetPathVariable,hRpc,lpszVariable
+RpcSetQueryParameters,hRpc,lpszName,lpszValue,qwValue
+RpcEndpointOpen,hRpc,lpszVerb,lpszEndpointUrl,lpSendData,qwSendDataSize
+RpcEndpointClose,hRpc
+RpcEndpointReadData,hRpc,lpqwDataBuffer,lpqwTotalBytesRead
+RpcEndpointFreeData,lpqwDataBuffer
+RpcWriteDataToLocalFile,hRpc,lpszLocalFilename,pDataBuffer,qwDataBufferSize
+RpcGetRemoteFileSize,hRpc,lpqwRemoteFileSize
+RpcBase64Encode,lpszSource,lpszDestination,qwSourceLength
+RpcGetStatusCode,hRpc
+RpcEndpointGET,hRpc,lpszEndpointUrl,lpqwData,lpqwDataSize,lpszDataToFile
+RpcEndpointPOST,hRpc,lpszEndpointUrl,lpPostData,qwPostDataSize,lpqwData,lpqwDataSize,lpszDataToFile
+RpcEndpointCall,hRpc,qwRpcType,lpszEndpointUrl,lpSendData,qwSendDataSize,lpqwReceiveData,lpqwReceiveDataSize,lpszReceiveDataFile

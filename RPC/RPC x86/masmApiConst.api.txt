@@ -1,0 +1,9 @@
+;------------------------------------------------------------------------------------------------
+; RPC x86 Library
+;
+; Paste this text at the end of \Radasm\masm\masmApiConst.api to add these to Radasm
+;
+;------------------------------------------------------------------------------------------------
+3RpcSetAcceptType,RPC_MEDIATYPE_NONE,RPC_MEDIATYPE_ALL,RPC_MEDIATYPE_TEXT,RPC_MEDIATYPE_HTML,RPC_MEDIATYPE_XML,RPC_MEDIATYPE_JSON,RPC_MEDIATYPE_FORM
+3RpcSetContentType,RPC_MEDIATYPE_NONE,RPC_MEDIATYPE_ALL,RPC_MEDIATYPE_TEXT,RPC_MEDIATYPE_HTML,RPC_MEDIATYPE_XML,RPC_MEDIATYPE_JSON,RPC_MEDIATYPE_FORM
+2RpcEndpointCall,RPC_GET,RPC_POST,RPC_PUT,RPC_PATCH,RPC_DELETE,RPC_HEAD,RPC_OPTIONS

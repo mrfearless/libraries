@@ -1,0 +1,26 @@
+;------------------------------------------------------------------------------------------------
+; RPC x86 Library
+;
+; Paste this text at the end of \Radasm\masm\masmApiCall.api to add these to Radasm
+;
+;------------------------------------------------------------------------------------------------
+RpcCheckConnection,lpszHostAddress,lpszPort,bSecure
+RpcConnect,lpszHostAddress,lpszPort,bSecure,lpszUserAgent,lpdwRpcHandle
+RpcDisconnect,hRpc
+RpcSetCookie,hRpc,lpszCookieData
+RpcSetAuthBasic,hRpc,lpszUsername,lpszPassword
+RpcSetAcceptType,hRpc,lpszAcceptTypes,dwAcceptType
+RpcSetContentType,hRpc,lpszContentType,dwContentType
+RpcSetPathVariable,hRpc,lpszVariable
+RpcSetQueryParameters,hRpc,lpszName,lpszValue,dwValue
+RpcEndpointOpen,hRpc,lpszVerb,lpszEndpointUrl,lpSendData,dwSendDataSize
+RpcEndpointClose,hRpc
+RpcEndpointReadData,hRpc,lpdwDataBuffer,lpdwTotalBytesRead
+RpcEndpointFreeData,lpdwDataBuffer
+RpcWriteDataToLocalFile,hRpc,lpszLocalFilename,pDataBuffer,dwDataBufferSize
+RpcGetRemoteFileSize,hRpc,lpdwRemoteFileSize
+RpcBase64Encode,lpszSource,lpszDestination,dwSourceLength
+RpcGetStatusCode,hRpc
+RpcEndpointGET,hRpc,lpszEndpointUrl,lpdwData,lpdwDataSize,lpszDataToFile
+RpcEndpointPOST,hRpc,lpszEndpointUrl,lpPostData,dwPostDataSize,lpdwData,lpdwDataSize,lpszDataToFile
+RpcEndpointCall,hRpc,dwRpcType,lpszEndpointUrl,lpSendData,dwSendDataSize,lpdwReceiveData,lpdwReceiveDataSize,lpszReceiveDataFile
