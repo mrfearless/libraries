@@ -108,16 +108,6 @@ mxml_custom_destroy_cb      PROTO                                               
 mxml_error_cb               PROTO :QWORD                                          ; void (*mxml_error_cb_t)(const char *); 
 
 
-; Typedefs
-MXML_ATTR_S                 TYPEDEF MXML_ATTR_T
-MXML_ELEMENT_S              TYPEDEF MXML_ELEMENT_T
-MXML_TEXT_S                 TYPEDEF MXML_TEXT_T
-MXML_CUSTOM_S               TYPEDEF MXML_CUSTOM_T
-MXML_VALUE_S                TYPEDEF MXML_VALUE_T
-MXML_NODE_S                 TYPEDEF MXML_NODE_T
-MXML_INDEX_S                TYPEDEF MXML_INDEX_T
-
-
 ; Structures
 MXML_ATTR_T                 STRUCT 8; An XML element attribute value. @private@ 
     attr_name               QWORD ?;    char *name              ; Attribute name
@@ -170,10 +160,20 @@ MXML_INDEX_T                STRUCT 8; An XML node index. @private@
 MXML_INDEX_T                ENDS
 
 
+; Typedefs
+MXML_ATTR_S                 TYPEDEF MXML_ATTR_T
+MXML_ELEMENT_S              TYPEDEF MXML_ELEMENT_T
+MXML_TEXT_S                 TYPEDEF MXML_TEXT_T
+MXML_CUSTOM_S               TYPEDEF MXML_CUSTOM_T
+MXML_VALUE_S                TYPEDEF MXML_VALUE_T
+MXML_NODE_S                 TYPEDEF MXML_NODE_T
+MXML_INDEX_S                TYPEDEF MXML_INDEX_T
+
+
 .CONST
 ; Constants...
-MXML_MAJOR_VERSION          EQU 2   ; Major version number
-MXML_MINOR_VERSION          EQU 11  ; Minor version number
+MXML_MAJOR_VERSION          EQU 3   ; Major version number
+MXML_MINOR_VERSION          EQU 1   ; Minor version number
 
 MXML_TAB                    EQU 8   ; Tabs every N columns
 

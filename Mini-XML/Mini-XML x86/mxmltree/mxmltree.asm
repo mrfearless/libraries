@@ -308,7 +308,7 @@ ProcessXMLFile PROC USES EBX hWin:DWORD, lpszXMLFile:DWORD
 ;		mov	FilePointer,eax
 ;		invoke	mxmlLoadFile,NULL,FilePointer,MXML_NO_CALLBACK
 ;	.endif
-
+    Invoke TreeViewClearAll, hTV
     Invoke mxmlLoadString, NULL, XMLMemMapPtr, MXML_NO_CALLBACK
     mov hMXMLTreeRoot, eax
     mov hMXMLTreeNode, eax
@@ -397,9 +397,9 @@ ProcessXMLFile PROC USES EBX hWin:DWORD, lpszXMLFile:DWORD
             
             ; Fetch no of attributes from node object
             mov ebx, hMXMLTreeNode
-            mov eax, [ebx].mxml_node_t.node_value.element.num_attrs
+            mov eax, [ebx].MXML_NODE_T.node_value.element.num_attrs
             mov nNumberOfAttributes, eax
-            mov eax, [ebx].mxml_node_t.node_value.element.attrs
+            mov eax, [ebx].MXML_NODE_T.node_value.element.attrs
             mov ptrAttributesArray, eax
             
             IFDEF DEBUG32
@@ -412,9 +412,9 @@ ProcessXMLFile PROC USES EBX hWin:DWORD, lpszXMLFile:DWORD
             .WHILE eax < nNumberOfAttributes
                 mov ebx, ptrAttributesArray
                 
-                mov eax, [ebx].mxml_attr_t.attr_name
+                mov eax, [ebx].MXML_ATTR_T.attr_name
                 mov lpszAttributeName, eax
-                mov eax, [ebx].mxml_attr_t.attr_value
+                mov eax, [ebx].MXML_ATTR_T.attr_value
                 mov lpszAttributeValue, eax
                 
                 IFDEF DEBUG32
@@ -432,7 +432,7 @@ ProcessXMLFile PROC USES EBX hWin:DWORD, lpszXMLFile:DWORD
                 Invoke TreeViewChildItemsExpand, hTV, hTVNode
                 
                 ; update array to point to next attribute
-                add ptrAttributesArray, SIZEOF mxml_attr_t
+                add ptrAttributesArray, SIZEOF MXML_ATTR_T
                 inc nAttribute
                 mov eax, nAttribute
             .ENDW

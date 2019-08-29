@@ -19,8 +19,8 @@ includelib masm32.lib
 ;includelib msvcrt.lib
 ;includelib msvcrt14.lib
 
-include mxml.inc
-includelib mxml.lib
+include mxml_x86.inc
+includelib mxml_x86.lib
 
 include TreeView.inc
 includelib TreeView.lib

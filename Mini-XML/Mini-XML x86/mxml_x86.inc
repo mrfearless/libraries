@@ -12,7 +12,7 @@
 ;   http://www.msweet.org/projects.php/Mini-XML
 ;
 
-; mxml_x64.inc converted from mxml.h for assembler by fearless 2017
+; mxml_x86.inc converted from mxml.h for assembler by fearless 2017
 
 
 ; Prototypes...
@@ -107,17 +107,6 @@ mxml_custom_save_cb         PROTO C :DWORD                                      
 mxml_custom_destroy_cb      PROTO C                                                 ; void (*mxml_custom_destroy_cb_t)(void *);
 mxml_error_cb               PROTO C :DWORD                                          ; void (*mxml_error_cb_t)(const char *); 
 
-
-; Typedefs
-MXML_ATTR_S                 TYPEDEF MXML_ATTR_T
-MXML_ELEMENT_S              TYPEDEF MXML_ELEMENT_T
-MXML_TEXT_S                 TYPEDEF MXML_TEXT_T
-MXML_CUSTOM_S               TYPEDEF MXML_CUSTOM_T
-MXML_VALUE_S                TYPEDEF MXML_VALUE_T
-MXML_NODE_S                 TYPEDEF MXML_NODE_T
-MXML_INDEX_S                TYPEDEF MXML_INDEX_T
-
-
 ; Structures
 MXML_ATTR_T                 STRUCT ; An XML element attribute value. @private@ 
     attr_name               DWORD ?;    char *name              ; Attribute name
@@ -170,10 +159,19 @@ MXML_INDEX_T                STRUCT ; An XML node index. @private@
 MXML_INDEX_T                ENDS
 
 
+; Typedefs
+MXML_ATTR_S                 TYPEDEF MXML_ATTR_T
+MXML_ELEMENT_S              TYPEDEF MXML_ELEMENT_T
+MXML_TEXT_S                 TYPEDEF MXML_TEXT_T
+MXML_CUSTOM_S               TYPEDEF MXML_CUSTOM_T
+MXML_VALUE_S                TYPEDEF MXML_VALUE_T
+MXML_NODE_S                 TYPEDEF MXML_NODE_T
+MXML_INDEX_S                TYPEDEF MXML_INDEX_T
+
 .CONST
 ; Constants...
-MXML_MAJOR_VERSION          EQU 2   ; Major version number
-MXML_MINOR_VERSION          EQU 11  ; Minor version number
+MXML_MAJOR_VERSION          EQU 3   ; Major version number
+MXML_MINOR_VERSION          EQU 1   ; Minor version number
 
 MXML_TAB                    EQU 8   ; Tabs every N columns
 

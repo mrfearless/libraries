@@ -13,12 +13,12 @@ Includes mxmltree (x86 version) - a demo program was created to show the usage o
 
 ## Usage
 
-* Copy `mxml.inc` to your `masm32\include` folder (or wherever your includes are located)
-* Copy `mxml.lib` to your `masm32\lib` folder (or wherever your libraries are located)
+* Copy `mxml_x86.inc` to your `masm32\include` folder (or wherever your includes are located)
+* Copy `mxml_x86.lib` to your `masm32\lib` folder (or wherever your libraries are located)
 * Add the following to your project:
 ```assembly
-include mxml.inc
-includelib mxml.lib
+include mxml_x86.inc
+includelib mxml_x86.lib
 ```
 
 ## RadASM Autocomplete
