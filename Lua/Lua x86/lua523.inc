@@ -383,6 +383,9 @@ LUA_ERRSYNTAX	        EQU 3
 LUA_ERRMEM	            EQU 4
 LUA_ERRGCMM	            EQU 5
 LUA_ERRERR	            EQU 6
+LUA_ERRFILE             EQU (LUA_ERRERR+1)
+
+LUA_MULTRET	            EQU (-1)
 
 ; basic types
 LUA_TNONE		        EQU -1
