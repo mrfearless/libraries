@@ -1,0 +1,1 @@
+libsquish x86 v1.11
