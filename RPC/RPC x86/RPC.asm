@@ -2,7 +2,7 @@
 ;
 ; RPC
 ;
-; Copyright (c) 2019 by fearless
+; Copyright (c) 2022 by fearless
 ;
 ; All Rights Reserved
 ;
@@ -43,13 +43,13 @@ option casemap:none
 include \masm32\macros\macros.asm
 
 ;DEBUG32 EQU 1
-;IFDEF DEBUG32
-;    PRESERVEXMMREGS equ 1
-;    includelib M:\Masm32\lib\Debug32.lib
-;    DBG32LIB equ 1
-;    DEBUGEXE textequ <'M:\Masm32\DbgWin.exe'>
-;    include M:\Masm32\include\debug32.inc
-;ENDIF
+IFDEF DEBUG32
+    PRESERVEXMMREGS equ 1
+    includelib M:\Masm32\lib\Debug32.lib
+    DBG32LIB equ 1
+    DEBUGEXE textequ <'M:\Masm32\DbgWin.exe'>
+    include M:\Masm32\include\debug32.inc
+ENDIF
 
 include windows.inc
 
@@ -72,6 +72,7 @@ include RPC.inc
 RpcWriteDataToLocalFile PROTO :DWORD,:DWORD,:DWORD                              ; hRpc, lpszLocalFilename, pDataBuffer, dwDataBufferSize
 RpcGetRemoteFileSize    PROTO :DWORD,:DWORD                                     ; hRpc, lpdwRemoteFileSize
 RpcBase64Encode         PROTO :DWORD,:DWORD,:DWORD                              ; lpszSource, lpszDestination, dwSourceLength
+RpcReplacePathVars      PROTO :DWORD,:DWORD                                     ; hRpc, lpszUrl
 
 atou_ex                 PROTO :DWORD
 utoa_ex                 PROTO :DWORD, :DWORD 
@@ -92,10 +93,27 @@ RPC_HANDLE                      STRUCT
     lpszPathVariable            DD 0    ; /<variable>
     lpszQueryParameters         DD 0    ; url params buffer - "name=value" pairs
     lpszAcceptHeader            DD 0    ; "Accept: text/plain, application/json" etc
-    lpszContentHeader           DD 0    ; 
+    lpszContentTypeHeader           DD 0    ; 
     lpszAuthHeader              DD 0    ; "Authorization: Basic <Base64Encoded(username:password)>"
 RPC_HANDLE                      ENDS
 ENDIF
+
+MAX_PATHVARIABLES               EQU 8
+
+IFNDEF PATHVARIABLE
+PATHVARIABLE                    STRUCT
+    szVariable                  DB MAX_PATH DUP (0)
+PATHVARIABLE                    ENDS
+ENDIF
+
+IFNDEF PATHVARIABLES
+PATHVARIABLES                   STRUCT
+    dwVarCount                  DD 0
+    lpPathVariables             PATHVARIABLE MAX_PATHVARIABLES DUP ({})
+PATHVARIABLES                   ENDS
+ENDIF
+
+
 
 .CONST
 ; WinInet constants
@@ -127,9 +145,10 @@ TimeoutPeriod                   DD 1200d
 RetryInterval                   DD 30000d ; secs
 
 ; Headers
-szAuthHeaderBasic               DB "Authorization: Basic ",0
+szAuthHeaderBasicHeader         DB "Authorization: Basic ",0
 szAcceptHeader                  DB "Accept: ",0
-szContentHeader                 DB "Content-Type: ",0
+szContentTypeHeader             DB "Content-Type: ",0
+szContentLengthHeader           DB "Content-Length",0
 
 ; RPC Type
 szGetVerb                       DB "GET",0
@@ -156,6 +175,9 @@ szMEDIATYPE_XML                 DB "application/xml",0,0
 szMEDIATYPE_JSON                DB "application/json",0,0
 szMEDIATYPE_FORM                DB "application/x-www-form-urlencoded",0,0
 
+IFDEF DEBUG32
+RPC_DEBUG_BUILD_URL             DB MAX_PATH DUP (0) 
+ENDIF
 
 .CODE
 
@@ -242,12 +264,6 @@ RpcConnect PROC USES EBX lpszHost:DWORD, lpszPort:DWORD, bSecure:DWORD, lpszUser
         mov eax, FALSE
         ret
     .ENDIF
-    
-    mov ebx, lpdwRpcHandle
-    mov eax, [ebx]
-    mov hRpc, eax
-
-    Invoke RpcDisconnect, hRpc
     
     Invoke RpcCheckConnection, lpszHost, lpszPort, bSecure
     .IF eax == FALSE
@@ -571,7 +587,7 @@ RpcSetAuthBasic PROC USES EBX hRpc:DWORD, lpszUsername:DWORD, lpszPassword:DWORD
     Invoke RpcBase64Encode, Addr szPreBase64Auth, Addr szBase64Auth, eax
 
     ; Add header
-    Invoke lstrcpy, lpszAuthHeader, Addr szAuthHeaderBasic
+    Invoke lstrcpy, lpszAuthHeader, Addr szAuthHeaderBasicHeader
     Invoke lstrcat, lpszAuthHeader, Addr szBase64Auth
     
     mov eax, TRUE
@@ -656,7 +672,7 @@ RpcSetAcceptType ENDP
 ; If lpszContentType = NULL then any existing ContentType Header is freed
 ;------------------------------------------------------------------------------
 RpcSetContentType PROC USES EBX hRpc:DWORD, lpszContentType:DWORD, dwContentType:DWORD
-    LOCAL lpszContentHeader:DWORD
+    LOCAL lpszContentTypeHeader:DWORD
     
     IFDEF DEBUG32
     PrintText 'RpcSetAcceptType'
@@ -668,54 +684,54 @@ RpcSetContentType PROC USES EBX hRpc:DWORD, lpszContentType:DWORD, dwContentType
     .ENDIF
     
     mov ebx, hRpc
-    mov eax, [ebx].RPC_HANDLE.lpszContentHeader
-    mov lpszContentHeader, eax
+    mov eax, [ebx].RPC_HANDLE.lpszContentTypeHeader
+    mov lpszContentTypeHeader, eax
     
     .IF lpszContentType == NULL && dwContentType == RPC_MEDIATYPE_NONE
-        .IF lpszContentHeader != NULL
-            Invoke GlobalFree, lpszContentHeader
+        .IF lpszContentTypeHeader != NULL
+            Invoke GlobalFree, lpszContentTypeHeader
             mov ebx, hRpc
-            mov [ebx].RPC_HANDLE.lpszContentHeader, 0
+            mov [ebx].RPC_HANDLE.lpszContentTypeHeader, 0
             mov eax, TRUE
             ret
         .ENDIF
     .ENDIF
     
-    .IF lpszContentHeader == NULL
+    .IF lpszContentTypeHeader == NULL
         Invoke GlobalAlloc, GMEM_FIXED or GMEM_ZEROINIT, RPC_CONTENT_HEADER_SIZE
         .IF eax == NULL
             mov eax, FALSE
             ret
         .ENDIF
-        mov lpszContentHeader, eax
+        mov lpszContentTypeHeader, eax
         mov ebx, hRpc
-        mov [ebx].RPC_HANDLE.lpszContentHeader, eax
+        mov [ebx].RPC_HANDLE.lpszContentTypeHeader, eax
     .ENDIF
     
-    Invoke lstrlen, lpszContentHeader
+    Invoke lstrlen, lpszContentTypeHeader
     .IF eax == 0
-        Invoke lstrcpy, lpszContentHeader, Addr szContentHeader
+        Invoke lstrcpy, lpszContentTypeHeader, Addr szContentTypeHeader
     .ELSE
-        Invoke lstrcat, lpszContentHeader, CTEXT(", ")
+        Invoke lstrcat, lpszContentTypeHeader, CTEXT(", ")
     .ENDIF
     .IF lpszContentType != NULL
-        Invoke lstrcat, lpszContentHeader, lpszContentType
+        Invoke lstrcat, lpszContentTypeHeader, lpszContentType
     .ELSE
         mov eax, dwContentType
         .IF eax == RPC_MEDIATYPE_ALL
-            Invoke lstrcat, lpszContentHeader, Addr szMEDIATYPE_ALL
+            Invoke lstrcat, lpszContentTypeHeader, Addr szMEDIATYPE_ALL
         .ELSEIF eax == RPC_MEDIATYPE_TEXT
-            Invoke lstrcat, lpszContentHeader, Addr szMEDIATYPE_TEXT
+            Invoke lstrcat, lpszContentTypeHeader, Addr szMEDIATYPE_TEXT
         .ELSEIF eax == RPC_MEDIATYPE_HTML
-            Invoke lstrcat, lpszContentHeader, Addr szMEDIATYPE_HTML
+            Invoke lstrcat, lpszContentTypeHeader, Addr szMEDIATYPE_HTML
         .ELSEIF eax == RPC_MEDIATYPE_XML
-            Invoke lstrcat, lpszContentHeader, Addr szMEDIATYPE_XML
+            Invoke lstrcat, lpszContentTypeHeader, Addr szMEDIATYPE_XML
         .ELSEIF eax == RPC_MEDIATYPE_JSON
-            Invoke lstrcat, lpszContentHeader, Addr szMEDIATYPE_JSON
+            Invoke lstrcat, lpszContentTypeHeader, Addr szMEDIATYPE_JSON
         .ELSEIF eax == RPC_MEDIATYPE_FORM
-            Invoke lstrcat, lpszContentHeader, Addr szMEDIATYPE_FORM
+            Invoke lstrcat, lpszContentTypeHeader, Addr szMEDIATYPE_FORM
         .ELSE
-            Invoke lstrcat, lpszContentHeader, Addr szMEDIATYPE_ALL
+            Invoke lstrcat, lpszContentTypeHeader, Addr szMEDIATYPE_ALL
         .ENDIF
     .ENDIF
     mov eax, TRUE
@@ -856,6 +872,7 @@ RpcSetQueryParameters ENDP
 ; to a zero terminated string containing the url to open. 
 ; if lpszVerb == NULL then defaults to GET
 ; lpSendData and dwSendDataSize are typically for POST sending data
+; if dwSendDataSize == -1 then assume lpSendData is ascii and will calc length
 ; Returns: TRUE if succesfull, otherwise FALSE.
 ;------------------------------------------------------------------------------
 RpcEndpointOpen PROC USES EBX hRpc:DWORD, lpszVerb:DWORD, lpszEndpointUrl:DWORD, lpSendData:DWORD, dwSendDataSize:DWORD
@@ -866,7 +883,7 @@ RpcEndpointOpen PROC USES EBX hRpc:DWORD, lpszVerb:DWORD, lpszEndpointUrl:DWORD,
     LOCAL lpszPathVariable:DWORD
     LOCAL lpszQueryParameters:DWORD
     LOCAL lpszAcceptHeader:DWORD
-    LOCAL lpszContentHeader:DWORD
+    LOCAL lpszContentTypeHeader:DWORD
     LOCAL lpszAuthHeader:DWORD
     LOCAL dwStatusCode:DWORD
     LOCAL dwSizeStatusCode:DWORD
@@ -897,8 +914,8 @@ RpcEndpointOpen PROC USES EBX hRpc:DWORD, lpszVerb:DWORD, lpszEndpointUrl:DWORD,
     mov lpszQueryParameters, eax
     mov eax, [ebx].RPC_HANDLE.lpszAcceptHeader
     mov lpszAcceptHeader, eax
-    mov eax, [ebx].RPC_HANDLE.lpszContentHeader
-    mov lpszContentHeader, eax
+    mov eax, [ebx].RPC_HANDLE.lpszContentTypeHeader
+    mov lpszContentTypeHeader, eax
     mov eax, [ebx].RPC_HANDLE.lpszAuthHeader
     mov lpszAuthHeader, eax
     
@@ -914,6 +931,8 @@ RpcEndpointOpen PROC USES EBX hRpc:DWORD, lpszVerb:DWORD, lpszEndpointUrl:DWORD,
     
     ;--------------------------------------------------------------------------
     ; Add path parameter and/or query parameters to endpoint url
+    ; alternatively use HttpAddRequestHeaders and use key value pairs of query
+    ; parameters - todo perhaps.
     ;--------------------------------------------------------------------------
     .IF lpszPathVariable == NULL && lpszQueryParameters == NULL
         ; No path variable and query parameters to add to endpoint url
@@ -951,6 +970,11 @@ RpcEndpointOpen PROC USES EBX hRpc:DWORD, lpszVerb:DWORD, lpszEndpointUrl:DWORD,
             .ENDIF
         .ENDIF
     .ENDIF
+    
+    IFDEF DEBUG32
+    Invoke lstrcpy, Addr RPC_DEBUG_BUILD_URL, lpszUrl
+    PrintString RPC_DEBUG_BUILD_URL
+    ENDIF
     
     ;--------------------------------------------------------------------------
     ; RpcEndpointOpen--HttpOpenRequest
@@ -1011,12 +1035,12 @@ RpcEndpointOpen PROC USES EBX hRpc:DWORD, lpszVerb:DWORD, lpszEndpointUrl:DWORD,
     
     ; Add Content-Type Header if required
     IFDEF DEBUG32
-    PrintText 'RpcEndpointOpen--HttpAddRequestHeaders::lpszContentHeader'
+    PrintText 'RpcEndpointOpen--HttpAddRequestHeaders::lpszContentTypeHeader'
     ENDIF
-    .IF lpszContentHeader != 0
-        Invoke lstrlen, lpszContentHeader
+    .IF lpszContentTypeHeader != 0
+        Invoke lstrlen, lpszContentTypeHeader
         .IF eax != 0
-            Invoke HttpAddRequestHeaders, hRequest, lpszContentHeader, eax, HTTP_ADDREQ_FLAG_ADD or HTTP_ADDREQ_FLAG_REPLACE
+            Invoke HttpAddRequestHeaders, hRequest, lpszContentTypeHeader, eax, HTTP_ADDREQ_FLAG_ADD or HTTP_ADDREQ_FLAG_REPLACE
         .ENDIF
     .ENDIF
     
@@ -1027,7 +1051,12 @@ RpcEndpointOpen PROC USES EBX hRpc:DWORD, lpszVerb:DWORD, lpszEndpointUrl:DWORD,
     PrintText 'RpcEndpointOpen--HttpSendRequest'
     ENDIF
     .IF lpSendData != NULL && dwSendDataSize != 0 ; Typically for POST data
-        Invoke HttpSendRequest, hRequest, NULL, 0, lpSendData, dwSendDataSize
+        .IF dwSendDataSize == -1 ; if -1 assume zero terminated ascii data, so get length
+            Invoke lstrlen, lpSendData
+            Invoke HttpSendRequest, hRequest, NULL, 0, lpSendData, eax
+        .ELSE
+            Invoke HttpSendRequest, hRequest, NULL, 0, lpSendData, dwSendDataSize
+        .ENDIF
     .ELSE
         Invoke HttpSendRequest, hRequest, NULL, 0, NULL, 0
     .ENDIF
@@ -1117,6 +1146,275 @@ RpcEndpointClose ENDP
 RpcEndpointReadData PROC USES EBX EDX EDI hRpc:DWORD, lpdwDataBuffer:DWORD, lpdwTotalBytesRead:DWORD
     LOCAL hRequest:DWORD
     LOCAL BytesRead:DWORD
+    LOCAL BytesToRead:DWORD
+    LOCAL BytesLeftToRead:DWORD
+    LOCAL Position:DWORD
+    LOCAL pDataBuffer:DWORD
+    LOCAL SizeDataBuffer:DWORD
+    LOCAL looptrue:DWORD
+    LOCAL readchunks:DWORD
+    LOCAL DataBufferChunkSize:DWORD
+
+    IFDEF DEBUG32
+        PrintText 'RpcEndpointReadData'
+    ENDIF
+    
+    .IF hRpc == NULL
+        mov eax, FALSE
+        ret
+    .ENDIF
+    
+    .IF lpdwDataBuffer == NULL
+        .IF lpdwTotalBytesRead != NULL
+            mov ebx, lpdwTotalBytesRead
+            mov eax, 0
+            mov [ebx], eax
+        .ENDIF
+        mov eax, FALSE
+        ret
+    .ENDIF
+    
+    mov ebx, hRpc
+    mov eax, [ebx].RPC_HANDLE.hRequest
+    .IF eax == NULL
+        mov eax, FALSE
+        ret
+    .ENDIF
+    mov hRequest, eax
+
+    Invoke RpcGetRemoteFileSize, hRpc, Addr BytesToRead
+    .IF eax == TRUE && BytesToRead != 0
+        mov eax, BytesToRead
+        add eax, 4d
+        mov SizeDataBuffer, eax
+        mov readchunks, FALSE
+    .ELSE
+        mov readchunks, TRUE
+        mov BytesToRead, RPC_READ_CHUNK_SIZE
+        mov eax, BytesToRead
+        add eax, 4d
+        mov SizeDataBuffer, eax
+        ;mov SizeDataBuffer, RPC_READ_BUFFER_SIZE
+    .ENDIF
+    mov pDataBuffer, 0
+
+
+    ;--------------------------------------------------------------------------
+    ; Alloc initial memory for read buffer
+    ;--------------------------------------------------------------------------
+    IFDEF DEBUG32
+        PrintText 'RpcEndpointReadData-GlobalAlloc'
+    ENDIF
+    Invoke GlobalAlloc, GMEM_FIXED or GMEM_ZEROINIT, SizeDataBuffer
+    .IF eax == NULL
+        IFDEF DEBUG32
+            PrintText 'RpcEndpointReadData-GlobalAlloc Error'
+        ENDIF
+        mov ebx, lpdwDataBuffer
+        mov eax, 0
+        mov [ebx], eax
+        .IF lpdwTotalBytesRead != NULL
+            mov ebx, lpdwTotalBytesRead
+            mov eax, 0
+            mov [ebx], eax
+        .ENDIF
+        mov eax, FALSE
+        ret
+    .ENDIF
+    mov pDataBuffer, eax
+
+    .IF readchunks == FALSE ; try to read all in at once
+        IFDEF DEBUG32
+            PrintText 'RpcEndpointReadData-InternetReadFile-Try To Read All In'
+        ENDIF
+        Invoke InternetReadFile, hRequest, pDataBuffer, BytesToRead, Addr BytesRead
+        .IF eax == FALSE
+            IFDEF DEBUG32
+                PrintText 'RpcEndpointReadData-InternetReadFile Error'
+                Invoke GetLastError
+                PrintDec eax
+            ENDIF
+            .IF pDataBuffer != NULL
+                Invoke GlobalFree, pDataBuffer
+            .ENDIF
+            mov ebx, lpdwDataBuffer
+            mov eax, 0
+            mov [ebx], eax
+            .IF lpdwTotalBytesRead != NULL
+                mov ebx, lpdwTotalBytesRead
+                mov eax, 0
+                mov [ebx], eax
+            .ENDIF
+            mov eax, FALSE
+            ret
+        .ELSE
+        
+            .IF eax == TRUE && BytesRead == 0 ; finished all reads
+                mov eax, BytesRead
+                mov Position, eax
+                ; return data, size and exit
+            .ELSE ; more data to retrieve
+                mov eax, BytesRead
+                mov Position, eax
+                
+                mov eax, BytesToRead
+                sub eax, BytesRead
+                .IF sdword ptr eax > 0 ; more to get
+                    mov BytesLeftToRead, eax
+                    IFDEF DEBUG32
+                        PrintText 'RpcEndpointReadData-InternetReadFile-More Data To Read'
+                    ENDIF
+                
+                    mov eax, TRUE
+                    .WHILE eax == TRUE && BytesRead != 0 ; continue
+                       
+                        mov edi, pDataBuffer
+                        add edi, Position
+                        
+                        Invoke InternetReadFile, hRequest, edi, BytesLeftToRead, Addr BytesRead
+                        mov looptrue, eax
+                        .IF eax == FALSE
+                            IFDEF DEBUG32
+                                PrintText 'RpcEndpointReadData-InternetReadFile Error'
+                                Invoke GetLastError
+                                PrintDec eax
+                            ENDIF
+                            .IF pDataBuffer != NULL
+                                Invoke GlobalFree, pDataBuffer
+                            .ENDIF
+                            mov ebx, lpdwDataBuffer
+                            mov eax, 0
+                            mov [ebx], eax
+                            .IF lpdwTotalBytesRead != NULL
+                                mov ebx, lpdwTotalBytesRead
+                                mov eax, 0
+                                mov [ebx], eax
+                            .ENDIF
+                            mov eax, FALSE
+                            ret
+                        .ELSE
+                            .IF eax == TRUE && BytesRead == 0 ; finished all reads
+                                ; return data, size and exit
+                                mov looptrue, FALSE
+                                .BREAK
+                            .ELSE ; more data to retrieve
+                                
+                            .ENDIF
+                        .ENDIF
+                        
+                        mov eax, BytesRead
+                        add Position, eax
+                        
+                        mov eax, looptrue
+                    .ENDW
+                .ENDIF
+            .ENDIF
+        .ENDIF    
+    
+    .ELSE ; read in content in chunks
+        IFDEF DEBUG32
+            PrintText 'RpcEndpointReadData-InternetReadFile-Read Data In Chunks'
+        ENDIF
+        
+        mov BytesRead, 1
+        mov Position, 0 
+        mov eax, TRUE
+        .WHILE eax == TRUE && BytesRead != 0 ; continue
+            
+            mov edi, pDataBuffer
+            add edi, Position
+    
+            Invoke InternetReadFile, hRequest, edi, BytesToRead, Addr BytesRead
+            mov looptrue, eax
+            .IF eax == FALSE
+                IFDEF DEBUG32
+                    PrintText 'RpcEndpointReadData-InternetReadFile Error'
+                    Invoke GetLastError
+                    PrintDec eax
+                ENDIF
+                .IF pDataBuffer != NULL
+                    Invoke GlobalFree, pDataBuffer
+                .ENDIF
+                mov ebx, lpdwDataBuffer
+                mov eax, 0
+                mov [ebx], eax
+                .IF lpdwTotalBytesRead != NULL
+                    mov ebx, lpdwTotalBytesRead
+                    mov eax, 0
+                    mov [ebx], eax
+                .ENDIF
+                mov eax, FALSE
+                ret
+            .ELSE
+                .IF eax == TRUE && BytesRead == 0 ; finished all reads
+                    ; return data, size and exit
+                    mov looptrue, FALSE
+                    .BREAK                    
+                .ELSE  ; more data to retrieve so realloc buffer and loop
+                    mov eax, BytesToRead
+                    add SizeDataBuffer, eax
+        
+                    IFDEF DEBUG32
+                        PrintText 'RpcEndpointReadData-GlobalReAlloc'
+                    ENDIF
+                    Invoke GlobalReAlloc, pDataBuffer, SizeDataBuffer, GMEM_ZEROINIT or GMEM_MOVEABLE ; eax new pointer to mem
+                    .IF eax == NULL
+                        IFDEF DEBUG32
+                            PrintText 'RpcEndpointReadData-GlobalReAlloc Error'
+                            Invoke GetLastError
+                            PrintDec eax
+                        ENDIF
+                        .IF pDataBuffer != NULL
+                            Invoke GlobalFree, pDataBuffer
+                        .ENDIF
+                        mov ebx, lpdwDataBuffer
+                        mov eax, 0
+                        mov [ebx], eax
+                        .IF lpdwTotalBytesRead != NULL
+                            mov ebx, lpdwTotalBytesRead
+                            mov eax, 0
+                            mov [ebx], eax
+                        .ENDIF
+                        mov eax, FALSE
+                        ret                
+                    .ENDIF
+                    mov pDataBuffer, eax
+                .ENDIF
+            .ENDIF
+            
+            mov eax, BytesRead
+            add Position, eax            
+            
+            mov eax, looptrue
+        .ENDW
+        
+    .ENDIF
+
+    ;--------------------------------------------------------------------------
+    ; Return pointers to buffer and buffer size
+    ;--------------------------------------------------------------------------
+    mov ebx, lpdwDataBuffer
+    mov eax, pDataBuffer
+    mov [ebx], eax
+    .IF lpdwTotalBytesRead != NULL
+        mov ebx, lpdwTotalBytesRead
+        mov eax, Position
+        mov [ebx], eax
+    .ENDIF
+    
+    mov eax, TRUE
+    ret
+RpcEndpointReadData ENDP
+
+;------------------------------------------------------------------------------
+; RpcEndpointReadDataX - Read endpoint url data and return pointer to data in 
+; lpdwDataBuffer, along with size of data in lpdwTotalBytesRead. 
+; Returns TRUE if succesful or FALSE otherwise.
+; Notes: Use RpcEndpointFreeData after finishing processing file data to free memory  
+;------------------------------------------------------------------------------
+RpcEndpointReadDataX PROC USES EBX EDX EDI hRpc:DWORD, lpdwDataBuffer:DWORD, lpdwTotalBytesRead:DWORD
+    LOCAL hRequest:DWORD
+    LOCAL BytesRead:DWORD
     LOCAL Position:DWORD
     LOCAL pDataBuffer:DWORD
     LOCAL SizeDataBuffer:DWORD
@@ -1124,7 +1422,7 @@ RpcEndpointReadData PROC USES EBX EDX EDI hRpc:DWORD, lpdwDataBuffer:DWORD, lpdw
     LOCAL DataBufferChunkSize:DWORD
 
     IFDEF DEBUG32
-        PrintText 'RpcEndpointReadData'
+        PrintText 'RpcEndpointReadDataX'
     ENDIF
     
     .IF hRpc == NULL
@@ -1156,7 +1454,7 @@ RpcEndpointReadData PROC USES EBX EDX EDI hRpc:DWORD, lpdwDataBuffer:DWORD, lpdw
     Invoke RpcGetRemoteFileSize, hRpc, Addr DataBufferChunkSize
     .IF eax == TRUE && DataBufferChunkSize != 0
         mov eax, DataBufferChunkSize
-        add eax, DataBufferChunkSize
+        add eax, 4d
         mov SizeDataBuffer, eax
     .ELSE
         mov DataBufferChunkSize, RPC_READ_CHUNK_SIZE
@@ -1286,7 +1584,7 @@ RpcEndpointReadData PROC USES EBX EDX EDI hRpc:DWORD, lpdwDataBuffer:DWORD, lpdw
     
     mov eax, TRUE
     ret
-RpcEndpointReadData ENDP
+RpcEndpointReadDataX ENDP
 
 ;------------------------------------------------------------------------------
 ; RpcEndpointFreeData - Frees allocated memory used by RpcEndpointReadData
@@ -1392,7 +1690,7 @@ RpcEndpointGET PROC USES EBX hRpc:DWORD, lpszEndpointUrl:DWORD, lpdwData:DWORD, 
             ; Write endpoint data to local file (optional)
             ;------------------------------------------------------------------
             .IF lpszDataToFile != NULL
-                Invoke RpcWriteDataToLocalFile, lpszDataToFile, pDataBuffer, Addr dwDataBufferSize
+                Invoke RpcWriteDataToLocalFile, lpszDataToFile, pDataBuffer, dwDataBufferSize
             .ENDIF
             
             ;------------------------------------------------------------------
@@ -1525,7 +1823,7 @@ RpcEndpointPOST PROC USES EBX hRpc:DWORD, lpszEndpointUrl:DWORD, lpPostData:DWOR
             ; Write endpoint data to local file (optional)
             ;------------------------------------------------------------------
             .IF lpszDataToFile != NULL
-                Invoke RpcWriteDataToLocalFile, lpszDataToFile, pDataBuffer, Addr dwDataBufferSize
+                Invoke RpcWriteDataToLocalFile, lpszDataToFile, pDataBuffer, dwDataBufferSize
             .ENDIF
             
             ;------------------------------------------------------------------
@@ -1680,7 +1978,7 @@ RpcEndpointCall PROC USES EBX hRpc:DWORD, dwRpcType:DWORD, lpszEndpointUrl:DWORD
             ; Write endpoint data to local file (optional)
             ;------------------------------------------------------------------
             .IF lpszReceiveDataFile != NULL
-                Invoke RpcWriteDataToLocalFile, lpszReceiveDataFile, pDataBuffer, Addr dwDataBufferSize
+                Invoke RpcWriteDataToLocalFile, lpszReceiveDataFile, pDataBuffer, dwDataBufferSize
             .ENDIF
             
             ;------------------------------------------------------------------
@@ -1760,6 +2058,7 @@ RpcGetRemoteFileSize PROC USES EBX hRpc:DWORD, lpdwRemoteFileSize:DWORD
     LOCAL BytesToGet:DWORD
     LOCAL BytesToGetSize:DWORD
     LOCAL lpdwIndex:DWORD
+    LOCAL ContentLength[32]:BYTE
 
     IFDEF DEBUG32
         PrintText 'RpcGetRemoteFileSize'
@@ -1785,18 +2084,38 @@ RpcGetRemoteFileSize PROC USES EBX hRpc:DWORD, lpdwRemoteFileSize:DWORD
 
     mov BytesToGetSize, 4d
     mov lpdwIndex, 0
-
+    
     IFDEF DEBUG32
         PrintText 'RpcGetRemoteFileSize-HttpQueryInfo'
     ENDIF
-    Invoke HttpQueryInfo, hRequest, HTTP_QUERY_FLAG_NUMBER + HTTP_QUERY_CONTENT_LENGTH, Addr BytesToGet, Addr BytesToGetSize, Addr lpdwIndex ; HTTP_QUERY_FLAG_NUMBER +
+    Invoke HttpQueryInfo, hRequest, HTTP_QUERY_FLAG_NUMBER or HTTP_QUERY_CONTENT_LENGTH, Addr BytesToGet, Addr BytesToGetSize, Addr lpdwIndex ; HTTP_QUERY_FLAG_NUMBER +
     .IF eax == FALSE
-        mov ebx, lpdwRemoteFileSize
-        mov eax, 0
-        mov [ebx], eax          
-        mov eax, FALSE
-        ret       
-    .endif
+        mov BytesToGetSize, 32d
+        mov lpdwIndex, 0
+        
+        Invoke RtlZeroMemory, Addr ContentLength, 32d
+        Invoke lstrcpy, Addr ContentLength, Addr szContentLengthHeader
+        
+        IFDEF DEBUG32
+            PrintText 'RpcGetRemoteFileSize-HttpQueryInfo::ContentLength Header'
+        ENDIF
+        Invoke HttpQueryInfo, hRequest, HTTP_QUERY_CUSTOM, Addr ContentLength, Addr BytesToGetSize, Addr lpdwIndex
+        .IF eax == FALSE
+            mov ebx, lpdwRemoteFileSize
+            mov eax, 0
+            mov [ebx], eax
+            mov eax, FALSE
+            ret
+        .ELSE
+            lea ebx, ContentLength
+            add ebx, 16d ; 'Content-Length: '
+            Invoke atou_ex, ebx
+            mov BytesToGet, eax
+        .ENDIF
+    .ENDIF
+    IFDEF DEBUG32
+        PrintDec BytesToGet
+    ENDIF
     mov ebx, lpdwRemoteFileSize
     mov eax, BytesToGet
     mov [ebx], eax
@@ -1863,10 +2182,11 @@ RpcBase64Encode ENDP
 ;------------------------------------------------------------------------------
 ; RpcWriteDataToLocalFile - Write data to file
 ;------------------------------------------------------------------------------
-RpcWriteDataToLocalFile PROC lpszLocalFilename:DWORD, pDataBuffer:DWORD, dwDataBufferSize:DWORD
+RpcWriteDataToLocalFile PROC USES EBX lpszLocalFilename:DWORD, pDataBuffer:DWORD, dwDataBufferSize:DWORD
     LOCAL hFile:DWORD
     LOCAL hMapFile:DWORD
     LOCAL pViewFile:DWORD
+    LOCAL szLocalFilepath[MAX_PATH]:BYTE
     
     IFDEF DEBUG32
         PrintText 'RpcWriteDataToLocalFile'
@@ -1880,7 +2200,20 @@ RpcWriteDataToLocalFile PROC lpszLocalFilename:DWORD, pDataBuffer:DWORD, dwDataB
         ret
     .ENDIF
     
-    Invoke CreateFile, lpszLocalFilename, GENERIC_READ or GENERIC_WRITE, FILE_SHARE_READ or FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL
+    ; Check for local directory in path starting with .\
+    mov ebx, lpszLocalFilename
+    movzx eax, word ptr [ebx]
+    .IF ax == '\.'
+        Invoke GetCurrentDirectory, MAX_PATH, Addr szLocalFilepath
+        Invoke lstrcat, Addr szLocalFilepath, CTEXT("\")
+        mov ebx, lpszLocalFilename
+        add ebx, 2d
+        Invoke lstrcat, Addr szLocalFilepath, ebx
+    .ELSE
+        Invoke lstrcpyn, Addr szLocalFilepath, lpszLocalFilename, MAX_PATH
+    .ENDIF 
+    
+    Invoke CreateFile, Addr szLocalFilepath, GENERIC_READ or GENERIC_WRITE, FILE_SHARE_READ or FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL ;lpszLocalFilename
     .IF eax == INVALID_HANDLE_VALUE
         IFDEF DEBUG32
             PrintText 'RpcWriteDataToLocalFile CreateFile Error'
@@ -1922,6 +2255,117 @@ RpcWriteDataToLocalFile PROC lpszLocalFilename:DWORD, pDataBuffer:DWORD, dwDataB
     mov eax, TRUE
     ret
 RpcWriteDataToLocalFile ENDP
+
+;------------------------------------------------------------------------------
+; RpcReplacePathVars - Replace path variables
+; /:varname 
+; /:varname1/:varname2/:varnameN
+; /:varname1/path/:varname2
+;------------------------------------------------------------------------------
+RpcReplacePathVars PROC USES EBX EDI ESI hRpc:DWORD, lpszEndpointUrl:DWORD
+    LOCAL lpszUrl:DWORD
+    LOCAL lpszPathVariable:DWORD
+    LOCAL nVarCount:DWORD
+    LOCAL nVarCurrent:DWORD
+    LOCAL lpVars:DWORD
+    LOCAL lpVar:DWORD
+    LOCAL lpszVar:DWORD
+    
+    .IF hRpc == NULL
+        xor eax, eax
+        ret
+    .ENDIF
+    
+    mov ebx, hRpc
+    mov eax, [ebx].RPC_HANDLE.lpszPathVariable
+    .IF eax == NULL
+        xor eax, eax
+        ret
+    .ENDIF
+    mov lpszPathVariable, eax
+    mov eax, [ebx].RPC_HANDLE.lpszUrl
+    mov lpszUrl, eax
+    
+    mov ebx, lpszPathVariable
+    mov eax, [ebx].PATHVARIABLES.dwVarCount ; Get first dword which is count of vars
+    mov nVarCount, eax
+    lea eax, [ebx].PATHVARIABLES.lpPathVariables
+    mov lpVars, eax
+    mov lpVar, eax
+    
+    mov nVarCurrent, 0
+    ; Start copying lpszEndpointUrl to lpszUrl. If we find ':' denoting start of :varname
+    ; then copy varname to lpszUrl
+    ; look for end of varname - either null or '/' 
+    ; if not null, then resume copying lpszEndpointUrl to lpszUrl until null or another varname
+    mov edi, lpszUrl
+    mov esi, lpszEndpointUrl
+    movzx eax, byte ptr [esi]
+    .WHILE al != 0
+        .IF al == ':'
+            movzx eax, byte ptr [esi+1]
+            .IF al == '/'
+                 ; probably part of http(s)://
+                mov byte ptr [edi], al
+            .ELSE
+                ; get var and copy
+                mov eax, nVarCurrent
+                .IF eax == nVarCount
+                    ; error - too many path vars in endpoint vs vars stored
+                    mov byte ptr [edi], 0
+                    mov eax, FALSE
+                    ret
+                .ENDIF
+                
+                mov ebx, lpVar
+                lea eax, [ebx].PATHVARIABLE.szVariable
+                .IF eax != 0
+                    mov lpszVar, eax
+                    
+                    mov ebx, lpszVar
+                    movzx eax, byte ptr [ebx]
+                    .WHILE al != 0
+                        mov byte ptr [edi], al
+                        inc edi
+                        inc ebx
+                        movzx eax, byte ptr [ebx]
+                    .ENDW
+                    
+                    add lpVar, SIZEOF PATHVARIABLE
+                    inc nVarCurrent
+                    
+                    ; skip until '/' or 0
+                    inc esi
+                    movzx eax, byte ptr [esi]
+                    .WHILE al != 0 && al != '/'
+                        inc esi
+                        movzx eax, byte ptr [esi]
+                    .ENDW
+                    .IF al == 0
+                        .BREAK
+                    .ELSE
+                        mov byte ptr [edi], al
+                    .ENDIF
+                .ELSE
+                    ; error getting varname
+                    mov byte ptr [edi], 0
+                    mov eax, FALSE
+                    ret
+                .ENDIF
+            .ENDIF
+        .ELSE
+            mov byte ptr [edi], al
+        .ENDIF
+        inc edi
+        inc esi
+        movzx eax, byte ptr [esi]
+    .ENDW
+    mov byte ptr [edi], 0
+
+    mov eax, TRUE
+    ret
+RpcReplacePathVars ENDP
+
 
 ;------------------------------------------------------------------------------
 ; Convert ascii string pointed to by String param to unsigned dword value. 

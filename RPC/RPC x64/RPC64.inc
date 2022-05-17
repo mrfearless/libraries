@@ -2,7 +2,7 @@
 ;
 ; RPC x64 Library
 ;
-; Copyright (c) 2019 by fearless
+; Copyright (c) 2022 by fearless
 ;
 ; All Rights Reserved
 ;
