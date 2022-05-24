@@ -103,6 +103,8 @@ RPC_HANDLE                      STRUCT
     lpszAcceptHeader            DQ 0    ; "Accept: text/plain, application/json" etc
     lpszContentTypeHeader       DQ 0    ; 
     lpszAuthHeader              DQ 0    ; "Authorization: Basic <Base64Encoded(username:password)>"
+    lpszApiKeyName              DQ 0    ; name of api key to use: "api_key" for example
+    lpszApiKeyValue             DQ 0    ; value of api key: 7bf567042aea488ba256583eaebf638f
 RPC_HANDLE                      ENDS
 ENDIF
 
@@ -413,6 +415,8 @@ RpcDisconnect PROC FRAME USES RBX hRpc:QWORD
     LOCAL lpszQueryParameters:QWORD
     LOCAL lpszAcceptHeader:QWORD
     LOCAL lpszAuthHeader:QWORD
+    LOCAL lpszApiKeyName:QWORD
+    LOCAL lpszApiKeyValue:QWORD
 
     IFDEF DEBUG64
     PrintText 'RpcDisconnect'
@@ -442,6 +446,10 @@ RpcDisconnect PROC FRAME USES RBX hRpc:QWORD
     mov lpszAcceptHeader, rax
     mov rax, [rbx].RPC_HANDLE.lpszAuthHeader
     mov lpszAuthHeader, rax
+    mov rax, [rbx].RPC_HANDLE.lpszApiKeyName
+    mov lpszApiKeyName, rax
+    mov rax, [rbx].RPC_HANDLE.lpszApiKeyValue
+    mov lpszApiKeyValue, rax
 
     .IF hRequest != NULL
         Invoke HttpEndRequest, hRequest, NULL, 0, 0
@@ -471,6 +479,12 @@ RpcDisconnect PROC FRAME USES RBX hRpc:QWORD
     .ENDIF
     .IF lpszAuthHeader != NULL
         Invoke GlobalFree, lpszAuthHeader
+    .ENDIF
+    .IF lpszApiKeyName != NULL
+        Invoke GlobalFree, lpszApiKeyName
+    .ENDIF
+    .IF lpszApiKeyValue != NULL
+        Invoke GlobalFree, lpszApiKeyValue
     .ENDIF
     
     Invoke GlobalFree, hRpc
@@ -731,6 +745,88 @@ RpcSetContentType PROC FRAME USES RBX hRpc:QWORD, lpszContentType:QWORD, qwConte
 RpcSetContentType ENDP
 
 ;------------------------------------------------------------------------------
+; RpcSetApiKey - Add a api key and value to be included with endpoint calls
+; lpszRpcApiKeyName = string for key name, examples: 'ApiKey' or 'api_key'
+; lpszRpcApiKeyValue = string for api key value, for example: '7bf567042aea488ba256583eaebf638f'
+; Automatically will be added to a Endpoint url in RpcEndpointOpen, example:
+; '/GetInfo?api_key=7bf567042aea488ba256583eaebf638f'
+;------------------------------------------------------------------------------
+RpcSetApiKey PROC FRAME USES RBX hRpc:QWORD, lpszRpcApiKeyName:QWORD, lpszRpcApiKeyValue:QWORD
+    LOCAL lpszApiKeyName:QWORD
+    LOCAL lpszApiKeyValue:QWORD
+    
+    IFDEF DEBUG64
+    PrintText 'RpcSetApiKey'
+    ENDIF
+
+    .IF hRpc == NULL || lpszRpcApiKeyName == NULL || lpszRpcApiKeyValue == NULL
+        mov rax, FALSE
+        ret
+    .ENDIF
+    
+    mov rbx, hRpc
+    mov rax, [rbx].RPC_HANDLE.lpszApiKeyName
+    mov lpszApiKeyName, rax
+    mov rax, [rbx].RPC_HANDLE.lpszApiKeyValue
+    mov lpszApiKeyValue, rax
+    
+    .IF lpszApiKeyName != NULL ; free previous
+        Invoke GlobalFree, lpszApiKeyName
+        mov rbx, hRpc
+        mov rax, 0
+        mov [rbx].RPC_HANDLE.lpszApiKeyName, rax
+    .ENDIF
+    
+    .IF lpszApiKeyValue != NULL ; free previous
+        Invoke GlobalFree, lpszApiKeyValue
+        mov rbx, hRpc
+        mov rax, 0
+        mov [rbx].RPC_HANDLE.lpszApiKeyValue, rax
+    .ENDIF
+    
+    Invoke lstrlen, lpszRpcApiKeyName
+    .IF rax == 0
+        mov rax, FALSE
+        ret
+    .ENDIF
+    add eax, 4d
+    Invoke GlobalAlloc, GMEM_FIXED or GMEM_ZEROINIT, eax
+    .IF rax == NULL
+        mov rax, FALSE
+        ret
+    .ENDIF
+    mov lpszApiKeyName, rax
+    
+    Invoke lstrlen, lpszRpcApiKeyValue
+    .IF rax == 0
+        Invoke GlobalFree, lpszApiKeyName
+        mov rax, FALSE
+        ret
+    .ENDIF
+    add eax, 4d
+    Invoke GlobalAlloc, GMEM_FIXED or GMEM_ZEROINIT, eax
+    .IF rax == NULL
+        Invoke GlobalFree, lpszApiKeyName
+        mov rax, FALSE
+        ret
+    .ENDIF
+    mov lpszApiKeyValue, rax
+    
+    ; copy content over
+    Invoke lstrcpy, lpszApiKeyName, lpszRpcApiKeyName
+    mov rbx, hRpc
+    mov rax, lpszApiKeyName
+    mov [rbx].RPC_HANDLE.lpszApiKeyName, rax
+    
+    Invoke lstrcpy, lpszApiKeyValue, lpszRpcApiKeyValue
+    mov rbx, hRpc
+    mov rax, lpszApiKeyValue
+    mov [rbx].RPC_HANDLE.lpszApiKeyValue, rax
+    
+    ret
+RpcSetApiKey ENDP
+
+;------------------------------------------------------------------------------
 ; RpcSetPathVariable - Adds a path variable to the endpoint url
 ; If lpszPathVariable = NULL, the buffer used internally is zeroed out.
 ;------------------------------------------------------------------------------
@@ -877,6 +973,8 @@ RpcEndpointOpen PROC FRAME USES RBX hRpc:QWORD, lpszVerb:QWORD, lpszEndpointUrl:
     LOCAL lpszAcceptHeader:QWORD
     LOCAL lpszContentTypeHeader:QWORD
     LOCAL lpszAuthHeader:QWORD
+    LOCAL lpszApiKeyName:QWORD
+    LOCAL lpszApiKeyValue:QWORD
     LOCAL qwStatusCode:QWORD
     LOCAL qwSizeStatusCode:QWORD
     LOCAL lpqwIndex:QWORD
@@ -910,6 +1008,10 @@ RpcEndpointOpen PROC FRAME USES RBX hRpc:QWORD, lpszVerb:QWORD, lpszEndpointUrl:
     mov lpszContentTypeHeader, rax
     mov rax, [rbx].RPC_HANDLE.lpszAuthHeader
     mov lpszAuthHeader, rax
+    mov rax, [rbx].RPC_HANDLE.lpszApiKeyName
+    mov lpszApiKeyName, rax
+    mov rax, [rbx].RPC_HANDLE.lpszApiKeyValue
+    mov lpszApiKeyValue, rax
     
     .IF hConnect == NULL
         mov rax, FALSE
@@ -926,8 +1028,9 @@ RpcEndpointOpen PROC FRAME USES RBX hRpc:QWORD, lpszVerb:QWORD, lpszEndpointUrl:
     ;--------------------------------------------------------------------------
     .IF lpszPathVariable == NULL && lpszQueryParameters == NULL
         ; No path variable and query parameters to add to endpoint url
-        mov rax, lpszEndpointUrl
-        mov lpszUrl, rax
+        ;mov rax, lpszEndpointUrl
+        ;mov lpszUrl, rax
+        Invoke lstrcpy, lpszUrl, lpszEndpointUrl
     .ELSEIF lpszPathVariable != NULL && lpszQueryParameters == NULL
         ; Add path variable to endpoint url
         Invoke lstrlen, lpszPathVariable
@@ -958,6 +1061,20 @@ RpcEndpointOpen PROC FRAME USES RBX hRpc:QWORD, lpszVerb:QWORD, lpszEndpointUrl:
                 Invoke lstrcpy, lpszUrl, lpszEndpointUrl
                 Invoke lstrcat, lpszUrl, lpszQueryParameters
             .ENDIF
+        .ENDIF
+    .ENDIF
+    
+    ; Add Api Key and Api Key Value if they exist and are set
+    .IF lpszApiKeyName != NULL && lpszApiKeyValue != NULL
+        Invoke lstrlen, lpszApiKeyName
+        .IF rax != 0
+            Invoke lstrcat, lpszUrl, CTEXT("?")
+            Invoke lstrcat, lpszUrl, lpszApiKeyName
+            Invoke lstrcat, lpszUrl, CTEXT("=")
+        .ENDIF
+        Invoke lstrlen, lpszApiKeyValue
+        .IF rax != 0
+            Invoke lstrcat, lpszUrl, lpszApiKeyValue
         .ENDIF
     .ENDIF
     
@@ -1490,7 +1607,7 @@ RpcEndpointGET PROC FRAME USES RBX hRpc:QWORD, lpszEndpointUrl:QWORD, lpqwData:Q
                 PrintText 'RpcEndpointGET-RpcEndpointReadData'
             ENDIF          
             Invoke RpcEndpointReadData, hRpc, Addr pDataBuffer, Addr qwDataBufferSize
-            .IF rax == FALSE || pDataBuffer == NULL
+            .IF rax == FALSE ;|| pDataBuffer == NULL
                 IFDEF DEBUG64
                     PrintText 'RpcEndpointGET-RpcEndpointReadData Error'
                 ENDIF
@@ -1503,7 +1620,9 @@ RpcEndpointGET PROC FRAME USES RBX hRpc:QWORD, lpszEndpointUrl:QWORD, lpqwData:Q
             ; Write endpoint data to local file (optional)
             ;------------------------------------------------------------------
             .IF lpszDataToFile != NULL
-                Invoke RpcWriteDataToLocalFile, lpszDataToFile, pDataBuffer, qwDataBufferSize
+                .IF pDataBuffer != NULL && qwDataBufferSize != 0
+                    Invoke RpcWriteDataToLocalFile, lpszDataToFile, pDataBuffer, qwDataBufferSize
+                .ENDIF
             .ENDIF
             
             ;------------------------------------------------------------------
@@ -1623,7 +1742,7 @@ RpcEndpointPOST PROC FRAME USES RBX hRpc:QWORD, lpszEndpointUrl:QWORD, lpPostDat
             ; Read endpoint data
             ;------------------------------------------------------------------
             Invoke RpcEndpointReadData, hRpc, Addr pDataBuffer, Addr qwDataBufferSize
-            .IF rax == FALSE || pDataBuffer == NULL
+            .IF rax == FALSE ;|| pDataBuffer == NULL
                 IFDEF DEBUG64
                     PrintText 'RpcEndpointPOST-RpcEndpointReadData Error'
                 ENDIF
@@ -1636,7 +1755,9 @@ RpcEndpointPOST PROC FRAME USES RBX hRpc:QWORD, lpszEndpointUrl:QWORD, lpPostDat
             ; Write endpoint data to local file (optional)
             ;------------------------------------------------------------------
             .IF lpszDataToFile != NULL
-                Invoke RpcWriteDataToLocalFile, lpszDataToFile, pDataBuffer, qwDataBufferSize
+                .IF pDataBuffer != NULL && qwDataBufferSize != 0
+                    Invoke RpcWriteDataToLocalFile, lpszDataToFile, pDataBuffer, qwDataBufferSize
+                .ENDIF
             .ENDIF
             
             ;------------------------------------------------------------------
@@ -1778,7 +1899,7 @@ RpcEndpointCall PROC FRAME USES RBX hRpc:QWORD, qwRpcType:QWORD, lpszEndpointUrl
             ; Read endpoint data
             ;------------------------------------------------------------------
             Invoke RpcEndpointReadData, hRpc, Addr pDataBuffer, Addr qwDataBufferSize
-            .IF rax == FALSE || pDataBuffer == NULL
+            .IF rax == FALSE ;|| pDataBuffer == NULL
                 IFDEF DEBUG64
                     PrintText 'RpcEndpointCall-RpcEndpointReadData Error'
                 ENDIF
@@ -1791,7 +1912,9 @@ RpcEndpointCall PROC FRAME USES RBX hRpc:QWORD, qwRpcType:QWORD, lpszEndpointUrl
             ; Write endpoint data to local file (optional)
             ;------------------------------------------------------------------
             .IF lpszReceiveDataFile != NULL
-                Invoke RpcWriteDataToLocalFile, lpszReceiveDataFile, pDataBuffer, qwDataBufferSize
+                .IF pDataBuffer != NULL && qwDataBufferSize != 0
+                    Invoke RpcWriteDataToLocalFile, lpszReceiveDataFile, pDataBuffer, qwDataBufferSize
+                .ENDIF
             .ENDIF
             
             ;------------------------------------------------------------------

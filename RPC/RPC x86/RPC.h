@@ -16,6 +16,7 @@ RPC_STDCALL(bool) RpcSetCookie(HANDLE hRpc, const char *lpszCookieData);
 RPC_STDCALL(bool) RpcSetAuthBasic(HANDLE hRpc, const char *lpszUsername, const char *lpszPassword);
 RPC_STDCALL(bool) RpcSetAcceptType(HANDLE hRpc, const char *lpszAcceptType, int dwAcceptType);
 RPC_STDCALL(bool) RpcSetContentType(HANDLE hRpc, const char *lpszContentType, int dwContentType);
+RPC_STDCALL(bool) RpcSetApiKey(HANDLE hRpc, const char *lpszRpcApiKeyName, const char *lpszRpcApiKeyValue);
 RPC_STDCALL(bool) RpcSetPathVariable(HANDLE hRpc, const char *lpszVariable);
 RPC_STDCALL(bool) RpcSetQueryParameters(HANDLE hRpc, const char *lpszName, const char *lpszValue, int dwValue);
 

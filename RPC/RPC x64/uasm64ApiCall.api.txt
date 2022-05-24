@@ -11,6 +11,7 @@ RpcSetCookie,hRpc,lpszCookieData
 RpcSetAuthBasic,hRpc,lpszUsername,lpszPassword
 RpcSetAcceptType,hRpc,lpszAcceptTypes,qwAcceptType
 RpcSetContentType,hRpc,lpszContentType,qwContentType
+RpcSetApiKey,hRpc,lpszRpcApiKeyName,lpszRpcApiKeyValue
 RpcSetPathVariable,hRpc,lpszVariable
 RpcSetQueryParameters,hRpc,lpszName,lpszValue,qwValue
 RpcEndpointOpen,hRpc,lpszVerb,lpszEndpointUrl,lpSendData,qwSendDataSize

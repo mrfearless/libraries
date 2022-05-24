@@ -48,6 +48,7 @@ RpcSetCookie            PROTO :QWORD,:QWORD                                     
 RpcSetAuthBasic         PROTO :QWORD,:QWORD,:QWORD                              ; hRpc, lpszUsername, lpszPassword
 RpcSetAcceptType        PROTO :QWORD,:QWORD,:QWORD                              ; hRpc, lpszAcceptType, qwAcceptType
 RpcSetContentType       PROTO :QWORD,:QWORD,:QWORD                              ; hRpc, lpszContentType, qwContentType
+RpcSetApiKey            PROTO :QWORD,:QWORD,:QWORD                              ; hRpc, lpszRpcApiKeyName, lpszRpcApiKeyValue
 
 RpcSetPathVariable      PROTO :QWORD,:QWORD                                     ; hRpc, lpszVariable
 RpcSetQueryParameters   PROTO :QWORD,:QWORD,:QWORD,:QWORD                       ; hRpc, lpszName, lpszValue, qwValue

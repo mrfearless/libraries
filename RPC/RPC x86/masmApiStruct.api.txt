@@ -4,4 +4,4 @@
 ; Paste this text at the end of \Radasm\masm\masmApiStruct.api to add these to Radasm
 ;
 ;------------------------------------------------------------------------------------------------
-RPC_HANDLE,hConnect,hInternet,hRequest,bSecure,dwStatusCode,lpszHostAddress,lpszUrl,lpszPathVariable,lpszQueryParameters,lpszAcceptHeader,lpszContentHeader,lpszAuthHeader 
+RPC_HANDLE,hConnect,hInternet,hRequest,bSecure,dwStatusCode,lpszHostAddress,lpszUrl,lpszPathVariable,lpszQueryParameters,lpszAcceptHeader,lpszContentHeader,lpszAuthHeader,lpszApiKeyName,lpszApiKeyValue

@@ -48,6 +48,7 @@ RpcSetCookie            PROTO :DWORD,:DWORD                                     
 RpcSetAuthBasic         PROTO :DWORD,:DWORD,:DWORD                              ; hRpc, lpszUsername, lpszPassword
 RpcSetAcceptType        PROTO :DWORD,:DWORD,:DWORD                              ; hRpc, lpszAcceptType, dwAcceptType
 RpcSetContentType       PROTO :DWORD,:DWORD,:DWORD                              ; hRpc, lpszContentType, dwContentType
+RpcSetApiKey            PROTO :DWORD,:DWORD,:DWORD                              ; hRpc, lpszRpcApiKeyName, lpszRpcApiKeyValue
 
 RpcSetPathVariable      PROTO :DWORD,:DWORD                                     ; hRpc, lpszVariable
 RpcSetQueryParameters   PROTO :DWORD,:DWORD,:DWORD,:DWORD                       ; hRpc, lpszName, lpszValue, dwValue
