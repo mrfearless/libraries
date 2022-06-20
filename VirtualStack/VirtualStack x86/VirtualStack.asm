@@ -1,3 +1,41 @@
+;==============================================================================
+;
+; VirtualStack Library x86
+;
+; Copyright (c) 2022 by fearless
+;
+; All Rights Reserved
+;
+; http://github.com/mrfearless
+;
+;
+; This software is provided 'as-is', without any express or implied warranty. 
+; In no event will the author be held liable for any damages arising from the 
+; use of this software.
+;
+; Permission is granted to anyone to use this software for any non-commercial 
+; program. If you use the library in an application, an acknowledgement in the
+; application or documentation is appreciated but not required. 
+;
+; You are allowed to make modifications to the source code, but you must leave
+; the original copyright notices intact and not misrepresent the origin of the
+; software. It is not allowed to claim you wrote the original software. 
+; Modified files must have a clear notice that the files are modified, and not
+; in the original state. This includes the name of the person(s) who modified 
+; the code. 
+;
+; If you want to distribute or redistribute any portion of this package, you 
+; will need to include the full package in it's original state, including this
+; license and all the copyrights.  
+;
+; While distributing this package (in it's original state) is allowed, it is 
+; not allowed to charge anything for this. You may not sell or include the 
+; package in any commercial package without having permission of the author. 
+; Neither is it allowed to redistribute any of the package's components with 
+; commercial applications.
+;
+;==============================================================================
+
 .686
 .MMX
 .XMM
@@ -6,7 +44,6 @@ option casemap:none
 include \masm32\macros\macros.asm
 
 ;DEBUG32 EQU 1
-
 IFDEF DEBUG32
     PRESERVEXMMREGS equ 1
     includelib M:\Masm32\lib\Debug32.lib
@@ -19,16 +56,21 @@ include windows.inc
 
 include user32.inc
 includelib user32.lib
-
 include kernel32.inc
 includelib kernel32.lib
 
 include VirtualStack.inc
 
 
+;------------------------------------------------------------------------------
+; Prototypes for internal use
+;------------------------------------------------------------------------------
 _VirtualStackAddToUniqueList        PROTO :DWORD, :DWORD
 
 
+;------------------------------------------------------------------------------
+; Structures for internal use
+;------------------------------------------------------------------------------
 IFNDEF STACK
 STACK                       STRUCT
     StackMaxHeight          DD 0    ; Max size of entire stack.
@@ -44,10 +86,13 @@ ENDIF
 
 .CODE
 
-;-----------------------------------------------------------------------------------------
-; VirtualStackCreate. Returns hVirtualStack in eax if succesful or NULL if failed. 
-; dwStackSize is the size (max amount of stack items) to create on the virtual stack
-;-----------------------------------------------------------------------------------------
+
+VIRTUALSTACK_ALIGN
+;------------------------------------------------------------------------------
+; VirtualStackCreate. Returns hVirtualStack in eax if succesful or NULL if 
+; failed. dwStackSize is the size (max amount of stack items) to create on the 
+; virtual stack
+;------------------------------------------------------------------------------
 VirtualStackCreate PROC USES EBX dwStackSize:DWORD, dwStackOptions:DWORD
     LOCAL nSize:DWORD
     LOCAL hStack:DWORD
@@ -112,18 +157,19 @@ VirtualStackCreate PROC USES EBX dwStackSize:DWORD, dwStackOptions:DWORD
     ret
 VirtualStackCreate ENDP
 
-
-;-----------------------------------------------------------------------------------------
+VIRTUALSTACK_ALIGN
+;------------------------------------------------------------------------------
 ; VirtualStackDelete. Deletes a virtual stack
 ;
-; lpdwVirtualDeleteCallbackProc is address of callback (optional)
-; Callback is defined as having following parameters:
-; <VirtualDeleteCallbackProc> hVirtualStack:DWORD, ptrStackItem:DWORD
-; Consider the callback experimental for the moment.
-; Calls VirtualDeleteCallbackProc with only unique items in stack
-; so user can free up resources allocated
+; lpdwVirtualDeleteCallbackProc is address of callback (optional) Callback is 
+; defined as having following parameters:
 ;
-;-----------------------------------------------------------------------------------------
+; <VirtualDeleteCallbackProc> hVirtualStack:DWORD, ptrStackItem:DWORD
+;
+; Consider the callback experimental for the moment.
+; Calls VirtualDeleteCallbackProc with only unique items in stack so user can 
+; free up resources allocated
+;------------------------------------------------------------------------------
 VirtualStackDelete PROC USES EBX hVirtualStack:DWORD, lpdwVirtualDeleteCallbackProc:DWORD
     LOCAL nStackMaxDepth:DWORD
     LOCAL hStackData:DWORD
@@ -179,11 +225,11 @@ VirtualStackDelete PROC USES EBX hVirtualStack:DWORD, lpdwVirtualDeleteCallbackP
 
 VirtualStackDelete endp
 
-
-;-----------------------------------------------------------------------------------------
-; VirtualStackPush. eax returns TRUE if succesful or FALSE otherwise. dwPushValue is the 
-; value to 'push' onto the virtual stack
-;-----------------------------------------------------------------------------------------
+VIRTUALSTACK_ALIGN
+;------------------------------------------------------------------------------
+; VirtualStackPush. eax returns TRUE if succesful or FALSE otherwise. 
+; dwPushValue is the value to 'push' onto the virtual stack
+;------------------------------------------------------------------------------
 VirtualStackPush PROC USES EBX hVirtualStack:DWORD, dwPushValue:DWORD
     LOCAL hStackData:DWORD
     LOCAL nStackNoItems:DWORD
@@ -253,12 +299,12 @@ VirtualStackPush PROC USES EBX hVirtualStack:DWORD, dwPushValue:DWORD
     ret
 VirtualStackPush ENDP
 
-
-;-----------------------------------------------------------------------------------------
-; VirtualStackPop. eax returns TRUE if succesful and lpdwPopValue contains the 'popped'
-; value from the virtual stack, or FALSE otherwise. If stack is empty (no more items on it)
-; then eax returns -1
-;-----------------------------------------------------------------------------------------
+VIRTUALSTACK_ALIGN
+;------------------------------------------------------------------------------
+; VirtualStackPop. eax returns TRUE if succesful and lpdwPopValue contains the 
+; 'popped' value from the virtual stack, or FALSE otherwise. If stack is empty 
+; (no more items on it) then eax returns -1
+;------------------------------------------------------------------------------
 VirtualStackPop PROC USES EBX hVirtualStack:DWORD, lpdwPopValue:DWORD
     LOCAL hStackData:DWORD
     LOCAL nStackNoItems:DWORD
@@ -328,12 +374,12 @@ VirtualStackPop PROC USES EBX hVirtualStack:DWORD, lpdwPopValue:DWORD
     ret
 VirtualStackPop ENDP
 
-
-;-----------------------------------------------------------------------------------------
-; VirtualStackPeek. eax returns TRUE if succesful and lpdwPeekValue contains the 'peeked'
-; value from the virtual stack, or FALSE otherwise. If stack is empty (no more items on it)
-; then eax returns -1
-;-----------------------------------------------------------------------------------------
+VIRTUALSTACK_ALIGN
+;------------------------------------------------------------------------------
+; VirtualStackPeek. eax returns TRUE if succesful and lpdwPeekValue contains 
+; the 'peeked' value from the virtual stack, or FALSE otherwise. If stack is 
+; empty (no more items on it) then eax returns -1
+;------------------------------------------------------------------------------
 VirtualStackPeek PROC USES EBX hVirtualStack:DWORD, lpdwPeekValue:DWORD
     LOCAL hStackData:DWORD
     LOCAL nStackNoItems:DWORD
@@ -383,12 +429,12 @@ VirtualStackPeek PROC USES EBX hVirtualStack:DWORD, lpdwPeekValue:DWORD
 
 VirtualStackPeek endp
 
-
-;-----------------------------------------------------------------------------------------
-; VirtualStackPeer. eax returns TRUE if succesful and lpdwPeerValue contains the 'peered'
-; value (peek +1 stack item), from the virtual stack, or FALSE otherwise. 
-; If stack is empty (no more items on it) then eax returns -1
-;-----------------------------------------------------------------------------------------
+VIRTUALSTACK_ALIGN
+;------------------------------------------------------------------------------
+; VirtualStackPeer. eax returns TRUE if succesful and lpdwPeerValue contains 
+; the 'peered' value (peek +1 stack item), from the virtual stack, or FALSE 
+; otherwise. If stack is empty (no more items on it) then eax returns -1
+;------------------------------------------------------------------------------
 VirtualStackPeer PROC USES EBX hVirtualStack:DWORD, lpdwPeerValue:DWORD
     LOCAL hStackData:DWORD
     LOCAL nStackNoItems:DWORD
@@ -444,15 +490,71 @@ VirtualStackPeer PROC USES EBX hVirtualStack:DWORD, lpdwPeerValue:DWORD
     mov [ebx], eax ; save current stack item value to pop address variable
 
     mov eax, TRUE
-
     ret
-
 VirtualStackPeer endp
 
+VIRTUALSTACK_ALIGN
+;------------------------------------------------------------------------------
+; VirtualStackPeep. eax returns TRUE if succesful and lpdwPeepValue contains 
+; the 'peeped' value (peek +N stack item), from the virtual stack, or FALSE 
+; otherwise. If stack is empty (no more items on it) then eax returns -1
+;------------------------------------------------------------------------------
+VirtualStackPeep PROC USES EBX hVirtualStack:DWORD, lpdwPeepValue:DWORD, dwStackIndex:DWORD 
+    LOCAL hStackData:DWORD
+    LOCAL nStackNoItems:DWORD
+    LOCAL nStackPointer:DWORD
+    LOCAL nStackMaxHeight:DWORD
+    
+    .IF hVirtualStack == NULL
+        xor eax, eax ; FALSE
+        ret
+    .ENDIF
 
-;-----------------------------------------------------------------------------------------
-; VirtualStackZero. Zeros the entire stack and resets it back to 0, clearing all data
-;-----------------------------------------------------------------------------------------
+    .IF lpdwPeepValue == NULL
+        xor eax, eax ; FALSE
+        ret
+    .ENDIF
+    
+    mov ebx, hVirtualStack
+    mov eax, [ebx].STACK.StackData
+    mov hStackData, eax
+    mov eax, [ebx].STACK.StackPointer
+    mov nStackPointer, eax
+    mov eax, [ebx].STACK.StackMaxHeight
+    mov nStackMaxHeight, eax
+    mov eax, [ebx].STACK.StackNoItems
+    mov nStackNoItems, eax
+    
+    .IF nStackNoItems == 0
+        mov eax, VIRTUALSTACK_STACKEMPTY ; stack empty    
+        ret
+    .ELSE
+        mov eax, nStackNoItems
+        add eax, dwStackIndex
+        .IF eax > nStackMaxHeight
+            mov eax, VIRTUALSTACK_STACKFULL
+            ret
+        .ENDIF        
+    .ENDIF
+    
+    mov eax, nStackPointer
+    add eax, dwStackIndex ; peep = peek + n
+    ;inc eax ; peer = peek plus one
+    mov ebx, hStackData
+    mov eax, [ebx+eax*4] ; current stack item value in eax
+    mov ebx, lpdwPeepValue
+    mov [ebx], eax ; save current stack item value to pop address variable
+    
+    mov eax, TRUE
+    ret
+VirtualStackPeep ENDP
+
+
+VIRTUALSTACK_ALIGN
+;------------------------------------------------------------------------------
+; VirtualStackZero. Zeros the entire stack and resets it back to 0, clearing 
+; all data
+;------------------------------------------------------------------------------
 VirtualStackZero PROC USES EBX hVirtualStack:DWORD
     LOCAL nSize:DWORD
     
@@ -509,10 +611,10 @@ VirtualStackZero PROC USES EBX hVirtualStack:DWORD
     ret
 VirtualStackZero ENDP
 
-
-;-----------------------------------------------------------------------------------------
+VIRTUALSTACK_ALIGN
+;------------------------------------------------------------------------------
 ; VirtualStackCount. eax returns number of items on the stack
-;-----------------------------------------------------------------------------------------
+;------------------------------------------------------------------------------
 VirtualStackCount PROC USES EBX hVirtualStack:DWORD
     .IF hVirtualStack == NULL
         xor eax, eax ; 0
@@ -523,10 +625,10 @@ VirtualStackCount PROC USES EBX hVirtualStack:DWORD
     ret
 VirtualStackCount ENDP
 
-
-;-----------------------------------------------------------------------------------------
+VIRTUALSTACK_ALIGN
+;------------------------------------------------------------------------------
 ; VirtualStackUniqueCount. eax returns number of unique items on the stack
-;-----------------------------------------------------------------------------------------
+;------------------------------------------------------------------------------
 VirtualStackUniqueCount PROC USES EBX hVirtualStack:DWORD
     .IF hVirtualStack == NULL
         xor eax, eax ; 0
@@ -538,10 +640,11 @@ VirtualStackUniqueCount PROC USES EBX hVirtualStack:DWORD
     ret
 VirtualStackUniqueCount ENDP
 
-
-;-----------------------------------------------------------------------------------------
-; VirtualStackCount. eax returns size of virtual stack (max number of items) on the stack
-;-----------------------------------------------------------------------------------------
+VIRTUALSTACK_ALIGN
+;------------------------------------------------------------------------------
+; VirtualStackSize. eax returns size of virtual stack (max number of items) 
+; on the stack
+;------------------------------------------------------------------------------
 VirtualStackSize PROC USES EBX hVirtualStack:DWORD
     .IF hVirtualStack == NULL
         xor eax, eax ; FALSE
@@ -552,10 +655,11 @@ VirtualStackSize PROC USES EBX hVirtualStack:DWORD
     ret
 VirtualStackSize ENDP
 
-
-;-----------------------------------------------------------------------------------------
-; VirtualStackDepth. eax returns max depth of virtual stack (max number of items ever) on the stack
-;-----------------------------------------------------------------------------------------
+VIRTUALSTACK_ALIGN
+;------------------------------------------------------------------------------
+; VirtualStackDepth. eax returns max depth of virtual stack (max number of 
+; items ever) on the stack
+;------------------------------------------------------------------------------
 VirtualStackDepth PROC USES EBX hVirtualStack:DWORD
     .IF hVirtualStack == NULL
         xor eax, eax ; FALSE
@@ -566,10 +670,10 @@ VirtualStackDepth PROC USES EBX hVirtualStack:DWORD
     ret
 VirtualStackDepth ENDP
 
-
-;-----------------------------------------------------------------------------------------
+VIRTUALSTACK_ALIGN
+;------------------------------------------------------------------------------
 ; VirtualStackData. eax returns pointer to StackData
-;-----------------------------------------------------------------------------------------
+;------------------------------------------------------------------------------
 VirtualStackData PROC USES EBX hVirtualStack:DWORD
     LOCAL hStackData:DWORD
     .IF hVirtualStack == NULL
@@ -592,11 +696,12 @@ VirtualStackData PROC USES EBX hVirtualStack:DWORD
     ret
 VirtualStackData ENDP
 
-
-;-----------------------------------------------------------------------------------------
-; _VirtualStackAddToUniqueList. True if unique, False if not unique, or eax contains
-; VIRTUALSTACK_UNIQUEFULL if GlobalRealloc failed and unique list is at max capacity now
-;-----------------------------------------------------------------------------------------
+VIRTUALSTACK_ALIGN
+;------------------------------------------------------------------------------
+; _VirtualStackAddToUniqueList. True if unique, False if not unique, or eax 
+; contains VIRTUALSTACK_UNIQUEFULL if GlobalRealloc failed and unique list is 
+; at max capacity now
+;------------------------------------------------------------------------------
 _VirtualStackAddToUniqueList PROC PRIVATE USES EBX hVirtualStack:DWORD, dwUniqueValue:DWORD
     LOCAL hStackUniqueData:DWORD
     LOCAL nStackUniqueMaxHeight:DWORD

@@ -1,8 +1,9 @@
 ;-----------------------------------------------------------------------------------------------------
-; ; VirtualStack x64 Library Additions 05/11/2017
+; ; VirtualStack x64 Library Additions
 ;
 ; Paste this text at the end of \Radasm\UASM64\uasm64ApiConst.api to add these to Radasm
 ;
 ;-----------------------------------------------------------------------------------------------------
 1VirtualStackCreate,VIRTUALSTACK_SIZE_TINY,VIRTUALSTACK_SIZE_SMALL,VIRTUALSTACK_SIZE_MEDIUM,VIRTUALSTACK_SIZE_LARGE
 2VirtualStackCreate,VIRTUALSTACK_OPTION_DEFAULT,VIRTUALSTACK_OPTION_UNIQUE
+2VirtualStackDelete,Addr VirtualDeleteCallbackProc

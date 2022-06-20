@@ -1,64 +1,69 @@
-;=========================================================================================
+;==============================================================================
 ;
-; LICENSE
+; VirtualStack Library x64
 ;
-; VirtualStack Library x64 v1.0.0.0
-;
-; Copyright (c) 2017 by KSR aka fearless
+; Copyright (c) 2022 by fearless
 ;
 ; All Rights Reserved
 ;
-; http://www.LetTheLight.in
+; http://github.com/mrfearless
 ;
 ;
-; This software is provided 'as-is', without any express or implied warranty. In no
-; event will the author be held liable for any damages arising from the use of this
-; software.
+; This software is provided 'as-is', without any express or implied warranty. 
+; In no event will the author be held liable for any damages arising from the 
+; use of this software.
 ;
-; Permission is granted to anyone to use this software for any non-commercial program.
-; If you use the library in an application, an acknowledgement in the application or
-; documentation is appreciated but not required. 
+; Permission is granted to anyone to use this software for any non-commercial 
+; program. If you use the library in an application, an acknowledgement in the
+; application or documentation is appreciated but not required. 
 ;
-; You are allowed to make modifications to the source code, but you must leave the
-; original copyright notices intact and not misrepresent the origin of the software.
-; It is not allowed to claim you wrote the original software. Modified files must have
-; a clear notice that the files are modified, and not in the original state. This includes
-; the name of the person(s) who modified the code. 
+; You are allowed to make modifications to the source code, but you must leave
+; the original copyright notices intact and not misrepresent the origin of the
+; software. It is not allowed to claim you wrote the original software. 
+; Modified files must have a clear notice that the files are modified, and not
+; in the original state. This includes the name of the person(s) who modified 
+; the code. 
 ;
-; If you want to distribute or redistribute any portion of this package, you will need
-; to include the full package in it's original state, including this license and all
-; the copyrights. 
+; If you want to distribute or redistribute any portion of this package, you 
+; will need to include the full package in it's original state, including this
+; license and all the copyrights.  
 ;
-; While distributing this package (in it's original state) is allowed, it is not allowed
-; to charge anything for this. You may not sell or include the package in any commercial
-; package without having permission of the author. Neither is it allowed to redistribute
-; any of the package's components with commercial applications.
+; While distributing this package (in it's original state) is allowed, it is 
+; not allowed to charge anything for this. You may not sell or include the 
+; package in any commercial package without having permission of the author. 
+; Neither is it allowed to redistribute any of the package's components with 
+; commercial applications.
 ;
-;=========================================================================================
+;==============================================================================
 
-;-----------------------------------------------------------------------------------------
+;------------------------------------------------------------------------------
 ; VirtualStack Prototypes
-;-----------------------------------------------------------------------------------------
-VirtualStackCreate          PROTO :QWORD, :QWORD    ; qwStackSize, qwStackOptions. Returns in rax hVirtualStack or NULL if error
-VirtualStackDelete          PROTO :QWORD, :QWORD    ; hVirtualStack. lpqwVirtualDeleteCallbackProc. Returns in rax TRUE or FALSE
-VirtualStackPush            PROTO :QWORD, :QWORD    ; hVirtualStack, qwPushValue. Returns in rax TRUE or FALSE
-VirtualStackPop             PROTO :QWORD, :QWORD    ; hVirtualStack, lpqwPopValue. Returns in rax TRUE or FALSE or -1 for empty stack
-VirtualStackPeek            PROTO :QWORD, :QWORD    ; hVirtualStack, lpqwPeekValue. Returns in rax TRUE or FALSE or -1 for empty stack
-VirtualStackPeer            PROTO :QWORD, :QWORD    ; hVirtualStack, lpqwPeerValue. Returns in rax TRUE or FALSE or -1 for empty stack
-VirtualStackZero            PROTO :QWORD            ; hVirtualStack. Returns in rax TRUE or FALSE
+;------------------------------------------------------------------------------
+VirtualStackCreate          PROTO qwStackSize:QWORD,qwStackOptions:QWORD                    ; Returns in eax hVirtualStack or NULL if error
+VirtualStackDelete          PROTO hVirtualStack:QWORD,lpqwVirtualDeleteCallbackProc:QWORD   ; Returns in eax TRUE or FALSE
+VirtualStackZero            PROTO hVirtualStack:QWORD                                       ; Returns in eax TRUE or FALSE
 
-VirtualStackCount           PROTO :QWORD            ; hVirtualStack. Returns in rax number of items on stack
-VirtualStackSize            PROTO :QWORD            ; hVirtualStack. Returns in rax max size of stack
-VirtualStackDepth           PROTO :QWORD            ; hVirtualStack. Returns in rax max number of items ever on stack
-VirtualStackData            PROTO :QWORD            ; hVirtualStack. Returns in rax pointer to stack data table
-VirtualStackUniqueCount     PROTO :QWORD            ; hVirtualStack. Returns in rax unique number of items on stack
+VirtualStackPush            PROTO hVirtualStack:QWORD,qwPushValue:QWORD                     ; Returns in eax TRUE or FALSE
+VirtualStackPop             PROTO hVirtualStack:QWORD,lpdwPopValue:QWORD                    ; Returns in eax TRUE or FALSE or -1 for empty stack
 
-;VirtualDeleteCallbackProc  PROTO :QWORD, :QWORD    ; optional Callback. hVirtualStack, ptrStackItem
+; Read stack without popping stack
+VirtualStackPeek            PROTO hVirtualStack:QWORD,lpqwPeekValue:QWORD                   ; Stack+0. Returns in eax TRUE or FALSE or -1 for empty stack
+VirtualStackPeer            PROTO hVirtualStack:QWORD,lpqwPeerValue:QWORD                   ; Stack+1. Returns in eax TRUE or FALSE or -1 for empty stack
+VirtualStackPeep            PROTO hVirtualStack:QWORD,lpqwPeepValue:QWORD,qwStackIndex:QWORD; Stack+N. Returns in eax TRUE or FALSE or -1 for empty stack
+
+VirtualStackCount           PROTO hVirtualStack:QWORD                                       ; Returns in eax number of items on stack
+VirtualStackSize            PROTO hVirtualStack:QWORD                                       ; Returns in eax max size of stack
+VirtualStackDepth           PROTO hVirtualStack:QWORD                                       ; Returns in eax max number of items ever on stack
+VirtualStackData            PROTO hVirtualStack:QWORD                                       ; Returns in eax pointer to stack data table
+VirtualStackUniqueCount     PROTO hVirtualStack:QWORD                                       ; Returns in eax unique number of items on stack
+
+VirtualDeleteCallbackProc   PROTO hVirtualStack:QWORD,ptrStackItem:QWORD                    ; Optional callback from VirtualStackDelete
 
 .CONST
-;-----------------------------------------------------------------------------------------
+;------------------------------------------------------------------------------
 ; VirtualStack Constants
-;-----------------------------------------------------------------------------------------
+;------------------------------------------------------------------------------
+VIRTUALSTACK_ALIGN          TEXTEQU <ALIGN 16>
 
 ; Virtual Stack Sizes:
 VIRTUALSTACK_SIZE_TINY      EQU 16d

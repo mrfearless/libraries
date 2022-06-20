@@ -1,3 +1,40 @@
+;==============================================================================
+;
+; VirtualStack Library x64
+;
+; Copyright (c) 2022 by fearless
+;
+; All Rights Reserved
+;
+; http://github.com/mrfearless
+;
+;
+; This software is provided 'as-is', without any express or implied warranty. 
+; In no event will the author be held liable for any damages arising from the 
+; use of this software.
+;
+; Permission is granted to anyone to use this software for any non-commercial 
+; program. If you use the library in an application, an acknowledgement in the
+; application or documentation is appreciated but not required. 
+;
+; You are allowed to make modifications to the source code, but you must leave
+; the original copyright notices intact and not misrepresent the origin of the
+; software. It is not allowed to claim you wrote the original software. 
+; Modified files must have a clear notice that the files are modified, and not
+; in the original state. This includes the name of the person(s) who modified 
+; the code. 
+;
+; If you want to distribute or redistribute any portion of this package, you 
+; will need to include the full package in it's original state, including this
+; license and all the copyrights.  
+;
+; While distributing this package (in it's original state) is allowed, it is 
+; not allowed to charge anything for this. You may not sell or include the 
+; package in any commercial package without having permission of the author. 
+; Neither is it allowed to redistribute any of the package's components with 
+; commercial applications.
+;
+;==============================================================================
 .686
 .MMX
 .XMM
@@ -30,9 +67,14 @@ ENDIF
 
 include VirtualStack.inc
 
+;------------------------------------------------------------------------------
+; Prototypes for internal use
+;------------------------------------------------------------------------------
 _VirtualStackAddToUniqueList        PROTO :QWORD, :QWORD
 
-
+;------------------------------------------------------------------------------
+; Structures for internal use
+;------------------------------------------------------------------------------
 IFNDEF STACK
 STACK                       STRUCT
     StackMaxHeight          DQ 0    ; Max size of entire stack.
@@ -49,11 +91,12 @@ ENDIF
 
 .CODE
 
-
-;-----------------------------------------------------------------------------------------
-; VirtualStackCreate. Returns hVirtualStack in rax if succesful or NULL if failed. 
-; qwStackSize is the size (max amount of stack items) to create on the virtual stack
-;-----------------------------------------------------------------------------------------
+VIRTUALSTACK_ALIGN
+;------------------------------------------------------------------------------
+; VirtualStackCreate. Returns hVirtualStack in rax if succesful or NULL if 
+; failed. qwStackSize is the size (max amount of stack items) to create on the 
+; virtual stack
+;------------------------------------------------------------------------------
 VirtualStackCreate PROC FRAME USES RBX qwStackSize:QWORD, qwStackOptions:QWORD
     LOCAL nSize:QWORD
     LOCAL hStack:QWORD
@@ -117,16 +160,19 @@ VirtualStackCreate PROC FRAME USES RBX qwStackSize:QWORD, qwStackOptions:QWORD
     ret
 VirtualStackCreate ENDP
 
-
-;-----------------------------------------------------------------------------------------
+VIRTUALSTACK_ALIGN
+;------------------------------------------------------------------------------
 ; VirtualStackDelete. Deletes a virtual stack
-; lpqwVirtualDeleteCallbackProc is address of callback (optional)
-; Callback is defined as having following parameters:
-; <VirtualDeleteCallbackProc> hVirtualStack:QWORD, ptrStackItem:QWORD
+;
+; lpdwVirtualDeleteCallbackProc is address of callback (optional) Callback is 
+; defined as having following parameters:
+;
+; <VirtualDeleteCallbackProc> hVirtualStack:DWORD, ptrStackItem:DWORD
+;
 ; Consider the callback experimental for the moment.
-; Calls VirtualDeleteCallbackProc with only unique items in stack
-; so user can free up resources allocated
-;-----------------------------------------------------------------------------------------
+; Calls VirtualDeleteCallbackProc with only unique items in stack so user can 
+; free up resources allocated
+;------------------------------------------------------------------------------
 VirtualStackDelete PROC FRAME USES RBX RCX RDX hVirtualStack:QWORD, lpqwVirtualDeleteCallbackProc:QWORD
     LOCAL nStackMaxDepth:QWORD
     LOCAL hStackData:QWORD
@@ -182,11 +228,11 @@ VirtualStackDelete PROC FRAME USES RBX RCX RDX hVirtualStack:QWORD, lpqwVirtualD
     ret
 VirtualStackDelete ENDP
 
-
-;-----------------------------------------------------------------------------------------
-; VirtualStackPush. rax returns TRUE if succesful or FALSE otherwise. qwPushValue is the 
-; value to 'push' onto the virtual stack
-;-----------------------------------------------------------------------------------------
+VIRTUALSTACK_ALIGN
+;------------------------------------------------------------------------------
+; VirtualStackPush. rax returns TRUE if succesful or FALSE otherwise. 
+; qwPushValue is the value to 'push' onto the virtual stack
+;------------------------------------------------------------------------------
 VirtualStackPush PROC FRAME USES RBX hVirtualStack:QWORD, qwPushValue:QWORD
     LOCAL hStackData:QWORD
     LOCAL nStackNoItems:QWORD
@@ -244,12 +290,12 @@ VirtualStackPush PROC FRAME USES RBX hVirtualStack:QWORD, qwPushValue:QWORD
     ret
 VirtualStackPush ENDP
 
-
-;-----------------------------------------------------------------------------------------
-; VirtualStackPop. rax returns TRUE if succesful and lpqwPopValue contains the 'popped'
-; value from the virtual stack, or FALSE otherwise. If stack is empty (no more items on it)
-; then rax returns -1
-;-----------------------------------------------------------------------------------------
+VIRTUALSTACK_ALIGN
+;------------------------------------------------------------------------------
+; VirtualStackPop. rax returns TRUE if succesful and lpqwPopValue contains the 
+; 'popped' value from the virtual stack, or FALSE otherwise. If stack is empty 
+; (no more items on it) then rax returns -1
+;------------------------------------------------------------------------------
 VirtualStackPop PROC FRAME USES RBX hVirtualStack:QWORD, lpqwPopValue:QWORD
     LOCAL hStackData:QWORD
     LOCAL nStackNoItems:QWORD
@@ -299,12 +345,12 @@ VirtualStackPop PROC FRAME USES RBX hVirtualStack:QWORD, lpqwPopValue:QWORD
     ret
 VirtualStackPop ENDP
 
-
-;-----------------------------------------------------------------------------------------
-; VirtualStackPeek. rax returns TRUE if succesful and lpqwPeekValue contains the 'peeked'
-; value from the virtual stack, or FALSE otherwise. If stack is empty (no more items on it)
-; then rax returns -1
-;-----------------------------------------------------------------------------------------
+VIRTUALSTACK_ALIGN
+;------------------------------------------------------------------------------
+; VirtualStackPeek. rax returns TRUE if succesful and lpqwPeekValue contains 
+; the 'peeked' value from the virtual stack, or FALSE otherwise. If stack is 
+; empty (no more items on it) then rax returns -1
+;------------------------------------------------------------------------------
 VirtualStackPeek PROC FRAME USES RBX hVirtualStack:QWORD, lpqwPeekValue:QWORD
     LOCAL hStackData:QWORD
     LOCAL nStackNoItems:QWORD
@@ -343,12 +389,12 @@ VirtualStackPeek PROC FRAME USES RBX hVirtualStack:QWORD, lpqwPeekValue:QWORD
     ret
 VirtualStackPeek ENDP
 
-
-;-----------------------------------------------------------------------------------------
-; VirtualStackPeer. rax returns TRUE if succesful and lpdwPeerValue contains the 'peered'
-; value (peek +1 stack item), from the virtual stack, or FALSE otherwise. 
-; If stack is empty (no more items on it) then rax returns -1
-;-----------------------------------------------------------------------------------------
+VIRTUALSTACK_ALIGN
+;------------------------------------------------------------------------------
+; VirtualStackPeer. rax returns TRUE if succesful and lpqwPeerValue contains 
+; the 'peered' value (peek +1 stack item), from the virtual stack, or FALSE 
+; otherwise. If stack is empty (no more items on it) then rax returns -1
+;------------------------------------------------------------------------------
 VirtualStackPeer PROC FRAME USES RBX hVirtualStack:QWORD, lpqwPeerValue:QWORD
     LOCAL hStackData:QWORD
     LOCAL nStackNoItems:QWORD
@@ -404,15 +450,69 @@ VirtualStackPeer PROC FRAME USES RBX hVirtualStack:QWORD, lpqwPeerValue:QWORD
     mov [rbx], rax ; save current stack item value to pop address variable
 
     mov rax, TRUE
-
     ret
-
 VirtualStackPeer endp
 
+VIRTUALSTACK_ALIGN
+;------------------------------------------------------------------------------
+; VirtualStackPeep. rax returns TRUE if succesful and lpqwPeepValue contains 
+; the 'peeped' value (peek +N stack item), from the virtual stack, or FALSE 
+; otherwise. If stack is empty (no more items on it) then rax returns -1
+;------------------------------------------------------------------------------
+VirtualStackPeep PROC FRAME USES RBX hVirtualStack:QWORD, lpqwPeepValue:QWORD, qwStackIndex:QWORD 
+    LOCAL hStackData:QWORD
+    LOCAL nStackNoItems:QWORD
+    LOCAL nStackPointer:QWORD
+    LOCAL nStackMaxHeight:QWORD
+    
+    .IF hVirtualStack == NULL
+        xor eax, eax ; FALSE
+        ret
+    .ENDIF
 
-;-----------------------------------------------------------------------------------------
-; VirtualStackZero. Zeros the entire stack and resets it back to 0, clearing all data
-;-----------------------------------------------------------------------------------------
+    .IF lpqwPeepValue == NULL
+        xor eax, eax ; FALSE
+        ret
+    .ENDIF
+    
+    mov rbx, hVirtualStack
+    mov rax, [rbx].STACK.StackData
+    mov hStackData, rax
+    mov rax, [rbx].STACK.StackPointer
+    mov nStackPointer, rax
+    mov rax, [rbx].STACK.StackMaxHeight
+    mov nStackMaxHeight, rax
+    mov rax, [rbx].STACK.StackNoItems
+    mov nStackNoItems, rax
+    
+    .IF nStackNoItems == 0
+        mov rax, VIRTUALSTACK_STACKEMPTY ; stack empty    
+        ret
+    .ELSE
+        mov rax, nStackNoItems
+        add rax, qwStackIndex
+        .IF rax > nStackMaxHeight
+            mov rax, VIRTUALSTACK_STACKFULL
+            ret
+        .ENDIF        
+    .ENDIF
+
+    mov rax, nStackPointer
+    add rax, qwStackIndex ; peep = peek + n
+    mov rbx, hStackData
+    mov rax, [rbx+rax*8] ; current stack item value in eax
+    mov rbx, lpqwPeepValue
+    mov [rbx], rax ; save current stack item value to pop address variable
+
+    mov eax, TRUE
+    ret
+VirtualStackPeep ENDP
+
+VIRTUALSTACK_ALIGN
+;------------------------------------------------------------------------------
+; VirtualStackZero. Zeros the entire stack and resets it back to 0, clearing 
+; all data
+;------------------------------------------------------------------------------
 VirtualStackZero PROC FRAME USES RBX hVirtualStack:QWORD
     LOCAL nSize:QWORD
     
@@ -468,10 +568,10 @@ VirtualStackZero PROC FRAME USES RBX hVirtualStack:QWORD
     ret
 VirtualStackZero ENDP
 
-
-;-----------------------------------------------------------------------------------------
+VIRTUALSTACK_ALIGN
+;------------------------------------------------------------------------------
 ; VirtualStackCount. rax returns number of items on the stack
-;-----------------------------------------------------------------------------------------
+;------------------------------------------------------------------------------
 VirtualStackCount PROC FRAME USES RBX hVirtualStack:QWORD
     .IF hVirtualStack == NULL
         xor eax, eax ; FALSE
@@ -482,10 +582,10 @@ VirtualStackCount PROC FRAME USES RBX hVirtualStack:QWORD
     ret
 VirtualStackCount ENDP
 
-
-;-----------------------------------------------------------------------------------------
+VIRTUALSTACK_ALIGN
+;------------------------------------------------------------------------------
 ; VirtualStackUniqueCount. rax returns number of unique items on the stack
-;-----------------------------------------------------------------------------------------
+;------------------------------------------------------------------------------
 VirtualStackUniqueCount PROC FRAME USES RBX hVirtualStack:QWORD
     .IF hVirtualStack == NULL
         xor eax, eax ; 0
@@ -497,10 +597,11 @@ VirtualStackUniqueCount PROC FRAME USES RBX hVirtualStack:QWORD
     ret
 VirtualStackUniqueCount ENDP
 
-
-;-----------------------------------------------------------------------------------------
-; VirtualStackCount. rax returns size of virtual stack (max number of items) on the stack
-;-----------------------------------------------------------------------------------------
+VIRTUALSTACK_ALIGN
+;------------------------------------------------------------------------------
+; VirtualStackSize. rax returns size of virtual stack (max number of items) 
+; on the stack
+;------------------------------------------------------------------------------
 VirtualStackSize PROC FRAME USES RBX hVirtualStack:QWORD
     .IF hVirtualStack == NULL
         xor eax, eax ; FALSE
@@ -511,10 +612,11 @@ VirtualStackSize PROC FRAME USES RBX hVirtualStack:QWORD
     ret
 VirtualStackSize ENDP
 
-
-;-----------------------------------------------------------------------------------------
-; VirtualStackDepth. rax returns max depth of virtual stack (max number of items ever) on the stack
-;-----------------------------------------------------------------------------------------
+VIRTUALSTACK_ALIGN
+;------------------------------------------------------------------------------
+; VirtualStackDepth. rax returns max depth of virtual stack (max number of 
+; items ever) on the stack
+;------------------------------------------------------------------------------
 VirtualStackDepth PROC FRAME USES RBX hVirtualStack:QWORD
     .IF hVirtualStack == NULL
         xor eax, eax ; FALSE
@@ -525,10 +627,10 @@ VirtualStackDepth PROC FRAME USES RBX hVirtualStack:QWORD
     ret
 VirtualStackDepth ENDP
 
-
-;-----------------------------------------------------------------------------------------
+VIRTUALSTACK_ALIGN
+;------------------------------------------------------------------------------
 ; VirtualStackData. rax returns pointer to StackData
-;-----------------------------------------------------------------------------------------
+;------------------------------------------------------------------------------
 VirtualStackData PROC FRAME USES RBX hVirtualStack:QWORD
     LOCAL hStackData:DWORD
     .IF hVirtualStack == NULL
@@ -540,11 +642,12 @@ VirtualStackData PROC FRAME USES RBX hVirtualStack:QWORD
     ret
 VirtualStackData ENDP
 
-
-;-----------------------------------------------------------------------------------------
-; _VirtualStackAddToUniqueList. True if unique, False if not unique, or rax contains
-; VIRTUALSTACK_UNIQUEFULL if GlobalRealloc failed and unique list is at max capacity now
-;-----------------------------------------------------------------------------------------
+VIRTUALSTACK_ALIGN
+;------------------------------------------------------------------------------
+; _VirtualStackAddToUniqueList. True if unique, False if not unique, or eax 
+; contains VIRTUALSTACK_UNIQUEFULL if GlobalRealloc failed and unique list is 
+; at max capacity now
+;------------------------------------------------------------------------------
 _VirtualStackAddToUniqueList PROC FRAME USES RBX hVirtualStack:QWORD, qwUniqueValue:QWORD
     LOCAL hStackUniqueData:QWORD
     LOCAL nStackUniqueMaxHeight:QWORD
