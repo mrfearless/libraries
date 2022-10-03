@@ -1,0 +1,3 @@
+#include "Res/CSExample_x86Ver.rc"
+#include "Res/CSExample_x86Dlg.rc"
+#include "Res/CSExample_x86Res.rc"

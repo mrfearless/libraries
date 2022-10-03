@@ -1,0 +1,3 @@
+#define MANIFEST 						24
+1						MANIFEST  DISCARDABLE "CSExample_x86.xml"
+100						ICON      DISCARDABLE "Res/capstone.ico"

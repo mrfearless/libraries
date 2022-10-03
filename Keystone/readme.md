@@ -1,4 +1,4 @@
-# Keystone
+# ![](../assets/Keystone.png) Keystone
 
 > **Keystone** is a lightweight multi-platform, multi-architecture assembler framework.
 

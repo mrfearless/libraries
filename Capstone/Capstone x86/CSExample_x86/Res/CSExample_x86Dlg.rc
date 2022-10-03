@@ -1,0 +1,21 @@
+#define IDD_DIALOG 1000
+#define IDC_LblRawBytes 1001
+#define IDC_TxtRawBytes 1002
+#define IDC_LblAsmDecoded 1003
+#define IDC_TxtAsmDecoded 1004
+#define IDC_BtnDecode 1005
+#define IDC_BtnExit 1006
+IDD_DIALOG DIALOGEX 6,6,211,192
+CAPTION "Capstone Example x86"
+FONT 8,"Segoe UI",400,0
+CLASS "DLGCLASS"
+STYLE 0x10C80800
+EXSTYLE 0x00000000
+BEGIN
+  CONTROL "Raw bytes to decode",IDC_LblRawBytes,"Static",0x50000000,5,7,200,12,0x00000000
+  CONTROL "",IDC_TxtRawBytes,"Edit",0x50010800,5,24,200,12,0x00000200
+  CONTROL "Decoded instructions:",IDC_LblAsmDecoded,"Static",0x50000000,5,44,200,12,0x00000000
+  CONTROL "",IDC_TxtAsmDecoded,"Edit",0x50211004,5,61,200,68,0x00000200
+  CONTROL "Decode",IDC_BtnDecode,"Button",0x50010000,73,141,70,15,0x00000000
+  CONTROL "Exit",IDC_BtnExit,"Button",0x50010000,73,166,70,15,0x00000000
+END
