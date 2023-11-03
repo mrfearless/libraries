@@ -36,25 +36,24 @@
 ; using BMDiff and then compressing the output of BMDiff with
 ; Snappy.
 
-; Snappy_x86.inc converted from snappy source for assembler by fearless 2023
-; www.github.com/mrfearless
+; Snappy_x86.inc converted from snappy source for assembler by fearless 2017 - www.github.com/mrfearless
 
 include msvcrt.inc
 includelib ucrt.lib
 includelib vcruntime.lib
 
-snappy_compress                     PROTO :DWORD,:DWORD,:DWORD,:DWORD
-snappy_max_compressed_length        PROTO :DWORD
-snappy_uncompress                   PROTO :DWORD,:DWORD,:DWORD,:DWORD
-snappy_uncompressed_length          PROTO :DWORD,:DWORD,:DWORD
-snappy_validate_compressed_buffer   PROTO :DWORD,:DWORD
+snappy_compress                     PROTO :QWORD,:QWORD,:QWORD,:QWORD
+snappy_max_compressed_length        PROTO :QWORD
+snappy_uncompress                   PROTO :QWORD,:QWORD,:QWORD,:QWORD
+snappy_uncompressed_length          PROTO :QWORD,:QWORD,:QWORD
+snappy_validate_compressed_buffer   PROTO :QWORD,:QWORD
   
 .CONST
 SNAPPY_MAJOR            EQU 1
 SNAPPY_MINOR            EQU 1
 SNAPPY_PATCHLEVEL       EQU 1
 SNAPPY_BUILD            EQU 10
-SNAPPY_VERSION          EQU ((SNAPPY_MAJOR SHL 16) or (SNAPPY_MINOR SHL 8) or SNAPPY_PATCHLEVEL)
+SNAPPY_VERSION          EQU ((SNAPPY_MAJOR << 16) or (SNAPPY_MINOR << 8) or SNAPPY_PATCHLEVEL)
 
 ; snappy_status
 SNAPPY_OK               EQU 0
@@ -63,9 +62,9 @@ SNAPPY_BUFFER_TOO_SMALL EQU 2
 
 
 kBlockLog               EQU 16;
-kBlockSize              EQU 1 ; << kBlockLog;
+kBlockSize              EQU 1 << kBlockLog;
 kMaxHashTableBits       EQU 14;
-kMaxHashTableSize       EQU 1 ; << kMaxHashTableBits;
+kMaxHashTableSize       EQU 1 << kMaxHashTableBits;
   
 .DATA
 SNAPPY_VERSION_STRING   DB "1.1.10",0
