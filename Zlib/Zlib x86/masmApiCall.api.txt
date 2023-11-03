@@ -1,9 +1,9 @@
-;-----------------------------------------------------------------------------------------------------
+;------------------------------------------------------------------------------
 ; Zlib x86 Library
 ;
 ; Paste this text at the end of \Radasm\Masm\masmApiCall.api to add these to Radasm
 ;
-;-----------------------------------------------------------------------------------------------------
+;------------------------------------------------------------------------------
 zlibVersion
 deflateInit,strm,dwlevel
 deflate,strm,dwflush
@@ -14,7 +14,7 @@ inflateEnd,strm
 deflateInit2,strm,dwlevel,method,dwwindowBits,memLevel,dwstrategy
 deflateSetDictionary,strm,lpszdictionary,dwdictLength
 deflateGetDictionary,strm,lpszdictionary,lpdwdictLength
-deflateCopy,dest,source)
+deflateCopy,dest,source
 deflateReset,strm
 deflateParams,strm,dwlevel,dwstrategy
 deflateTune,strm,good_length,max_lazy,nice_length,max_chain
@@ -89,7 +89,7 @@ unzGoToFirstFile,file
 unzGoToNextFile,file
 unzLocateFile,file,lpszFileName,bCaseSensitivity
 unzGetCurrentFileInfo64,file,pfile_info,lpszFileName,dwfileNameBufferSize,lpextraField,dwextraFieldBufferSize,lpszComment,dwcommentBufferSize
-unzGetCurrentFileInfo,file,pfile_info,lpszFileName,dwfileNameBufferSize,lpextraField,dwextraFieldBufferSize, lpszComment,dwcommentBufferSize
+unzGetCurrentFileInfo,file,pfile_info,lpszFileName,dwfileNameBufferSize,lpextraField,dwextraFieldBufferSize,lpszComment,dwcommentBufferSize
 unzGetCurrentFileZStreamPos64,file
 unzOpenCurrentFile,file
 unzOpenCurrentFilePassword,file,lpszpassword
@@ -105,7 +105,7 @@ unzGetOffset64,file
 unzGetOffset,file
 unzSetOffset64,file,qwpos
 unzSetOffset,file,dwpos
-zipOpen,lpszpathname,dwappend;
+zipOpen,lpszpathname,dwappend
 zipOpen64,lpszpathname,dwappend
 zipOpen2,lpszpathname,dwappend,lpszglobalcomment,pzlib_filefunc_def
 zipOpen2_64,lpszpathname,dwappend,lpszglobalcomment,pzlib_filefunc_def
@@ -114,9 +114,9 @@ zipOpenNewFileInZip64,file,lpszfilename,lpzipfi,lpextrafield_local,dwsize_extraf
 zipOpenNewFileInZip2,file,lpszfilename,lpzipfi,lpextrafield_local,dwsize_extrafield_local,lpextrafield_global,dwsize_extrafield_global,lpszcomment,dwmethod,dwlevel,dwraw
 zipOpenNewFileInZip2_64,file,lpszfilename,lpzipfi,lpextrafield_local,dwsize_extrafield_local,lpextrafield_global,dwsize_extrafield_global,lpszcomment,dwmethod,dwlevel,dwraw,dwzip64
 zipOpenNewFileInZip3,file,lpszfilename,lpzipfi,lpextrafield_local,dwsize_extrafield_local,lpextrafield_global,dwsize_extrafield_global,lpszcomment,int method,dwlevel,dwraw,dwwindowBits,dwmemLevel,dwstrategy,lpszpassword,dwcrcForCrypting
-zipOpenNewFileInZip3_64,file,lpszfilename,lpzipfi,lpextrafield_local,dwsize_extrafield_local,lpextrafield_global,dwsize_extrafield_global,lpszcomment,int method,dwlevel,dwraw,dwwindowBits,dwmemLevel,dwstrategy,lpszpassword,dwcrcForCrypting, int zip64));
-zipOpenNewFileInZip4,file,lpszfilename,lpzipfi,lpextrafield_local,dwsize_extrafield_local,lpextrafield_global,dwsize_extrafield_global,lpszcomment,dwmethod,dwlevel,dwraw,dwwindowBits,dwmemLevel,dwstrategy,lpszpassword,dwcrcForCrypting, uLong versionMadeBy,dwflagBase
-zipOpenNewFileInZip4_64,file,lpszfilename,lpzipfi,lpextrafield_local,dwsize_extrafield_local,lpextrafield_global,dwsize_extrafield_global,lpszcomment,dwmethod,dwlevel,dwraw,dwwindowBits,dwmemLevel,dwstrategy,lpszpassword,dwcrcForCrypting, uLong versionMadeBy,dwflagBase,dwzip64
+zipOpenNewFileInZip3_64,file,lpszfilename,lpzipfi,lpextrafield_local,dwsize_extrafield_local,lpextrafield_global,dwsize_extrafield_global,lpszcomment,int method,dwlevel,dwraw,dwwindowBits,dwmemLevel,dwstrategy,lpszpassword,dwcrcForCrypting,dwzip64
+zipOpenNewFileInZip4,file,lpszfilename,lpzipfi,lpextrafield_local,dwsize_extrafield_local,lpextrafield_global,dwsize_extrafield_global,lpszcomment,dwmethod,dwlevel,dwraw,dwwindowBits,dwmemLevel,dwstrategy,lpszpassword,dwcrcForCrypting,versionMadeBy,dwflagBase
+zipOpenNewFileInZip4_64,file,lpszfilename,lpzipfi,lpextrafield_local,dwsize_extrafield_local,lpextrafield_global,dwsize_extrafield_global,lpszcomment,dwmethod,dwlevel,dwraw,dwwindowBits,dwmemLevel,dwstrategy,lpszpassword,dwcrcForCrypting,versionMadeBy,dwflagBase,dwzip64
 zipWriteInFileInZip,file,lpbuf,dwlen
 zipCloseFileInZip,file
 zipCloseFileInZipRaw,file,dwuncompressed_size,dwcrc32
