@@ -5,17 +5,25 @@ LZ4 static libraries compiled for x86 assembler
 LZ4: https://github.com/lz4/lz4
 
 > Extremely Fast Compression algorithm.
->
+
+> LZ4 is lossless compression algorithm, providing compression speed > 500 MB/s per core, scalable with multi-cores CPU. It features an extremely fast decoder, with speed in multiple GB/s per core, typically reaching RAM speed limits on multi-core systems.
+
+> Speed can be tuned dynamically, selecting an "acceleration" factor which trades compression ratio for faster speed. On the other end, a high compression derivative, LZ4_HC, is also provided, trading CPU time for improved compression ratio. All versions feature the same decompression speed.
 
 ## Usage
 
-* Copy `*.inc` to your `masm32\include` folder (or wherever your includes are located)
-* Copy `*.lib` to your `masm32\lib` folder (or wherever your libraries are located)
+* Copy `lz4_x86.inc` to your `masm32\include` folder (or wherever your includes are located)
+
+* Copy `lz4_x86.lib` to your `masm32\lib` folder (or wherever your libraries are located)
+
 * Add the following to your project:
-```assembly
-include LZ4_x86.inc
-includelib LZ4_x86.lib
-```
+  
+  ```assembly
+  include lz4_x86.inc
+  includelib lz4_x86.lib
+  ```
+
+**Note:** `lz4_x86.lib` also requires the Windows C Universal Runtime
 
 ## Functions
 
