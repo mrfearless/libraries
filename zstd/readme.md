@@ -1,9 +1,7 @@
-# ![](../assets/zstd.png) Zstandard
+# ![](../assets/zstd.png) Zstandard 1.5.5
 
 Zstandard static libraries compiled for x86 and x64 assembler 
 
 Zstandard: http://www.zstd.net
 
 > Zstandard is a real-time compression algorithm, providing high compression ratios.
->
-
