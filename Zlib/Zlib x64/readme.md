@@ -20,3 +20,11 @@ Zlib: https://zlib.net/ - https://github.com/madler/zlib
   ```
 
 **Note:** `zlib_x64.lib` also requires the Windows C Universal Runtime
+
+## Functions
+
+ZLib api reference documentation is available in the `zlib.h` file.
+
+## Download
+
+The latest downloadable release is available [here](https://github.com/mrfearless/libraries/blob/master/releases/Zlib_x64.zip?raw=true)
