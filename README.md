@@ -12,6 +12,7 @@ Hopefully you find them useful in your coding.
 
 # Projects:
 
+- [aPLib - aPACK compression library](https://github.com/mrfearless/libraries/tree/master/aPLib)
 - [BearSSL - smaller SSL/TLS library](https://github.com/mrfearless/libraries/tree/master/BearSSL)
 - [Capstone - lightweight multi-platform, multi-architecture disassembly framework](https://github.com/mrfearless/libraries/tree/master/Capstone)
 - [cJSON - ultralightweight JSON parser in ANSI C](https://github.com/mrfearless/libraries/tree/master/cJSON)
@@ -22,9 +23,9 @@ Hopefully you find them useful in your coding.
 - [Keystone - lightweight multi-platform, multi-architecture assembler framework](https://github.com/mrfearless/libraries/tree/master/Keystone)
 - [Listview - library for handling windows listview controls](https://github.com/mrfearless/libraries/tree/master/Listview)
 - [Lua - embeddable scripting language](https://github.com/mrfearless/libraries/tree/master/Lua)
-- [LZ4 - Extremely Fast Compression algorithm](https://github.com/mrfearless/libraries/tree/master/LZ4)
+- [LZ4 - extremely Fast Compression algorithm](https://github.com/mrfearless/libraries/tree/master/LZ4)
 - [Masm64 - x64 assembler port of Steve Hutchesson's Masm32 library](https://github.com/mrfearless/libraries/tree/master/Masm64)
-- [Mini-XML - Tiny XML library](https://github.com/mrfearless/libraries/tree/master/Mini-XML)
+- [Mini-XML - tiny XML library](https://github.com/mrfearless/libraries/tree/master/Mini-XML)
 - [OpenCL - x64 assembler port of Khronos OpenCL SDK](https://github.com/mrfearless/libraries/tree/master/OpenCL)
 - [OpenSSL - toolkit for the TLS and SSL protocols and cryptography](https://github.com/mrfearless/libraries/tree/master/OpenSSL)
 - [RPC - Remote Procedure Calls](https://github.com/mrfearless/libraries/tree/master/RPC)
@@ -34,5 +35,5 @@ Hopefully you find them useful in your coding.
 - [VirtualStack - library for creating a virtual stack and manipulating it](https://github.com/mrfearless/libraries/tree/master/VirtualStack)
 - [Vulkan - assembler port of Khronos Vulkan graphics api (WIP)](https://github.com/mrfearless/libraries/tree/master/Vulkan)
 - [ZeroMQ - high-performance asynchronous messaging library](https://github.com/mrfearless/libraries/tree/master/ZeroMQ)
-- [Zlib - compression library](https://github.com/mrfearless/libraries/tree/master/Zlib)
-- [zstd - Zstandard real-time compression by Facebook](https://github.com/mrfearless/libraries/tree/master/zstd)
+- [Zlib - A massively spiffy yet delicately unobtrusive compression library](https://github.com/mrfearless/libraries/tree/master/Zlib)
+- [zstd - zstandard real-time compression by Facebook](https://github.com/mrfearless/libraries/tree/master/zstd)
