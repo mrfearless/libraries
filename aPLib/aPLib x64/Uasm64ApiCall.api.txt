@@ -1,0 +1,17 @@
+;------------------------------------------------------------------------------
+; aPLib x64 Library
+;
+; Paste this text at the end of \Radasm\Masm\Uasm64ApiCall.api to add these to Radasm
+;
+;------------------------------------------------------------------------------
+aP_pack,source,destination,qwlength,workmem,callback,cbparam
+aP_workmem_size,input_size
+aP_max_packed_size,input_size
+aP_depack_asm,source,destination
+aP_depack_asm_fast,source,destination
+aP_depack_asm_safe,source,srclen,destination,dstlen
+aP_crc32,source,qwlength
+aPsafe_pack,source,destination,qwlength,workmem,callback,cbparam
+aPsafe_check,source
+aPsafe_get_orig_size,source
+aPsafe_depack,source,srclen,destination,dstlen
