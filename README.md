@@ -25,7 +25,7 @@ Hopefully you find them useful in your coding.
 - [Lua - embeddable scripting language](https://github.com/mrfearless/libraries/tree/master/Lua)
 - [LZ4 - extremely Fast Compression algorithm](https://github.com/mrfearless/libraries/tree/master/LZ4)
 - [Masm64 - x64 assembler port of Steve Hutchesson's Masm32 library](https://github.com/mrfearless/libraries/tree/master/Masm64)
-- [Mini-XML - tiny XML library](https://github.com/mrfearless/libraries/tree/master/Mini-XML)
+- [Mini-XML - a small XML file parsing library](https://github.com/mrfearless/libraries/tree/master/mxml)
 - [OpenCL - x64 assembler port of Khronos OpenCL SDK](https://github.com/mrfearless/libraries/tree/master/OpenCL)
 - [OpenSSL - toolkit for the TLS and SSL protocols and cryptography](https://github.com/mrfearless/libraries/tree/master/OpenSSL)
 - [RPC - Remote Procedure Calls](https://github.com/mrfearless/libraries/tree/master/RPC)
