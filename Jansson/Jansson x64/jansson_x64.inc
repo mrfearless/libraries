@@ -2,120 +2,135 @@
 ; Copyright (c) 2009-2016 Petri Lehtinen <petri@digip.org>
 ;
 ; Jansson is free software; you can redistribute it and/or modify
-; it under the terms of the MIT license. See LICENSE for details.
+; it under the terms of the MIT license.
 ;
 
-; jansson_x64.inc converted from jansson.h for assembler by fearless 2017
+; jansson_x64.inc converted from jansson source for assembler by fearless 2023
+; www.github.com/mrfearless
 
+include msvcrt.inc
+includelib ucrt.lib
+includelib vcruntime.lib
 
-; Prototypes
-json_object_seed                PROTO :QWORD ; void json_object_seed(size_t seed);
-json_object_size                PROTO :QWORD ; size_t json_object_size(const json_t *object);
-json_object_get                 PROTO :QWORD,:QWORD ; json_t *json_object_get(const json_t *object, const char *key);
-json_object_set_new             PROTO :QWORD,:QWORD,:QWORD ; int json_object_set_new(json_t *object, const char *key, json_t *value);
-json_object_set_new_nocheck     PROTO :QWORD,:QWORD,:QWORD ; int json_object_set_new_nocheck(json_t *object, const char *key, json_t *value);
-json_object_del                 PROTO :QWORD,:QWORD ; int json_object_del(json_t *object, const char *key);
-json_object_clear               PROTO :QWORD ; int json_object_clear(json_t *object);
-json_object_update              PROTO :QWORD,:QWORD ; int json_object_update(json_t *object, json_t *other);
-json_object_update_existing     PROTO :QWORD,:QWORD ; int json_object_update_existing(json_t *object, json_t *other);
-json_object_update_missing      PROTO :QWORD,:QWORD ; int json_object_update_missing(json_t *object, json_t *other);
-json_object_iter                PROTO :QWORD ; void *json_object_iter(json_t *object);
-json_object_iter_at             PROTO :QWORD,:QWORD ; void *json_object_iter_at(json_t *object, const char *key);
-json_object_key_to_iter         PROTO :QWORD ; void *json_object_key_to_iter(const char *key);
-json_object_iter_next           PROTO :QWORD,:QWORD ; void *json_object_iter_next(json_t *object, void *iter);
-json_object_iter_key            PROTO :QWORD ; const char *json_object_iter_key(void *iter);
-json_object_iter_value          PROTO :QWORD ; json_t *json_object_iter_value(void *iter);
-json_object_iter_set_new        PROTO :QWORD,:QWORD,:QWORD ; int json_object_iter_set_new(json_t *object, void *iter, json_t *value);
-json_array_size                 PROTO :QWORD ; size_t json_array_size(const json_t *array);
-json_array_get                  PROTO :QWORD,:QWORD ; json_t *json_array_get(const json_t *array, size_t index);
-json_array_set_new              PROTO :QWORD,:QWORD,:QWORD ; int json_array_set_new(json_t *array, size_t index, json_t *value);
-json_array_append_new           PROTO :QWORD,:QWORD ; int json_array_append_new(json_t *array, json_t *value);
-json_array_insert_new           PROTO :QWORD,:QWORD,:QWORD ; int json_array_insert_new(json_t *array, size_t index, json_t *value);
-json_array_remove               PROTO :QWORD,:QWORD ; int json_array_remove(json_t *array, size_t index);
-json_array_clear                PROTO :QWORD ; int json_array_clear(json_t *array);
-json_array_extend               PROTO :QWORD,:QWORD ; int json_array_extend(json_t *array, json_t *other);
-json_string_value               PROTO :QWORD ; const char *json_string_value(const json_t *string);
-json_string_length              PROTO :QWORD ; size_t json_string_length(const json_t *string);
-json_integer_value              PROTO :QWORD ; json_int_t json_integer_value(const json_t *integer);
-json_real_value                 PROTO :QWORD ; double json_real_value(const json_t *real);
-json_number_value               PROTO :QWORD ; double json_number_value(const json_t *json);
-json_string_set                 PROTO :QWORD,:QWORD ; int json_string_set(json_t *string, const char *value);
-json_string_setn                PROTO :QWORD,:QWORD,:QWORD ; int json_string_setn(json_t *string, const char *value, size_t len);
-json_string_set_nocheck         PROTO :QWORD,:QWORD ; int json_string_set_nocheck(json_t *string, const char *value);
-json_string_setn_nocheck        PROTO :QWORD,:QWORD,:QWORD ; int json_string_setn_nocheck(json_t *string, const char *value, size_t len);
-json_integer_set                PROTO :QWORD,:QWORD ; int json_integer_set(json_t *integer, json_int_t value);
-json_real_set                   PROTO :QWORD,:QWORD ; int json_real_set(json_t *real, double value);
-json_equal                      PROTO :QWORD,:QWORD ; int json_equal(const json_t *value1, const json_t *value2);
-json_copy                       PROTO :QWORD ; json_t *json_copy(json_t *value);
-json_deep_copy                  PROTO :QWORD ; json_t *json_deep_copy(const json_t *value);
-json_loads                      PROTO :QWORD,:QWORD,:QWORD ; json_t *json_loads(const char *input, size_t flags, json_error_t *error);
-json_loadb                      PROTO :QWORD,:QWORD,:QWORD,:QWORD ; json_t *json_loadb(const char *buffer, size_t buflen, size_t flags, json_error_t *error);
-json_loadf                      PROTO :QWORD,:QWORD,:QWORD ; json_t *json_loadf(FILE *input, size_t flags, json_error_t *error);
-json_loadfd                     PROTO :QWORD,:QWORD,:QWORD ; json_t *json_loadfd(int input, size_t flags, json_error_t *error);
-json_load_file                  PROTO :QWORD,:QWORD,:QWORD ; json_t *json_load_file(const char *path, size_t flags, json_error_t *error);
-json_load_callback              PROTO :QWORD,:QWORD,:QWORD,:QWORD ; json_t *json_load_callback(json_load_callback_t callback, void *data, size_t flags, json_error_t *error);
-json_dump_callback_t            PROTO :QWORD,:QWORD,:QWORD ; typedef int (*json_dump_callback_t)(const char *buffer, size_t size, void *data);
-json_dumps                      PROTO :QWORD,:QWORD ; char *json_dumps(const json_t *json, size_t flags);
-json_dumpb                      PROTO :QWORD,:QWORD,:QWORD,:QWORD ; size_t json_dumpb(const json_t *json, char *buffer, size_t size, size_t flags);
-json_dumpf                      PROTO :QWORD,:QWORD,:QWORD ; int json_dumpf(const json_t *json, FILE *output, size_t flags);
-json_dumpfd                     PROTO :QWORD,:QWORD,:QWORD ; int json_dumpfd(const json_t *json, int output, size_t flags);
-json_dump_file                  PROTO :QWORD,:QWORD,:QWORD ; int json_dump_file(const json_t *json, const char *path, size_t flags);
-json_dump_callback              PROTO :QWORD,:QWORD,:QWORD,:QWORD ; int json_dump_callback(const json_t *json, json_dump_callback_t callback, void *data, size_t flags);
-json_set_alloc_funcs            PROTO :QWORD,:QWORD ; void json_set_alloc_funcs(json_malloc_t malloc_fn, json_free_t free_fn);
-json_get_alloc_funcs            PROTO :QWORD,:QWORD ; void json_get_alloc_funcs(json_malloc_t *malloc_fn, json_free_t *free_fn);
-json_typeof                     PROTO :QWORD ; (json)      ((json)->type)
-json_is_object                  PROTO :QWORD ; (json)   ((json) && json_typeof(json) == JSON_OBJECT)
-json_is_array                   PROTO :QWORD ; (json)    ((json) && json_typeof(json) == JSON_ARRAY)
-json_is_string                  PROTO :QWORD ; (json)   ((json) && json_typeof(json) == JSON_STRING)
-json_is_integer                 PROTO :QWORD ; (json)  ((json) && json_typeof(json) == JSON_INTEGER)
-json_is_real                    PROTO :QWORD ; (json)     ((json) && json_typeof(json) == JSON_REAL)
-json_is_number                  PROTO :QWORD ; (json)   (json_is_integer(json) || json_is_real(json))
-json_is_true                    PROTO :QWORD ; (json)     ((json) && json_typeof(json) == JSON_TRUE)
-json_is_false                   PROTO :QWORD ; (json)    ((json) && json_typeof(json) == JSON_FALSE)
-json_boolean_value              PROTO :QWORD ;      json_is_true
-json_is_boolean                 PROTO :QWORD ; (json)  (json_is_true(json) || json_is_false(json))
-json_is_null                    PROTO :QWORD ; (json)     ((json) && json_typeof(json) == JSON_NULL)
+hashtable_clear PROTO hashtable:QWORD
+hashtable_close PROTO hashtable:QWORD
+hashtable_del PROTO hashtable:QWORD, key:QWORD, key_len:QWORD
+hashtable_get PROTO hashtable:QWORD, key:QWORD, key_len:QWORD
+hashtable_init PROTO hashtable:QWORD
+hashtable_iter PROTO hashtable:QWORD
+hashtable_iter_at PROTO hashtable:QWORD, key:QWORD, key_len:QWORD
+hashtable_iter_key PROTO iter:QWORD
+hashtable_iter_key_len PROTO iter:QWORD
+hashtable_iter_next PROTO hashtable:QWORD, iter:QWORD
+hashtable_iter_set PROTO iter:QWORD, value:QWORD
+hashtable_iter_value PROTO iter:QWORD
+hashtable_seed PROTO C :VARARG
+hashtable_set PROTO hashtable:QWORD, key:QWORD, key_len:QWORD, value:QWORD
+jansson_version_cmp PROTO major:QWORD, minor:QWORD, micro:QWORD
+jansson_version_str PROTO 
+json_array PROTO 
+json_array_append_new PROTO array:QWORD, value:QWORD
+json_array_clear PROTO array:QWORD
+json_array_extend PROTO array:QWORD, other:QWORD
+json_array_get PROTO array:QWORD, index:QWORD
+json_array_insert_new PROTO array:QWORD, index:QWORD, value:QWORD
+json_array_remove PROTO array:QWORD, index:QWORD
+json_array_set_new PROTO array:QWORD, index:QWORD, value:QWORD
+json_array_size PROTO array:QWORD
+json_copy PROTO value:QWORD
+json_deep_copy PROTO value:QWORD
+json_delete PROTO json:QWORD
+json_dump_callback PROTO json:QWORD, callback:QWORD, data:QWORD, flags:QWORD
+json_dump_file PROTO json:QWORD, path:QWORD, flags:QWORD
+json_dumpb PROTO json:QWORD, buffer:QWORD, bufsize:QWORD, flags:QWORD
+json_dumpf PROTO json:QWORD, output:QWORD, flags:QWORD
+json_dumpfd PROTO json:QWORD, output:QWORD, flags:QWORD
+json_dumps PROTO json:QWORD, flags:QWORD
+json_equal PROTO value1:QWORD, value2:QWORD
+json_false PROTO 
+json_get_alloc_funcs PROTO malloc_fn:QWORD, free_fn:QWORD
+json_integer PROTO integer:QWORD
+json_integer_set PROTO integer:QWORD, value:QWORD
+json_integer_value PROTO integer:QWORD
+json_load_callback PROTO callback:QWORD, data:QWORD, flags:QWORD, error:QWORD
+json_load_file PROTO path:QWORD, flags:QWORD, error:QWORD
+json_loadb PROTO buffer:QWORD, buflen:QWORD, flags:QWORD, error:QWORD
+json_loadf PROTO input:QWORD, flags:QWORD, error:QWORD
+json_loadfd PROTO input:QWORD, flags:QWORD, error:QWORD
+json_loads PROTO input:QWORD, flags:QWORD, error:QWORD
+json_null PROTO 
+json_number_value PROTO json:QWORD
+json_object PROTO 
+json_object_clear PROTO object:QWORD
+json_object_del PROTO object:QWORD, key:QWORD
+json_object_deln PROTO object:QWORD, key:QWORD, key_len:QWORD
+json_object_get PROTO object:QWORD, key:QWORD
+json_object_getn PROTO object:QWORD, key:QWORD, key_len:QWORD
+json_object_iter PROTO object:QWORD
+json_object_iter_at PROTO object:QWORD, key:QWORD
+json_object_iter_key PROTO iter:QWORD
+json_object_iter_key_len PROTO iter:QWORD
+json_object_iter_next PROTO object:QWORD, iter:QWORD
+json_object_iter_set_new PROTO object:QWORD, iter:QWORD, value:QWORD
+json_object_iter_value PROTO iter:QWORD
+json_object_key_to_iter PROTO key:QWORD
+json_object_seed PROTO seed:QWORD
+json_object_set_new PROTO object:QWORD, key:QWORD, value:QWORD
+json_object_set_new_nocheck PROTO object:QWORD, key:QWORD, value:QWORD
+json_object_setn_new PROTO object:QWORD, key:QWORD, key_len:QWORD, value:QWORD
+json_object_setn_new_nocheck PROTO object:QWORD, key:QWORD, key_len:QWORD, value:QWORD
+json_object_size PROTO object:QWORD
+json_object_update PROTO object:QWORD, other:QWORD
+json_object_update_existing PROTO object:QWORD, other:QWORD
+json_object_update_missing PROTO object:QWORD, other:QWORD
+json_object_update_recursive PROTO object:QWORD, other:QWORD
+json_pack PROTO C :VARARG
+json_pack_ex PROTO C :VARARG
+json_real PROTO value:QWORD
+json_real_set PROTO real:QWORD, value:QWORD
+json_real_value PROTO real:QWORD
+json_set_alloc_funcs PROTO malloc_fn:QWORD, free_fn:QWORD
+json_sprintf PROTO C :VARARG
+json_string PROTO value:QWORD
+json_string_length PROTO string:QWORD
+json_string_nocheck PROTO value:QWORD
+json_string_set PROTO string:QWORD, value:QWORD
+json_string_set_nocheck PROTO string:QWORD, value:QWORD
+json_string_setn PROTO string:QWORD, value:QWORD, len:QWORD
+json_string_setn_nocheck PROTO string:QWORD, value:QWORD, len:QWORD
+json_string_value PROTO string:QWORD
+json_stringn PROTO value:QWORD, len:QWORD
+json_stringn_nocheck PROTO value:QWORD, len:QWORD
+json_true PROTO 
+json_unpack PROTO C :VARARG
+json_unpack_ex PROTO C :VARARG
+json_vpack_ex PROTO error:QWORD, flags:QWORD, fmt:QWORD, ap:QWORD
+json_vsprintf PROTO fmt:QWORD, ap:QWORD
+json_vunpack_ex PROTO root:QWORD, error:QWORD, flags:QWORD, fmt:QWORD, ap:QWORD
 
+; prototypes for static inline functions
+json_typeof                     PROTO json:QWORD ; (json)   ((json)->type)
+json_is_object                  PROTO json:QWORD ; (json)   ((json) && json_typeof(json) == JSON_OBJECT)
+json_is_array                   PROTO json:QWORD ; (json)   ((json) && json_typeof(json) == JSON_ARRAY)
+json_is_string                  PROTO json:QWORD ; (json)   ((json) && json_typeof(json) == JSON_STRING)
+json_is_integer                 PROTO json:QWORD ; (json)   ((json) && json_typeof(json) == JSON_INTEGER)
+json_is_real                    PROTO json:QWORD ; (json)   ((json) && json_typeof(json) == JSON_REAL)
+json_is_number                  PROTO json:QWORD ; (json)   (json_is_integer(json) || json_is_real(json))
+json_is_true                    PROTO json:QWORD ; (json)   ((json) && json_typeof(json) == JSON_TRUE)
+json_is_false                   PROTO json:QWORD ; (json)   ((json) && json_typeof(json) == JSON_FALSE)
+json_boolean_value              PROTO json:QWORD ; json_is_true
+json_is_boolean                 PROTO json:QWORD ; (json)   (json_is_true(json) || json_is_false(json))
+json_is_null                    PROTO json:QWORD ; (json)   ((json) && json_typeof(json) == JSON_NULL)
 
-; Private functions
-jsonp_stringn_nocheck_own       PROTO :QWORD,:QWORD ; json_t *jsonp_stringn_nocheck_own(const char *value, size_t len);
-jsonp_error_init                PROTO :QWORD,:QWORD ; void jsonp_error_init(json_error_t *error, const char *source);
-jsonp_error_set_source          PROTO :QWORD,:QWORD ; void jsonp_error_set_source(json_error_t *error, const char *source);
-jsonp_strtod                    PROTO :QWORD,:QWORD ; int jsonp_strtod(strbuffer_t *strbuffer, double *out);
-jsonp_dtostr                    PROTO :QWORD,:QWORD,:QWORD,:QWORD ; int jsonp_dtostr(char *buffer, size_t size, double value, int prec);
-jsonp_malloc                    PROTO :QWORD ; void* jsonp_malloc(size_t size);
-jsonp_free                      PROTO :QWORD ; void jsonp_free(void *ptr);
-jsonp_strndup                   PROTO :QWORD,:QWORD ; char *jsonp_strndup(const char *str, size_t length);
-jsonp_strdup                    PROTO :QWORD ; char *jsonp_strdup(const char *str);
-json_delete                     PROTO :QWORD ; (json_t *json);
-
-; hashtable functions
-hashtable_init                  PROTO :QWORD ; int hashtable_init(hashtable_t *hashtable);
-hashtable_close                 PROTO :QWORD ; void hashtable_close(hashtable_t *hashtable);
-hashtable_set                   PROTO :QWORD,:QWORD,:QWORD ; int hashtable_set(hashtable_t *hashtable, const char *key, json_t *value);
-hashtable_get                   PROTO :QWORD,:QWORD ; void *hashtable_get(hashtable_t *hashtable, const char *key);
-hashtable_del                   PROTO :QWORD,:QWORD ; int hashtable_del(hashtable_t *hashtable, const char *key);
-
-hashtable_clear                 PROTO :QWORD ; void hashtable_clear(hashtable_t *hashtable);
-hashtable_iter                  PROTO :QWORD ; void *hashtable_iter(hashtable_t *hashtable);
-hashtable_iter_at               PROTO :QWORD,:QWORD ; void *hashtable_iter_at(hashtable_t *hashtable, const char *key);
-hashtable_iter_next             PROTO :QWORD,:QWORD ; void *hashtable_iter_next(hashtable_t *hashtable, void *iter);
-hashtable_iter_key              PROTO :QWORD ; void *hashtable_iter_key(void *iter);
-hashtable_iter_value            PROTO :QWORD ; void *hashtable_iter_value(void *iter);
-hashtable_iter_set              PROTO :QWORD,:QWORD ; void hashtable_iter_set(void *iter, json_t *value);
-
-json_load_callback              PROTO :QWORD,:QWORD,:QWORD ; typedef size_t (*json_load_callback_t)(void *buffer, size_t buflen, void *data);
-
-json_incref                     PROTO :QWORD ; json_t *json_incref(json_t *json)
-json_decref                     PROTO :QWORD ; void json_decref(json_t *json)
-json_decrefp                    PROTO :QWORD ; void json_decrefp(json_t **json)
-json_object_set                 PROTO :QWORD,:QWORD,:QWORD ; object:QWORD, key:QWORD, value:QWORD
-json_object_set_nocheck         PROTO :QWORD,:QWORD,:QWORD ; object:QWORD, key:QWORD, value:QWORD
-json_object_iter_set            PROTO :QWORD,:QWORD,:QWORD ; object:QWORD, iter:QWORD, value:QWORD
-json_array_set                  PROTO :QWORD,:QWORD,:QWORD ; array:QWORD, ind:QWORD, value:QWORD
-json_array_append               PROTO :QWORD,:QWORD ; array:QWORD, value:QWORD
-json_array_insert               PROTO :QWORD,:QWORD,:QWORD ; array:QWORD, ind:QWORD, value:QWORD
-
+json_incref                     PROTO json:QWORD ; json_t *json_incref(json_t *json)
+json_decref                     PROTO json:QWORD ; void json_decref(json_t *json)
+json_decrefp                    PROTO json:QWORD ; void json_decrefp(json_t **json)
+json_object_set                 PROTO object:QWORD,key:QWORD,value:QWORD
+json_object_set_nocheck         PROTO object:QWORD,key:QWORD,value:QWORD
+json_object_iter_set            PROTO object:QWORD,iter:QWORD,value:QWORD
+json_array_set                  PROTO array:QWORD,ind:QWORD,value:QWORD
+json_array_append               PROTO array:QWORD,value:QWORD
+json_array_insert               PROTO array:QWORD,ind:QWORD,value:QWORD
 
 
 JSON_ERROR_TEXT_LENGTH          EQU 160
@@ -199,21 +214,23 @@ HASHTABLE                       ENDS
 
 ; Constants
 JANSSON_MAJOR_VERSION           EQU 2
-JANSSON_MINOR_VERSION           EQU 10
+JANSSON_MINOR_VERSION           EQU 14
 JANSSON_MICRO_VERSION           EQU 0
-JANSSON_VERSION                 EQU "2.10"
+JANSSON_VERSION                 EQU "2.14"
 JANSSON_VERSION_HEX             EQU ((JANSSON_MAJOR_VERSION SHL 16) or (JANSSON_MINOR_VERSION SHL 8) or (JANSSON_MICRO_VERSION SHL 0))
 
 ; unpack flags
 JSON_VALIDATE_ONLY              EQU 1h
 JSON_STRICT                     EQU 2h
 
-; flags
+; decoding
 JSON_REJECT_DUPLICATES          EQU 1h
 JSON_DISABLE_EOF_CHECK          EQU 2h
 JSON_DECODE_ANY                 EQU 4h
 JSON_DECODE_INT_AS_REAL         EQU 8h
 JSON_ALLOW_NUL                  EQU 10h
+
+; encoding
 JSON_MAX_INDENT                 EQU 1Fh
 JSON_COMPACT                    EQU 20h
 JSON_ENSURE_ASCII               EQU 40h
@@ -263,13 +280,13 @@ json_error_index_out_of_range   EQU 17
 
 json_typeof PROC FRAME USES RBX hJSON:QWORD
     mov rbx, hJSON
-    mov rax, [rbx].JSON.type_
+    mov rax, [rbx].JSON_T.type_
     ret
 json_typeof ENDP
 
 json_is_object PROC FRAME USES RBX hJSON:QWORD
     mov rbx, hJSON
-    mov rax, [rbx].JSON.type_
+    mov rax, [rbx].JSON_T.type_
     .IF rax == JSON_OBJECT
         mov rax, TRUE
     .ELSE
@@ -280,7 +297,7 @@ json_is_object ENDP
 
 json_is_array PROC FRAME USES RBX hJSON:QWORD
     mov rbx, hJSON
-    mov rax, [rbx].JSON.type_
+    mov rax, [rbx].JSON_T.type_
     .IF rax == JSON_ARRAY
         mov rax, TRUE
     .ELSE
@@ -291,7 +308,7 @@ json_is_array ENDP
 
 json_is_string PROC FRAME USES RBX hJSON:QWORD
     mov rbx, hJSON
-    mov rax, [rbx].JSON.type_
+    mov rax, [rbx].JSON_T.type_
     .IF rax == JSON_STRING
         mov rax, TRUE
     .ELSE
@@ -302,7 +319,7 @@ json_is_string ENDP
 
 json_is_integer PROC FRAME USES RBX hJSON:QWORD
     mov rbx, hJSON
-    mov rax, [rbx].JSON.type_
+    mov rax, [rbx].JSON_T.type_
     .IF rax == JSON_INTEGER
         mov rax, TRUE
     .ELSE
@@ -313,7 +330,7 @@ json_is_integer ENDP
 
 json_is_real PROC FRAME USES RBX hJSON:QWORD
     mov rbx, hJSON
-    mov rax, [rbx].JSON.type_
+    mov rax, [rbx].JSON_T.type_
     .IF rax == JSON_REAL
         mov rax, TRUE
     .ELSE
@@ -324,7 +341,7 @@ json_is_real ENDP
 
 json_is_number PROC FRAME USES RBX hJSON:QWORD
     mov rbx, hJSON
-    mov rax, [rbx].JSON.type_
+    mov rax, [rbx].JSON_T.type_
     .IF rax == JSON_REAL || rax == JSON_INTEGER
         mov rax, TRUE
     .ELSE
@@ -335,7 +352,7 @@ json_is_number ENDP
 
 json_is_true PROC FRAME USES RBX hJSON:QWORD
     mov rbx, hJSON
-    mov rax, [rbx].JSON.type_
+    mov rax, [rbx].JSON_T.type_
     .IF rax == JSON_TRUE
         mov rax, TRUE
     .ELSE
@@ -346,7 +363,7 @@ json_is_true ENDP
 
 json_is_false PROC FRAME USES RBX hJSON:QWORD
     mov rbx, hJSON
-    mov rax, [rbx].JSON.type_
+    mov rax, [rbx].JSON_T.type_
     .IF rax == JSON_FALSE
         mov rax, TRUE
     .ELSE
@@ -357,7 +374,7 @@ json_is_false ENDP
 
 json_boolean_value PROC FRAME USES RBX hJSON:QWORD
     mov rbx, hJSON
-    mov rax, [rbx].JSON.type_
+    mov rax, [rbx].JSON_T.type_
     .IF rax == JSON_TRUE
         mov rax, TRUE
     .ELSE
@@ -368,7 +385,7 @@ json_boolean_value ENDP
 
 json_is_boolean PROC FRAME USES RBX hJSON:QWORD
     mov rbx, hJSON
-    mov rax, [rbx].JSON.type_
+    mov rax, [rbx].JSON_T.type_
     .IF rax == JSON_TRUE || rax == JSON_FALSE
         mov rax, TRUE
     .ELSE
@@ -379,7 +396,7 @@ json_is_boolean ENDP
 
 json_is_null PROC FRAME USES RBX hJSON:QWORD
     mov rbx, hJSON
-    mov rax, [rbx].JSON.type_
+    mov rax, [rbx].JSON_T.type_
     .IF rax == JSON_NULL
         mov rax, TRUE
     .ELSE
@@ -391,10 +408,10 @@ json_is_null ENDP
 json_incref PROC FRAME USES RBX hJSON:QWORD
     .IF hJSON != NULL
         mov rbx, hJSON
-        mov rax, [rbx].JSON.refcount
+        mov rax, [rbx].JSON_T.refcount
         .IF rax != -1
             inc rax
-            mov [rbx].JSON.refcount, rax
+            mov [rbx].JSON_T.refcount, rax
         .ENDIF
     .ENDIF
     mov rax, hJSON
@@ -404,7 +421,7 @@ json_incref ENDP
 json_decref PROC FRAME USES RBX hJSON:QWORD
     .IF hJSON != NULL
         mov rbx, hJSON
-        mov rax, [rbx].JSON.refcount
+        mov rax, [rbx].JSON_T.refcount
         .IF rax != -1
             dec rax
             .IF rax == 0
@@ -437,7 +454,7 @@ json_object_set_nocheck PROC FRAME object:QWORD, key:QWORD, value:QWORD
     LOCAL newvalue:QWORD
     Invoke json_incref, value
     mov newvalue, rax
-    return json_object_set_new_nocheck, object, key, newvalue
+    Invoke json_object_set_new_nocheck, object, key, newvalue
     ret
 json_object_set_nocheck ENDP
 
