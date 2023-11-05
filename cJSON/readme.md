@@ -1,6 +1,6 @@
-# cJSON - cjson
+# cJSON 1.7.14
 
-cjson v1.7.12 static libraries compiled for x86 and x64 assembler
+cjson static libraries compiled for x86 and x64 assembler
 
 cJSON: https://github.com/DaveGamble/cJSON
 

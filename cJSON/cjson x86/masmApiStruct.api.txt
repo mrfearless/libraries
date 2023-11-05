@@ -1,5 +1,5 @@
 ;------------------------------------------------------------------------------
-; cJSON v1.7.12 x86 Library Additions 2019
+; cJSON x86 Library
 ;
 ; Paste this text at the end of \Radasm\Masm\masmApiStruct.api to add these to Radasm
 ;

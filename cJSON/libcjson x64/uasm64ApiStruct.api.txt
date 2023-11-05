@@ -1,8 +1,0 @@
-;-----------------------------------------------------------------------------------------------------
-; cJSON libcjson x64 Library Additions 05/11/2017
-;
-; Paste this text at the end of \Radasm\uasm64\uasm64ApiStruct.api to add these to Radasm
-;
-;-----------------------------------------------------------------------------------------------------
-cJSON,next,prev,child,itemtype,valuestring,valueint,valuedouble,itemstring
-cJSON_Hooks,malloc_fn,free_fn

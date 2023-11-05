@@ -1,5 +1,5 @@
 ;------------------------------------------------------------------------------
-; cJSON v1.7.12 x64 Library Additions 2019
+; cJSON x64 Library
 ;
 ; Paste this text at the end of \Radasm\uasm64\uasm64ApiStruct.api to add these to Radasm
 ;
