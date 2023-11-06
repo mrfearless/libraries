@@ -1,0 +1,23 @@
+;------------------------------------------------------------------------------
+; BZip2 x86  Library
+;
+; Paste this text at the end of \Radasm\Masm\masmApiConst.api to add these to Radasm
+;
+;------------------------------------------------------------------------------
+5BZ2_bzBuffToBuffCompress,9,8,7,6,5,4,3,2,1
+6BZ2_bzBuffToBuffCompress,0,1,2,3,4
+7BZ2_bzBuffToBuffCompress,30
+5BZ2_bzBuffToBuffDecompress,0
+6BZ2_bzBuffToBuffDecompress,0,1,2,3,4
+2BZ2_bzCompress,BZ_RUN,BZ_FLUSH,BZ_FINISH
+BZ2_bzCompressEnd,strm
+2BZ2_bzCompressInit,9,8,7,6,5,4,3,2,1
+3BZ2_bzCompressInit,0,1,2,3,4
+4BZ2_bzCompressInit,30
+2BZ2_bzDecompressInit,0,1,2,3,4
+3BZ2_bzDecompressInit,0
+3BZ2_bzWriteOpen,9,8,7,6,5,4,3,2,1
+4BZ2_bzWriteOpen,0,1,2,3,4
+5BZ2_bzWriteOpen,30
+2BZ2_bzdopen,SM_I2O,SM_F2O,SM_F2F
+2BZ2_bzopen,SM_I2O,SM_F2O,SM_F2F

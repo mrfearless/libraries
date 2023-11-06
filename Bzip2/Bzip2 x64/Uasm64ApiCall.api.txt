@@ -1,0 +1,30 @@
+;------------------------------------------------------------------------------
+; BZip2 x64 Library
+;
+; Paste this text at the end of \Radasm\Uasm\Uasm64ApiCall.api to add these to Radasm
+;
+;------------------------------------------------------------------------------
+BZ2_bzBuffToBuffCompress,dest,destLen,source,sourceLen,blockSize100k,verbosity,workFactor
+BZ2_bzBuffToBuffDecompress,dest,destLen,source,sourceLen,small,verbosity
+BZ2_bzCompress,strm,action
+BZ2_bzCompressEnd,strm
+BZ2_bzCompressInit,strm,blockSize100k,verbosity,workFactor
+BZ2_bzDecompress,strm
+BZ2_bzDecompressEnd,strm
+BZ2_bzDecompressInit,strm,verbosity,small
+BZ2_bzRead,bzerror,b,buf,len
+BZ2_bzReadClose,bzerror,b
+BZ2_bzReadGetUnused,bzerror,b,unused,nUnused
+BZ2_bzReadOpen,bzerror,f,verbosity,small,unused,nUnused
+BZ2_bzWrite,bzerror,b,buf,len
+BZ2_bzWriteClose64,bzerror,b,abandon,nbytes_in_lo32,nbytes_in_hi32,nbytes_out_lo32,nbytes_out_hi32
+BZ2_bzWriteClose,bzerror,b,abandon,nbytes_in,nbytes_out
+BZ2_bzWriteOpen,bzerror,f,blockSize100k,verbosity,workFactor
+BZ2_bzclose,b
+BZ2_bzdopen,fd,mode
+BZ2_bzerror,b,errnum
+BZ2_bzflush,b
+BZ2_bzlibVersion 
+BZ2_bzopen,path,mode
+BZ2_bzread,b,buf,len
+BZ2_bzwrite,b,buf,len
