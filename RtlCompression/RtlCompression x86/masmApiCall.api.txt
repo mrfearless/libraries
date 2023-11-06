@@ -1,0 +1,10 @@
+;------------------------------------------------------------------------------
+; RtlCompression x86 Library
+;
+; Paste this text at the end of \Radasm\Masm\masmApiCall.api to add these to Radasm
+;
+;------------------------------------------------------------------------------
+RtlCompressBuffer,CompressionFormatAndEngine,UncompressedBuffer,UncompressedBufferSize,CompressedBuffer,CompressedBufferSize,UncompressedChunkSize,FinalCompressedSize,WorkSpace
+RtlDecompressBuffer,CompressionFormat,UncompressedBuffer,UncompressedBufferSize,CompressedBuffer,CompressedBufferSize,FinalUncompressedSize
+RtlDecompressFragment,CompressionFormat,UncompressedFragment,UncompressedFragmentSize,CompressedBuffer,CompressedBufferSize,FragmentOffset,FinalUncompressedSize,WorkSpace
+RtlGetCompressionWorkSpaceSize,CompressionFormatAndEngine,CompressBufferWorkSpaceSize,CompressFragmentWorkSpaceSize

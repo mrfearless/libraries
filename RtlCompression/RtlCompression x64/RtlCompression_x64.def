@@ -1,0 +1,10 @@
+LIBRARY ntdll
+EXPORTS
+    RtlCompressBuffer
+    RtlDecompressBuffer
+    RtlDecompressFragment
+    RtlGetCompressionWorkSpaceSize
+
+
+
+
