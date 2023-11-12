@@ -1,0 +1,13 @@
+;------------------------------------------------------------------------------
+; BriefLZ x86 Library
+;
+; Paste this text at the end of \Radasm\Masm\masmApiCall.api to add these to Radasm
+;
+;------------------------------------------------------------------------------
+blz_depack,src,dst,depacked_size
+blz_depack_safe,src,src_size,dst,depacked_size
+blz_max_packed_size,src_size
+blz_pack,src,dst,src_size,workmem
+blz_pack_level,src,dst,src_size,workmem,level
+blz_workmem_size,src_size
+blz_workmem_size_level,src_size,level
