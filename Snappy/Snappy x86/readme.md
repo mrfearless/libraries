@@ -29,7 +29,7 @@ Additional RadASM autocomplete / intellisense type files are also included for e
 
 ## Functions
 
-See `snappy_x86.inc` for details
+See `snappy.h` for details
 
 ## Download
 
