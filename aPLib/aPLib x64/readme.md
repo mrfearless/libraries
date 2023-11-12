@@ -24,6 +24,14 @@ aPLib: https://ibsensoftware.com/products_aPLib.html
   includelib aplib_x64.lib
   ```
 
+## RadASM Autocomplete
+
+Additional RadASM autocomplete / intellisense type files are also included for ease of use. Each .api.txt file contains instructions as to where to paste their contents to add this feature to RadASM for using this library.
+
+## Functions
+
+See `aplib_x64.inc` for a summary or download the original source which includes documentation: https://www.ibsensoftware.com/products_aPLib.html
+
 ## Download
 
 The latest downloadable release is available [here](https://github.com/mrfearless/libraries/blob/master/releases/aplib_x64.zip?raw=true)
