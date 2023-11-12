@@ -1,4 +1,4 @@
-# aPLib x64
+# BriefLZ x64
 
 BriefLZ static libraries for x64 assembler 
 

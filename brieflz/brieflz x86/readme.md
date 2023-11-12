@@ -1,4 +1,4 @@
-# aPLib x86
+# BriefLZ x86
 
 BriefLZ static libraries for x86 assembler 
 
