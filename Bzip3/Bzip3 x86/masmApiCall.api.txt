@@ -1,0 +1,16 @@
+;------------------------------------------------------------------------------
+; BZip3 x86 Library
+;
+; Paste this text at the end of \Radasm\Masm\masmApiCall.api to add these to Radasm
+;
+;------------------------------------------------------------------------------
+bz3_bound,input_size
+bz3_compress,block_size,indata,outdata,indata_size,outdata_size
+bz3_decode_block,state,buffer,buffersize,orig_size
+bz3_decompress,indata,outdata,indata_size,outdata_size
+bz3_encode_block,state,buffer,buffersize
+bz3_free,state
+bz3_last_error,state
+bz3_new,block_size
+bz3_strerror,state
+bz3_version
