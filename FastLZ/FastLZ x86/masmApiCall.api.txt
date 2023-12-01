@@ -1,0 +1,9 @@
+;------------------------------------------------------------------------------
+; FastLZ x86 Library
+;
+; Paste this text at the end of \Radasm\Masm\masmApiCall.api to add these to Radasm
+;
+;------------------------------------------------------------------------------
+fastlz_compress,input,inputlength,output
+fastlz_compress_level,level,input,inputlength,output
+fastlz_decompress,input,inputlength,output,maxout
