@@ -1,0 +1,14 @@
+;------------------------------------------------------------------------------
+; Lizard x86 Library
+;
+; Paste this text at the end of \Radasm\Masm\masmApiConst.api to add these to Radasm
+;
+;------------------------------------------------------------------------------
+5Lizard_compress,LIZARD_DEFAULT_CLEVEL,LIZARD_MAX_CLEVEL,LIZARD_MIN_CLEVEL,10,17,29,49
+6Lizard_compress_extState,LIZARD_DEFAULT_CLEVEL,LIZARD_MAX_CLEVEL,LIZARD_MIN_CLEVEL,10,17,29,49
+1Lizard_createStream,LIZARD_DEFAULT_CLEVEL,LIZARD_MAX_CLEVEL,LIZARD_MIN_CLEVEL,10,17,29,49
+2Lizard_initStream,LIZARD_DEFAULT_CLEVEL,LIZARD_MAX_CLEVEL,LIZARD_MIN_CLEVEL,10,17,29,49
+2Lizard_resetStream,LIZARD_DEFAULT_CLEVEL,LIZARD_MAX_CLEVEL,LIZARD_MIN_CLEVEL,10,17,29,49
+1Lizard_sizeofState,LIZARD_DEFAULT_CLEVEL,LIZARD_MAX_CLEVEL,LIZARD_MIN_CLEVEL,10,17,29,49
+1Lizard_verifyCompressionLevel,LIZARD_DEFAULT_CLEVEL,LIZARD_MAX_CLEVEL,LIZARD_MIN_CLEVEL,10,17,29,49
+
