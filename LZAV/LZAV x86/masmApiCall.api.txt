@@ -1,0 +1,13 @@
+;------------------------------------------------------------------------------
+; LZAV x86 Library
+;
+; Paste this text at the end of \Radasm\Masm\masmApiCall.api to add these to Radasm
+;
+;------------------------------------------------------------------------------
+lzav_compress,src,dst,srcl,dstl,ext_buf,ext_bufl
+lzav_compress_bound,srcl
+lzav_compress_default,src,dst,srcl,dstl
+lzav_decompress,src,dst,srcl,dstl
+lzav_match_len,p1,p2,ml
+lzav_write_blk_1,op,lc,rc,d,ipa,cbpp,mref
+lzav_write_fin_1,op,lc,ipa
