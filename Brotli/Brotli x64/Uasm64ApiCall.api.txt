@@ -1,0 +1,13 @@
+;------------------------------------------------------------------------------
+; Brotli x64 Library
+;
+; Paste this text at the end of \Radasm\Uasm\Uasm64ApiCall.api to add these to Radasm
+;
+;------------------------------------------------------------------------------
+BrotliDecoderVersion
+BrotliDecoderDecompress,encoded_size,encoded_buffer,decoded_size,decoded_buffer
+BrotliEncoderCompress,quality,lgwin,mode,input_size,input_buffer,encoded_size,encoded_buffer
+BrotliEncoderMaxCompressedSize,input_size
+BrotliEncoderVersion
+
+

@@ -1,0 +1,11 @@
+;------------------------------------------------------------------------------
+; Brotli x64 Library
+;
+; Paste this text at the end of \Radasm\Uasm\Uasm64ApiConst.api to add these to Radasm
+;
+;------------------------------------------------------------------------------
+1BrotliEncoderCompress,BROTLI_DEFAULT_QUALITY,BROTLI_MIN_QUALITY,BROTLI_MAX_QUALITY,0,1,2,3,4,5,6,7,8,9,10,11
+2BrotliEncoderCompress,BROTLI_DEFAULT_WINDOW,BROTLI_MIN_WINDOW_BITS,BROTLI_MAX_WINDOW_BITS
+3BrotliEncoderCompress,BROTLI_DEFAULT_MODE,BROTLI_MODE_GENERIC,BROTLI_MODE_TEXT,BROTLI_MODE_FONT
+
+
