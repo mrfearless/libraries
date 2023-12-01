@@ -30,7 +30,7 @@
 ; Compression levels between 1 and 9 offer a trade-off between time/space 
 ; and ratio. Level 10 is optimal but very slow.
  
-; brieflz_x86.inc converted from brieflz source for assembler by fearless 2023
+; BriefLZ_x86.inc converted from BriefLZ source for assembler by fearless 2023
 ; www.github.com/mrfearless
 
 include msvcrt.inc
