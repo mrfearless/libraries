@@ -1,0 +1,10 @@
+;------------------------------------------------------------------------------
+; LZFSE x64 Library
+;
+; Paste this text at the end of \Radasm\Uasm\Uasm64ApiCall.api to add these to Radasm
+;
+;------------------------------------------------------------------------------
+lzfse_decode_buffer,dst_buffer,dst_size,src_buffer,src_size,scratch_buffer
+lzfse_decode_scratch_size
+lzfse_encode_buffer,dst_buffer,dst_size,src_buffer,src_size,scratch_buffer
+lzfse_encode_scratch_size
