@@ -1,5 +1,5 @@
 ; zlib.h -- interface of the 'zlib' general purpose compression library
-; version 1.3.1, January 22nd, 2024
+; version 1.3, August 18th, 2023
 ; 
 ; Copyright (C) 1995-2023 Jean-loup Gailly and Mark Adler
 ; 
@@ -28,7 +28,7 @@
 ; (zlib format), rfc1951 (deflate format) and rfc1952 (gzip format).
 ; 
 
-; zlib_x86.inc converted from zlib source for assembler by fearless 2024
+; zlib_x86.inc converted from zlib source for assembler by fearless 2023
 ; www.github.com/mrfearless
 
 adler32 PROTO STDCALL adler:DWORD,buf:DWORD,len:DWORD
@@ -191,8 +191,36 @@ zlibCompileFlags PROTO STDCALL
 zlibVersion PROTO STDCALL 
 
 
-; Zlib Structures
-z_stream                        STRUCT 4 ; 56 bytes
+;--------------------Structures-----------------------------
+;internal_state     STRUCT 
+;dummy              DWORD ?
+;internal_state     ENDS
+
+zlib_filefunc_def               STRUCT 
+    zopen_file                  DWORD ?
+    zread_file                  DWORD ?
+    zwrite_file                 DWORD ?
+    ztell_file                  DWORD ?
+    zseek_file                  DWORD ?
+    zclose_file                 DWORD ?
+    zerror_file                 DWORD ?
+    opaque                      DWORD ?
+zlib_filefunc_def               ENDS
+
+linkedlist_datablock_internal   STRUCT
+    next_datablock              DWORD ? ;PTR linkedlist_datablock_internal
+    avail_in_this_block         DWORD ?
+    filled_in_this_block        DWORD ?
+    unused                      DWORD ?
+    data                        BYTE 4080 DUP (?)
+linkedlist_datablock_internal   ENDS
+
+linkedlist_data                 STRUCT 
+    first_block                 DWORD ? ;linkedlist_datablock_internal
+    last_block                  DWORD ? ;linkedlist_datablock_internal
+linkedlist_data                 ENDS
+
+z_stream                        STRUCT
     next_in                     DWORD ? ; next input byte
     avail_in                    DWORD ? ; number of bytes available at next_in
     total_in                    DWORD ? ; total number of input bytes read so far
@@ -209,7 +237,7 @@ z_stream                        STRUCT 4 ; 56 bytes
     reserved                    DWORD ? ; reserved for future use
 z_stream                        ENDS
 
-gz_header                       STRUCT 4 ; 52 bytes
+gz_header                       STRUCT
     text                        DWORD ? ; true if compressed data believed to be text
     time                        DWORD ? ; modification time
     xflags                      DWORD ? ; extra flags (not used when writing a gzip file)
@@ -225,8 +253,33 @@ gz_header                       STRUCT 4 ; 52 bytes
     done                        DWORD ? ; true when done reading gzip header (not used when writing a gzip file)
 gz_header                       ENDS
 
-; Minzip structures
-tm_zip                          STRUCT 4 ; 24 bytes
+
+curfile_info                    STRUCT
+    stream                      z_stream <>
+    stream_initialised          SDWORD ?
+    pos_in_buffered_data        DWORD ?
+    pos_local_header            DWORD ?
+    central_header              DWORD ?
+    size_centralheader          DWORD ?
+    flag                        DWORD ?
+    method                      SDWORD ?
+    raw                         SDWORD ?
+    buffered_data               Byte 16384 DUP (?)
+    dosDate                     DWORD ?
+    crc32                       DWORD ?
+curfile_info                    ENDS
+
+zip_internal                    STRUCT
+    z_filefunc                  zlib_filefunc_def <>
+    filestream                  DWORD ?
+    central_dir                 linkedlist_data <>
+    in_opened_file_inzip        DWORD ?
+    ci                          curfile_info <>
+    begin_pos                   DWORD ?
+    number_entry                DWORD ?
+zip_internal                    ENDS
+
+tm_zip                          STRUCT
     tm_sec                      DWORD ?
     tm_min                      DWORD ?
     tm_hour                     DWORD ?
@@ -235,15 +288,15 @@ tm_zip                          STRUCT 4 ; 24 bytes
     tm_year                     DWORD ?
 tm_zip                          ENDS
 
-zip_fileinfo                    STRUCT 4 ; 36 bytes
+zip_fileinfo                    STRUCT
     tmz_date                    tm_zip <>
     dosDate                     DWORD ?
     iflag                       DWORD ?
     eflag                       DWORD ?
 zip_fileinfo                    ENDS
 
-; Unzip Structures
-tm_unz                          STRUCT 4 ; 24 bytes
+;-----------------Unzip Structures-----------------------------
+tm_unz                          STRUCT
     tm_sec                      DWORD ?
     tm_min                      DWORD ?
     tm_hour                     DWORD ?
@@ -252,35 +305,12 @@ tm_unz                          STRUCT 4 ; 24 bytes
     tm_year                     DWORD ?
 tm_unz                          ENDS
 
-unz_global_info64               STRUCT 8 ; 16 bytes
-    number_entry                QWORD ?
-    size_comment                DWORD ?
-unz_global_info64               ENDS
-
-unz_file_info64                 STRUCT 8 ; 88 bytes
-    version                     DWORD ?
-    version_needed              DWORD ?
-    flag                        DWORD ?
-    compression_method          DWORD ?
-    dosDate                     DWORD ?
-    crc                         DWORD ?
-    compressed_size             QWORD ?
-    uncompressed_size           QWORD ?
-    size_filename               DWORD ?
-    size_file_extra             DWORD ?
-    size_file_comment           DWORD ?
-    disk_num_start              DWORD ?
-    internal_fa                 DWORD ?
-    external_fa                 DWORD ?
-    tmu_date                    tm_unz <>
-unz_file_info64                 ENDS
-
-unz_global_info                 STRUCT 4 ; 8 bytes
+unz_global_info                 STRUCT
     number_entry                DWORD ?
     size_comment                DWORD ?
 unz_global_info                 ENDS
 
-unz_file_info                   STRUCT 4 ; 80 bytes
+unz_file_info                   STRUCT
     version                     DWORD ?
     version_needed              DWORD ?
     flag                        DWORD ?
@@ -298,62 +328,9 @@ unz_file_info                   STRUCT 4 ; 80 bytes
     tmu_date                    tm_unz <>
 unz_file_info                   ENDS
 
-unz_file_info64_internal        STRUCT 8 ; 8 bytes
-    offset_curfile              QWORD ?
-unz_file_info64_internal        ENDS
-
 unz_file_info_internal          STRUCT
     offset_curfile              DWORD ?
 unz_file_info_internal          ENDS
-
-zlib_filefunc64_def             STRUCT 8 ; 64 bytes
-    zopen_file                  QWORD ?
-    zread_file                  QWORD ?
-    zwrite_file                 QWORD ?
-    ztell_file                  QWORD ?
-    zseek_file                  QWORD ?
-    zclose_file                 QWORD ?
-    zerror_file                 QWORD ?
-    opaque                      QWORD ?
-zlib_filefunc64_def             ENDS
-
-zlib_filefunc64_32_def          STRUCT 8 ; 88 bytes
-    zfile_func64                zlib_filefunc64_def <>
-    zopen32_file                QWORD ?
-    ztell32_file                QWORD ?
-    zseek32_file                QWORD ?
-zlib_filefunc64_32_def          ENDS
-
-zlib_filefunc_def               STRUCT 4 ; 32 bytes
-    zopen_file                  DWORD ?
-    zread_file                  DWORD ?
-    zwrite_file                 DWORD ?
-    ztell_file                  DWORD ?
-    zseek_file                  DWORD ?
-    zclose_file                 DWORD ?
-    zerror_file                 DWORD ?
-    opaque                      DWORD ?
-zlib_filefunc_def               ENDS
-
-file_in_zip64_read_info         STRUCT 8 ; 208 bytes
-    read_buffer                 DWORD ?
-    stream                      z_stream <>
-    pos_in_zipfile              QWORD ?
-    stream_initialised          DWORD ?
-    offset_local_extrafield     QWORD ?
-    size_local_extrafield       DWORD ?
-    pos_local_extrafield        QWORD ?
-    total_out_64                QWORD ?
-    crc32                       DWORD ?
-    crc32_wait                  DWORD ?
-    rest_read_compressed        QWORD ?
-    rest_read_uncompressed      QWORD ?
-    z_filefunc                  zlib_filefunc64_32_def <>
-    filestream                  DWORD ?
-    compression_method          DWORD ?
-    byte_before_the_zipfile     QWORD ?
-    raw                         DWORD ?
-file_in_zip64_read_info         ENDS
 
 file_in_zip_read_info           STRUCT
     read_buffer                 DWORD ?
@@ -373,25 +350,6 @@ file_in_zip_read_info           STRUCT
     byte_before_the_zipfile     DWORD ?
     raw                         DWORD ?
 file_in_zip_read_info           ENDS
-
-unz64_s                         STRUCT 8 ; 288 bytes
-    z_filefunc                  zlib_filefunc64_32_def <>
-    is64bitOpenFunction         DWORD ?
-    filestream                  DWORD ?
-    gi                          unz_global_info64 <>
-    byte_before_the_zipfile     QWORD ?
-    num_file                    QWORD ?
-    pos_in_central_dir          QWORD ?
-    current_file_ok             QWORD ?
-    central_pos                 QWORD ?
-    size_central_dir            QWORD ?
-    offset_central_dir          QWORD ?
-    cur_file_info               unz_file_info64 <>
-    cur_file_info_internal      unz_file_info64_internal <>
-    pfile_in_zip_read           DWORD ?
-    encrypted                   DWORD ?
-    isZip64                     DWORD ?
-unz64_s                         ENDS
 
 unz_s                           STRUCT
     z_filefunc                  zlib_filefunc_def <>
@@ -413,11 +371,11 @@ unz_s                           ENDS
 
 
 .CONST
-ZLIB_VERSION                    TEXTEQU <"1.3.1">
-ZLIB_VERNUM                     EQU 1310h
+ZLIB_VERSION                    TEXTEQU <"1.3">
+ZLIB_VERNUM                     EQU 1300h
 ZLIB_VER_MAJOR                  EQU 1
 ZLIB_VER_MINOR                  EQU 3
-ZLIB_VER_REVISION               EQU 1
+ZLIB_VER_REVISION               EQU 0
 ZLIB_VER_SUBREVISION            EQU 0
 
 ; Allowed flush values; see deflate() and inflate() below for details
