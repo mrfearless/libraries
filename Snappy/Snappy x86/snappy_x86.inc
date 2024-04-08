@@ -36,24 +36,26 @@
 ; using BMDiff and then compressing the output of BMDiff with
 ; Snappy.
 
-; Snappy_x86.inc converted from snappy source for assembler by fearless 2023
+; Snappy_x86.inc converted from snappy source for assembler by fearless 2024
 ; www.github.com/mrfearless
 
 include msvcrt.inc
 includelib ucrt.lib
 includelib vcruntime.lib
 
-snappy_compress                     PROTO :DWORD,:DWORD,:DWORD,:DWORD
-snappy_max_compressed_length        PROTO :DWORD
-snappy_uncompress                   PROTO :DWORD,:DWORD,:DWORD,:DWORD
-snappy_uncompressed_length          PROTO :DWORD,:DWORD,:DWORD
-snappy_validate_compressed_buffer   PROTO :DWORD,:DWORD
-  
+snappy_compress                     PROTO lpUncompressedData:DWORD,dwUncompressedDataSize:DWORD,lpCompressedData:DWORD,lpdwCompressedDataSize:DWORD
+snappy_max_compressed_length        PROTO dwUncompressedDataSize:DWORD
+snappy_uncompress                   PROTO lpCompressedData:DWORD,dwCompressedDataSize:DWORD,lpUncompressedData:DWORD,lpdwUncompressedDataSize:DWORD
+snappy_uncompressed_length          PROTO lpCompressedData:DWORD,dwCompressedDataSize:DWORD,lpdwUncompressedDataSize:DWORD
+snappy_validate_compressed_buffer   PROTO lpCompressedData:DWORD,dwCompressedDataSize:DWORD
+
+snappy_status           TYPEDEF DWORD
+
 .CONST
 SNAPPY_MAJOR            EQU 1
-SNAPPY_MINOR            EQU 1
-SNAPPY_PATCHLEVEL       EQU 1
-SNAPPY_BUILD            EQU 10
+SNAPPY_MINOR            EQU 2
+SNAPPY_PATCHLEVEL       EQU 0
+SNAPPY_BUILD            EQU 0
 SNAPPY_VERSION          EQU ((SNAPPY_MAJOR SHL 16) or (SNAPPY_MINOR SHL 8) or SNAPPY_PATCHLEVEL)
 
 ; snappy_status
@@ -68,7 +70,7 @@ kMaxHashTableBits       EQU 14;
 kMaxHashTableSize       EQU 1 ; << kMaxHashTableBits;
   
 .DATA
-SNAPPY_VERSION_STRING   DB "1.1.10",0
+SNAPPY_VERSION_STRING   DB "1.2.0",0
   
   
   

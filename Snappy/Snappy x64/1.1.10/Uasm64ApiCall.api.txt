@@ -1,0 +1,11 @@
+;------------------------------------------------------------------------------
+; Snappy x64 Library
+;
+; Paste this text at the end of \Radasm\Uasm\Uasm64ApiCall.api to add these to Radasm
+;
+;------------------------------------------------------------------------------
+snappy_compress,lpUncompressedData,qwUncompressedDataSize,lpCompressedData,lpqwCompressedDataSize
+snappy_max_compressed_length,qwUncompressedDataSize
+snappy_uncompress,lpCompressedData,qwCompressedDataSize,lpUncompressedData,lpqwUncompressedDataSize
+snappy_uncompressed_length,lpCompressedData,qwCompressedDataSize,lpqwUncompressedDataSize
+snappy_validate_compressed_buffer,lpCompressedData,qwCompressedDataSize

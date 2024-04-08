@@ -1,4 +1,4 @@
-# Snappy 1.1.10
+# Snappy 1.2.0
 
 Snappy static libraries compiled for x86 and x64 assembler 
 

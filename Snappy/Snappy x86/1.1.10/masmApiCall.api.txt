@@ -1,0 +1,11 @@
+;------------------------------------------------------------------------------
+; Snappy x86 Library
+;
+; Paste this text at the end of \Radasm\Masm\masmApiCall.api to add these to Radasm
+;
+;------------------------------------------------------------------------------
+snappy_compress,lpUncompressedData,dwUncompressedDataSize,lpCompressedData,lpdwCompressedDataSize
+snappy_max_compressed_length,dwUncompressedDataSize
+snappy_uncompress,lpCompressedData,dwCompressedDataSize,lpUncompressedData,lpdwUncompressedDataSize
+snappy_uncompressed_length,lpCompressedData,dwCompressedDataSize,lpdwUncompressedDataSize
+snappy_validate_compressed_buffer,lpCompressedData,dwCompressedDataSize
