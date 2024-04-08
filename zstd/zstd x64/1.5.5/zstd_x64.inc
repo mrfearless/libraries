@@ -33,7 +33,7 @@
 ; http://www.zstd.net
 ; https://github.com/facebook/zstd
 
-; zstd_x646.inc converted from zstandard source for assembler by fearless 2024
+; zstd_x646.inc converted from zstandard source for assembler by fearless 2023
 ; www.github.com/mrfearless
 
 include msvcrt.inc
@@ -458,7 +458,7 @@ ZSTD_frameHeader            ENDS
 .CONST
 ZSTD_VERSION_MAJOR          EQU 1
 ZSTD_VERSION_MINOR          EQU 5
-ZSTD_VERSION_RELEASE        EQU 6
+ZSTD_VERSION_RELEASE        EQU 5
 ZSTD_VERSION_NUMBER         EQU ((ZSTD_VERSION_MAJOR *100*100) + (ZSTD_VERSION_MINOR *100) + ZSTD_VERSION_RELEASE)
 ZSTD_CLEVEL_DEFAULT         EQU 3
 ZSTD_CONTENTSIZE_UNKNOWN    EQU 1

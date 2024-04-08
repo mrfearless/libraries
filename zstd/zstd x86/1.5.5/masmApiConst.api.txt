@@ -1,0 +1,32 @@
+;------------------------------------------------------------------------------
+; Zstd x86 Library
+;
+; Paste this text at the end of \Radasm\Masm\masmApiConst.api to add these to Radasm
+;
+;------------------------------------------------------------------------------
+2ZSTD_CCtxParams_init,ZSTD_fast,ZSTD_dfast,ZSTD_greedy,ZSTD_lazy,ZSTD_lazy2,ZSTD_btlazy2,ZSTD_btopt,ZSTD_btultra,ZSTD_btultra2,1,2,3,4,5,6,7,8,9
+5ZSTD_compress,ZSTD_fast,ZSTD_dfast,ZSTD_greedy,ZSTD_lazy,ZSTD_lazy2,ZSTD_btlazy2,ZSTD_btopt,ZSTD_btultra,ZSTD_btultra2,1,2,3,4,5,6,7,8,9
+6ZSTD_compressCCtx,ZSTD_fast,ZSTD_dfast,ZSTD_greedy,ZSTD_lazy,ZSTD_lazy2,ZSTD_btlazy2,ZSTD_btopt,ZSTD_btultra,ZSTD_btultra2,1,2,3,4,5,6,7,8,9
+8ZSTD_compress_usingDict,ZSTD_fast,ZSTD_dfast,ZSTD_greedy,ZSTD_lazy,ZSTD_lazy2,ZSTD_btlazy2,ZSTD_btopt,ZSTD_btultra,ZSTD_btultra2,1,2,3,4,5,6,7,8,9
+3ZSTD_createCDict,ZSTD_fast,ZSTD_dfast,ZSTD_greedy,ZSTD_lazy,ZSTD_lazy2,ZSTD_btlazy2,ZSTD_btopt,ZSTD_btultra,ZSTD_btultra2,1,2,3,4,5,6,7,8,9
+3ZSTD_createCDict_byReference,ZSTD_fast,ZSTD_dfast,ZSTD_greedy,ZSTD_lazy,ZSTD_lazy2,ZSTD_btlazy2,ZSTD_btopt,ZSTD_btultra,ZSTD_btultra2,1,2,3,4,5,6,7,8,9
+2ZSTD_estimateCDictSize,ZSTD_fast,ZSTD_dfast,ZSTD_greedy,ZSTD_lazy,ZSTD_lazy2,ZSTD_btlazy2,ZSTD_btopt,ZSTD_btultra,ZSTD_btultra2,1,2,3,4,5,6,7,8,9
+1ZSTD_getCParams,ZSTD_fast,ZSTD_dfast,ZSTD_greedy,ZSTD_lazy,ZSTD_lazy2,ZSTD_btlazy2,ZSTD_btopt,ZSTD_btultra,ZSTD_btultra2,1,2,3,4,5,6,7,8,9
+1ZSTD_getParams,ZSTD_fast,ZSTD_dfast,ZSTD_greedy,ZSTD_lazy,ZSTD_lazy2,ZSTD_btlazy2,ZSTD_btopt,ZSTD_btultra,ZSTD_btultra2,1,2,3,4,5,6,7,8,9
+2ZSTD_initCStream,ZSTD_fast,ZSTD_dfast,ZSTD_greedy,ZSTD_lazy,ZSTD_lazy2,ZSTD_btlazy2,ZSTD_btopt,ZSTD_btultra,ZSTD_btultra2,1,2,3,4,5,6,7,8,9
+4ZSTD_CCtx_loadDictionary_advanced,ZSTD_dlm_byCopy,ZSTD_dlm_byRef
+5ZSTD_CCtx_loadDictionary_advanced,ZSTD_dct_auto,ZSTD_dct_rawContent,ZSTD_dct_fullDict
+2ZSTD_estimateDDictSize,ZSTD_dlm_byCopy,ZSTD_dlm_byRef
+5ZSTD_initStaticDDict,ZSTD_dlm_byCopy,ZSTD_dlm_byRef
+6ZSTD_initStaticDDict,ZSTD_dct_auto,ZSTD_dct_rawContent,ZSTD_dct_fullDict
+4ZSTD_CCtx_refPrefix_advanced,ZSTD_dct_auto,ZSTD_dct_rawContent,ZSTD_dct_fullDict
+1ZSTD_getErrorString,ZSTD_ERROR_NO_ERROR,ZSTD_ERROR_GENERIC,ZSTD_ERROR_PREFIX_UNKNOWN,ZSTD_ERROR_VERSION_UNSUPPORTED,ZSTD_ERROR_FRAMEPARAMETER_UNSUPPORTED,ZSTD_ERROR_FRAMEPARAMETER_WINDOWTOOLARGE,ZSTD_ERROR_CORRUPTION_DETECTED,ZSTD_ERROR_CHECKSUM_WRONG,ZSTD_ERROR_LITERALS_HEADERWRONG,ZSTD_ERROR_DICTIONARY_CORRUPTED,ZSTD_ERROR_DICTIONARY_WRONG,ZSTD_ERROR_DICTIONARYCREATION_FAILED,ZSTD_ERROR_PARAMETER_UNSUPPORTED,ZSTD_ERROR_PARAMETER_COMBINATION_UNSUPPORTED,ZSTD_ERROR_PARAMETER_OUTOFBOUND,ZSTD_ERROR_TABLELOG_TOOLARGE,ZSTD_ERROR_MAXSYMBOLVALUE_TOOLARGE,ZSTD_ERROR_MAXSYMBOLVALUE_TOOSMALL,ZSTD_ERROR_STABILITYCONDITION_NOTRESPECTED,ZSTD_ERROR_STAGE_WRONG,ZSTD_ERROR_INIT_MISSING,ZSTD_ERROR_MEMORY_ALLOCATION,ZSTD_ERROR_WORKSPACE_TOOSMALL,ZSTD_ERROR_DSTSIZE_TOOSMALL,ZSTD_ERROR_SRCSIZE_WRONG,ZSTD_ERROR_DSTBUFFER_NULL,ZSTD_ERROR_NOFORWARDPROGRESS_DESTFULL,ZSTD_ERROR_NOFORWARDPROGRESS_INPUTEMPTY,ZSTD_ERROR_FRAMEINDEX_TOOLARGE,ZSTD_ERROR_SEEKABLEIO,ZSTD_ERROR_DSTBUFFER_WRONG,ZSTD_ERROR_SRCBUFFER_WRONG,ZSTD_ERROR_SEQUENCEPRODUCER_FAILED,ZSTD_ERROR_EXTERNALSEQUENCES_INVALID,ZSTD_ERROR_MAXCODE
+
+
+
+
+
+
+
+
+
