@@ -54,7 +54,7 @@ snappy_status           TYPEDEF QWORD
 .CONST
 SNAPPY_MAJOR            EQU 1
 SNAPPY_MINOR            EQU 2
-SNAPPY_PATCHLEVEL       EQU 0
+SNAPPY_PATCHLEVEL       EQU 1
 SNAPPY_BUILD            EQU 0
 SNAPPY_VERSION          EQU ((SNAPPY_MAJOR << 16) or (SNAPPY_MINOR << 8) or SNAPPY_PATCHLEVEL)
 
@@ -70,7 +70,7 @@ kMaxHashTableBits       EQU 14;
 kMaxHashTableSize       EQU 1 << kMaxHashTableBits;
   
 .DATA
-SNAPPY_VERSION_STRING   DB "1.2.0",0
+SNAPPY_VERSION_STRING   DB "1.2.1",0
   
   
   
