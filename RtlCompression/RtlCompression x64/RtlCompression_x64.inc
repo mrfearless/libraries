@@ -1,13 +1,10 @@
-; RtlCompression_x64.inc created from ntdll.dll for assembler by fearless 2023
+; RtlCompression_x64.inc created from ntdll.dll for assembler by fearless 2024
 ; www.github.com/mrfearless
 ;
 ; Created using dll2def on ntdll.dll, editing the ntdll.def file for just the
 ; required functions and renaming it RtlCompression_x64.def. Then using lib to 
 ; create the import library and finally using lib2inc to generate our include
 ; file which i edited for completeness and added the constants etc.
-;
-; Note: The RtlCompression.def file requires @size after the function name for 
-; stdcall (x86), but not for fastcall (x64)
 ;
 ; lib /def:RtlCompression_x64.def /out:RtlCompression_x64.lib /machine:x64
 ;

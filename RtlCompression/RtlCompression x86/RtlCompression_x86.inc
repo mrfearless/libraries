@@ -1,18 +1,6 @@
-; RtlCompression_x86.inc created from ntdll.dll for assembler by fearless 2023
+; RtlCompression_x86.inc created from ntdll.dll for assembler by fearless 2024
 ; www.github.com/mrfearless
 ;
-; Created using dll2def on ntdll.dll, editing the ntdll.def file for just the
-; required functions and renaming it RtlCompression_x86.def. Then using lib to 
-; create the import library and finally using lib2inc to generate our include
-; file which i edited for completeness and added the constants etc.
-;
-; Note: The RtlCompression.def file requires @size after the function name for 
-; stdcall (x86), but not for fastcall (x64)
-;
-; lib /def:RtlCompression_x86.def /out:RtlCompression_x86.lib /machine:x86
-;
-; lib2inc RtlCompression_x86.lib -s
-
 ; https://modexp.wordpress.com/2019/12/08/shellcode-compression/#ntdll
 
 RtlCompressBuffer PROTO STDCALL CompressionFormatAndEngine:DWORD,UncompressedBuffer:DWORD,UncompressedBufferSize:DWORD,CompressedBuffer:DWORD,CompressedBufferSize:DWORD,UncompressedChunkSize:DWORD,FinalCompressedSize:DWORD,WorkSpace:DWORD
