@@ -1,0 +1,37 @@
+;------------------------------------------------------------------------------
+; plutovg & plutosvg x64 Library
+;
+; Paste this text at the end of \Radasm\Uasm64\Uasm64ApiConst.api to add these to Radasm
+;
+;------------------------------------------------------------------------------
+4plutovg_text_iterator_init,PLUTOVG_TEXT_ENCODING_UTF8,PLUTOVG_TEXT_ENCODING_UTF16,PLUTOVG_TEXT_ENCODING_UTF32,PLUTOVG_TEXT_ENCODING_LATIN1
+5plutovg_font_face_text_extents,PLUTOVG_TEXT_ENCODING_UTF8,PLUTOVG_TEXT_ENCODING_UTF16,PLUTOVG_TEXT_ENCODING_UTF32,PLUTOVG_TEXT_ENCODING_LATIN1
+4plutovg_canvas_fill_text,PLUTOVG_TEXT_ENCODING_UTF8,PLUTOVG_TEXT_ENCODING_UTF16,PLUTOVG_TEXT_ENCODING_UTF32,PLUTOVG_TEXT_ENCODING_LATIN1
+4plutovg_canvas_add_text,PLUTOVG_TEXT_ENCODING_UTF8,PLUTOVG_TEXT_ENCODING_UTF16,PLUTOVG_TEXT_ENCODING_UTF32,PLUTOVG_TEXT_ENCODING_LATIN1
+4plutovg_canvas_stroke_text,PLUTOVG_TEXT_ENCODING_UTF8,PLUTOVG_TEXT_ENCODING_UTF16,PLUTOVG_TEXT_ENCODING_UTF32,PLUTOVG_TEXT_ENCODING_LATIN1
+4plutovg_canvas_text_extents,PLUTOVG_TEXT_ENCODING_UTF8,PLUTOVG_TEXT_ENCODING_UTF16,PLUTOVG_TEXT_ENCODING_UTF32,PLUTOVG_TEXT_ENCODING_LATIN1
+4plutovg_canvas_clip_text,PLUTOVG_TEXT_ENCODING_UTF8,PLUTOVG_TEXT_ENCODING_UTF16,PLUTOVG_TEXT_ENCODING_UTF32,PLUTOVG_TEXT_ENCODING_LATIN1
+2plutovg_paint_create_texture,PLUTOVG_TEXTURE_TYPE_PLAIN,PLUTOVG_TEXTURE_TYPE_TILED
+3plutovg_canvas_set_texture,PLUTOVG_TEXTURE_TYPE_PLAIN,PLUTOVG_TEXTURE_TYPE_TILED
+5plutovg_paint_create_linear_gradient,PLUTOVG_SPREAD_METHOD_PAD,PLUTOVG_SPREAD_METHOD_REFLECT,PLUTOVG_SPREAD_METHOD_REPEAT
+7plutovg_paint_create_radial_gradient,PLUTOVG_SPREAD_METHOD_PAD,PLUTOVG_SPREAD_METHOD_REFLECT,PLUTOVG_SPREAD_METHOD_REPEAT
+6plutovg_canvas_set_linear_gradient,PLUTOVG_SPREAD_METHOD_PAD,PLUTOVG_SPREAD_METHOD_REFLECT,PLUTOVG_SPREAD_METHOD_REPEAT
+8plutovg_canvas_set_radial_gradient,PLUTOVG_SPREAD_METHOD_PAD,PLUTOVG_SPREAD_METHOD_REFLECT,PLUTOVG_SPREAD_METHOD_REPEAT
+2plutovg_canvas_set_fill_rule,PLUTOVG_FILL_RULE_NON_ZERO,PLUTOVG_FILL_RULE_EVEN_ODD
+2plutovg_canvas_set_operator,PLUTOVG_OPERATOR_SRC,PLUTOVG_OPERATOR_SRC_OVER,PLUTOVG_OPERATOR_DST_IN,PLUTOVG_OPERATOR_DST_OUT
+2plutovg_canvas_set_line_cap,PLUTOVG_LINE_CAP_BUTT,PLUTOVG_LINE_CAP_ROUND,PLUTOVG_LINE_CAP_SQUARE
+2plutovg_canvas_set_line_join,PLUTOVG_LINE_JOIN_MITER,PLUTOVG_LINE_JOIN_ROUND,PLUTOVG_LINE_JOIN_BEVEL
+
+3plutosvg_document_load_from_data,FP4(-1.0)
+4plutosvg_document_load_from_data,FP4(-1.0)
+5plutosvg_document_load_from_data,NULL
+6plutosvg_document_load_from_data,NULL
+2plutosvg_document_load_from_file,FP4(-1.0)
+3plutosvg_document_load_from_file,FP4(-1.0)
+
+2plutosvg_document_render_to_surface,NULL
+3plutosvg_document_render_to_surface,-1
+4plutosvg_document_render_to_surface,-1
+5plutosvg_document_render_to_surface,NULL
+6plutosvg_document_render_to_surface,NULL
+7plutosvg_document_render_to_surface,NULL
