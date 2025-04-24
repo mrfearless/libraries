@@ -23,7 +23,7 @@ FastLZMA2: https://github.com/conor42/fast-lzma2
 
 ## Functions
 
-See [lzjb.h](https://github.com/nemequ/lzjb/blob/master/lzjb.h) for details
+See the source repository for details.
 
 ## Download
 
