@@ -1,26 +1,26 @@
-# Miniz x64
+# miniz x64
 
-Miniz static libraries compiled for x64 uasm assembler 
+miniz static libraries compiled for x64 uasm assembler 
 
-Miniz: https://github.com/richgel999/miniz
+miniz: https://github.com/richgel999/miniz
 
 > Deflate/Inflate compression library with zlib-compatible API, ZIP archive reading/writing, PNG writing
->
 
 ## Usage
 
-* Copy `Miniz_x64.inc` to your `uasm\include` folder (or wherever your includes are located)
-* Copy `Miniz_x64.lib` to your `uasm\lib\x64` folder (or wherever your 64bit libraries are located)
+* Copy `miniz_x64.inc` to your `uasm\include` folder (or wherever your includes are located)
+* Copy `miniz_x64.lib` to your `uasm\lib\x64` folder (or wherever your 64bit libraries are located)
 * Add the following to your project:
-```assembly
-include Miniz_x64.inc
-includelib Miniz_x64.lib
-```
+  
+  ```assembly
+  include miniz_x64.inc
+  includelib miniz_x64.lib
+  ```
 
 ## Functions
 
-Jansson API Library Reference documentation is available via the Miniz.h file:
+miniz API Library Reference documentation is available via the header files in the source repository.
 
 ## Download
 
-The latest downloadable release is available [here](https://github.com/mrfearless/libraries/blob/master/releases/Miniz_x64.zip?raw=true)
+The latest downloadable release is available [here](https://github.com/mrfearless/libraries/blob/master/releases/miniz_x64.zip?raw=true)

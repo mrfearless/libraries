@@ -32,7 +32,7 @@
 ;  - LZ4 homepage : http://www.lz4.org
 ;  - LZ4 source repository : https://github.com/lz4/lz4
 
-; lz4_x86.inc converted from LZ4 source for assembler by fearless 2023
+; lz4_x86.inc converted from LZ4 source for assembler by fearless 2024
 ; www.github.com/mrfearless
 
 include msvcrt.inc
@@ -150,25 +150,25 @@ LZ4_uncompress PROTO STDCALL source:DWORD,dest:DWORD,outputSize:DWORD ; Obsolete
 LZ4_uncompress_unknownOutputSize PROTO STDCALL source:DWORD,dest:DWORD,isize:DWORD,maxOutputSize:DWORD ; Obsolete use LZ4_decompress_safe() instead
 LZ4_versionNumber PROTO STDCALL 
 LZ4_versionString PROTO STDCALL 
-XXH32 PROTO STDCALL input:DWORD,dwlength:DWORD,seed:DWORD
-XXH32_canonicalFromHash PROTO STDCALL dst:DWORD,hash:DWORD
-XXH32_copyState PROTO STDCALL dst_state:DWORD,src_state:DWORD
-XXH32_createState PROTO STDCALL 
-XXH32_digest PROTO STDCALL statePtr:DWORD
-XXH32_freeState PROTO STDCALL statePtr:DWORD
-XXH32_hashFromCanonical PROTO STDCALL src:DWORD
-XXH32_reset PROTO STDCALL statePtr:DWORD,seed:DWORD
-XXH32_update PROTO STDCALL statePtr:DWORD,input:DWORD,dwlength:DWORD
-XXH64 PROTO STDCALL input:DWORD,dwlength:DWORD,seed:QWORD
-XXH64_canonicalFromHash PROTO STDCALL dst:QWORD,hash:QWORD
-XXH64_copyState PROTO STDCALL dst_state:DWORD,src_state:DWORD
-XXH64_createState PROTO STDCALL 
-XXH64_digest PROTO STDCALL statePtr:DWORD
-XXH64_freeState PROTO STDCALL statePtr:DWORD
-XXH64_hashFromCanonical PROTO STDCALL src:QWORD
-XXH64_reset PROTO STDCALL statePtr:DWORD,seed:QWORD
-XXH64_update PROTO STDCALL statePtr:DWORD,input:DWORD,dwlength:DWORD
-XXH_versionNumber PROTO STDCALL 
+LZ4_XXH32 PROTO STDCALL input:DWORD,dwlength:DWORD,seed:DWORD
+LZ4_XXH32_canonicalFromHash PROTO STDCALL dst:DWORD,hash:DWORD
+LZ4_XXH32_copyState PROTO STDCALL dst_state:DWORD,src_state:DWORD
+LZ4_XXH32_createState PROTO STDCALL 
+LZ4_XXH32_digest PROTO STDCALL statePtr:DWORD
+LZ4_XXH32_freeState PROTO STDCALL statePtr:DWORD
+LZ4_XXH32_hashFromCanonical PROTO STDCALL src:DWORD
+LZ4_XXH32_reset PROTO STDCALL statePtr:DWORD,seed:DWORD
+LZ4_XXH32_update PROTO STDCALL statePtr:DWORD,input:DWORD,dwlength:DWORD
+LZ4_XXH64 PROTO STDCALL input:DWORD,dwlength:DWORD,seed:QWORD
+LZ4_XXH64_canonicalFromHash PROTO STDCALL dst:DWORD,hash:QWORD
+LZ4_XXH64_copyState PROTO STDCALL dst_state:DWORD,src_state:DWORD
+LZ4_XXH64_createState PROTO STDCALL 
+LZ4_XXH64_digest PROTO STDCALL statePtr:DWORD
+LZ4_XXH64_freeState PROTO STDCALL statePtr:DWORD
+LZ4_XXH64_hashFromCanonical PROTO STDCALL src:DWORD
+LZ4_XXH64_reset PROTO STDCALL statePtr:DWORD,seed:QWORD
+LZ4_XXH64_update PROTO STDCALL statePtr:DWORD,input:DWORD,dwlength:DWORD
+LZ4_XXH_versionNumber PROTO STDCALL 
 
 ;typedef struct {
 ;LZ4F_blockSizeID_t     blockSizeID;         /* max64KB, max256KB, max1MB, max4MB; 0 == default */
@@ -226,8 +226,8 @@ XXH_versionNumber PROTO STDCALL
 
 ; Version
 LZ4_VERSION_MAJOR               EQU 1    ; for breaking interface changes
-LZ4_VERSION_MINOR               EQU 9    ; for new (non-breaking) interface capabilities
-LZ4_VERSION_RELEASE             EQU 5    ; for tweaks, bug-fixes, or development
+LZ4_VERSION_MINOR               EQU 10   ; for new (non-breaking) interface capabilities
+LZ4_VERSION_RELEASE             EQU 0    ; for tweaks, bug-fixes, or development
 
 ; Tuning parameter
 

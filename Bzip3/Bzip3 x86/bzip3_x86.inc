@@ -18,7 +18,7 @@
 
 ; https://github.com/kspalaiologos/bzip3
 
-; bzip3_x86.inc converted from bzip3 source for assembler by fearless 2023
+; bzip3_x86.inc converted from bzip3 source for assembler by fearless 2024
 ; www.github.com/mrfearless
 
 ; The maximum block size must be between 65KiB and 511MiB

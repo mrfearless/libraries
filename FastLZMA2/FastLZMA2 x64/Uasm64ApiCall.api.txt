@@ -1,0 +1,17 @@
+;------------------------------------------------------------------------------
+; FastLZMA2 x64 Library
+;
+; Paste this text at the end of \Radasm\Uasm64\Uasm64ApiCall.api to add these to Radasm
+;
+;------------------------------------------------------------------------------
+FL2_compress,dst,dstCapacity,src,srcSize,compressionLevel
+FL2_compressBound,srcSize
+FL2_compressMt,dst,dstCapacity,src,srcSize,compressionLevel,nbThreads
+FL2_decompress,dst,dstCapacity,src,compressedSize
+FL2_decompressMt,dst,dstCapacity,src,compressedSize,nbThreads
+FL2_findDecompressedSize,src,srcSize
+FL2_getErrorCode,functionResult
+FL2_getErrorName,errorcode
+FL2_getErrorString,errorcode
+FL2_isError,errorcode
+FL2_isTimedOut,errorcode

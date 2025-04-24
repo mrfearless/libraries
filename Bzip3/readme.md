@@ -1,4 +1,4 @@
-# Bzip3 1.3.0
+# Bzip3 1.4.1
 
 BZip3 static libraries compiled for x86 and x64 assembler 
 

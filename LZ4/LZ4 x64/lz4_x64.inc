@@ -32,7 +32,7 @@
 ;  - LZ4 homepage : http://www.lz4.org
 ;  - LZ4 source repository : https://github.com/lz4/lz4
 
-; lz4_x64.inc converted from LZ4 source for assembler by fearless 2023
+; lz4_x64.inc converted from LZ4 source for assembler by fearless 2024
 ; www.github.com/mrfearless
 
 include msvcrt.inc
@@ -150,25 +150,25 @@ LZ4_uncompress PROTO source:QWORD,dest:QWORD,outputSize:QWORD ; Obsolete use LZ4
 LZ4_uncompress_unknownOutputSize PROTO source:QWORD,dest:QWORD,isize:QWORD,maxOutputSize:QWORD ; Obsolete use LZ4_decompress_safe() instead
 LZ4_versionNumber PROTO 
 LZ4_versionString PROTO 
-XXH32 PROTO input:QWORD,qwlength:QWORD,seed:QWORD
-XXH32_canonicalFromHash PROTO dst:QWORD,hash:QWORD
-XXH32_copyState PROTO dst_state:QWORD,src_state:QWORD
-XXH32_createState PROTO 
-XXH32_digest PROTO statePtr:QWORD
-XXH32_freeState PROTO statePtr:QWORD
-XXH32_hashFromCanonical PROTO src:QWORD
-XXH32_reset PROTO statePtr:QWORD,seed:QWORD
-XXH32_update PROTO statePtr:QWORD,input:QWORD,qwlength:QWORD
-XXH64 PROTO input:QWORD,qwlength:QWORD,seed:QWORD
-XXH64_canonicalFromHash PROTO dst:QWORD,hash:QWORD
-XXH64_copyState PROTO dst_state:QWORD,src_state:QWORD
-XXH64_createState PROTO 
-XXH64_digest PROTO statePtr:QWORD
-XXH64_freeState PROTO statePtr:QWORD
-XXH64_hashFromCanonical PROTO src:QWORD
-XXH64_reset PROTO statePtr:QWORD,seed:QWORD
-XXH64_update PROTO statePtr:QWORD,input:QWORD,qwlength:QWORD
-XXH_versionNumber PROTO 
+LZ4_XXH32 PROTO input:QWORD,qwlength:QWORD,seed:QWORD
+LZ4_XXH32_canonicalFromHash PROTO dst:QWORD,hash:QWORD
+LZ4_XXH32_copyState PROTO dst_state:QWORD,src_state:QWORD
+LZ4_XXH32_createState PROTO 
+LZ4_XXH32_digest PROTO statePtr:QWORD
+LZ4_XXH32_freeState PROTO statePtr:QWORD
+LZ4_XXH32_hashFromCanonical PROTO src:QWORD
+LZ4_XXH32_reset PROTO statePtr:QWORD,seed:QWORD
+LZ4_XXH32_update PROTO statePtr:QWORD,input:QWORD,qwlength:QWORD
+LZ4_XXH64 PROTO input:QWORD,qwlength:QWORD,seed:QWORD
+LZ4_XXH64_canonicalFromHash PROTO dst:QWORD,hash:QWORD
+LZ4_XXH64_copyState PROTO dst_state:QWORD,src_state:QWORD
+LZ4_XXH64_createState PROTO 
+LZ4_XXH64_digest PROTO statePtr:QWORD
+LZ4_XXH64_freeState PROTO statePtr:QWORD
+LZ4_XXH64_hashFromCanonical PROTO src:QWORD
+LZ4_XXH64_reset PROTO statePtr:QWORD,seed:QWORD
+LZ4_XXH64_update PROTO statePtr:QWORD,input:QWORD,qwlength:QWORD
+LZ4_XXH_versionNumber PROTO 
 
 ;typedef struct {
 ;LZ4F_blockSizeID_t     blockSizeID;         /* max64KB, max256KB, max1MB, max4MB; 0 == default */
@@ -226,8 +226,8 @@ XXH_versionNumber PROTO
 
 ; Version
 LZ4_VERSION_MAJOR               EQU 1    ; for breaking interface changes
-LZ4_VERSION_MINOR               EQU 9    ; for new (non-breaking) interface capabilities
-LZ4_VERSION_RELEASE             EQU 5    ; for tweaks, bug-fixes, or development
+LZ4_VERSION_MINOR               EQU 10  ; for new (non-breaking) interface capabilities
+LZ4_VERSION_RELEASE             EQU 0    ; for tweaks, bug-fixes, or development
 
 ; Tuning parameter
 

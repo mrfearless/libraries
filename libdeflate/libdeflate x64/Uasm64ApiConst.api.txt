@@ -1,0 +1,8 @@
+;------------------------------------------------------------------------------
+; libdeflate x64 Library
+;
+; Paste this text at the end of \Radasm\Uasm64\Uasm64ApiConst.api to add these to Radasm
+;
+;------------------------------------------------------------------------------
+1libdeflate_alloc_compressor,12,11,10,9,8,7,6,5,4,3,2,1
+1libdeflate_alloc_compressor_ex,12,11,10,9,8,7,6,5,4,3,2,1

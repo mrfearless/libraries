@@ -1,0 +1,12 @@
+;------------------------------------------------------------------------------
+; LZO x64 Library
+;
+; Paste this text at the end of \Radasm\Uasm\Uasm64ApiConst.api to add these to Radasm
+;
+;------------------------------------------------------------------------------
+6lzo1b_compress,LZO1B_BEST_SPEED,LZO1B_BEST_COMPRESSION,LZO1B_DEFAULT_COMPRESSION,1,2,3,4,5,6,7,8,9
+6lzo1c_compress,LZO1C_BEST_SPEED,LZO1C_BEST_COMPRESSION,LZO1C_DEFAULT_COMPRESSION,1,2,3,4,5,6,7,8,9
+9lzo1x_999_compress_level,1,2,3,4,5,6,7,8,9
+9lzo1y_999_compress_level,1,2,3,4,5,6,7,8,9
+9lzo1z_999_compress_level,1,2,3,4,5,6,7,8,9
+

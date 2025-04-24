@@ -1,0 +1,8 @@
+;------------------------------------------------------------------------------
+; Lzma x64 Library
+;
+; Paste this text at the end of \Radasm\Uasm64\Uasm64ApiCall.api to add these to Radasm
+;
+;------------------------------------------------------------------------------
+LzmaCompress,dest,destLen,src,srcLen,outProps,outPropsSize,level,dictSize,lc,lp,pb,fb,numThreads
+LzmaUncompress,dest,destLen,src,srcLen,props,propsSize

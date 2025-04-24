@@ -1,0 +1,10 @@
+;------------------------------------------------------------------------------
+; FastLZMA2 x86 Library
+;
+; Paste this text at the end of \Radasm\Masm\masmApiConst.api to add these to Radasm
+;
+;------------------------------------------------------------------------------
+5FL2_compress,FL2_CLEVEL_DEFAULT,FL2_MAX_CLEVEL,1,2,3,4,5,6,7,8,9
+5FL2_compressMt,dst,dstCapacity,src,srcSize,FL2_CLEVEL_DEFAULT,FL2_MAX_CLEVEL,1,2,3,4,5,6,7,8,9
+6FL2_compressMt,0,2,4
+5FL2_decompressMt,0,2,4

@@ -1,0 +1,27 @@
+;------------------------------------------------------------------------------
+; libdeflate x64 Library
+;
+; Paste this text at the end of \Radasm\Uasm64\Uasm64ApiCall.api to add these to Radasm
+;
+;------------------------------------------------------------------------------
+libdeflate_alloc_compressor,compression_level
+libdeflate_alloc_compressor_ex,compression_level,options
+libdeflate_alloc_decompressor
+libdeflate_alloc_decompressor_ex,options
+libdeflate_set_memory_allocator,malloc_func,free_func
+libdeflate_deflate_compress,compressor,inbuffer,in_nbytes,outbuffer,out_nbytes_avail
+libdeflate_deflate_compress_bound,compressor,in_nbytes
+libdeflate_free_compressor,compressor
+libdeflate_deflate_decompress,decompressor,inbuffer,in_nbytes,outbuffer,out_nbytes_avail,actual_out_nbytes_ret
+libdeflate_deflate_decompress_ex,decompressor,inbuffer,in_nbytes,outbuffer,out_nbytes_avail,actual_in_nbytes_ret,actual_out_nbytes_ret
+libdeflate_free_decompressor,decompressor
+libdeflate_gzip_compress,compressor,inbuffer,in_nbytes,outbuffer,out_nbytes_avail
+libdeflate_gzip_compress_bound,compressor,in_nbytes
+libdeflate_gzip_decompress,decompressor,inbuffer,in_nbytes,outbuffer,out_nbytes_avail,actual_out_nbytes_ret
+libdeflate_gzip_decompress_ex,decompressor,inbuffer,in_nbytes,outbuffer,out_nbytes_avail,actual_in_nbytes_ret,actual_out_nbytes_ret
+libdeflate_zlib_compress,compressor,inbuffer,in_nbytes,outbuffer,out_nbytes_avail
+libdeflate_zlib_compress_bound,compressor,in_nbytes
+libdeflate_zlib_decompress,decompressor,inbuffer,in_nbytes,outbuffer,out_nbytes_avail,actual_out_nbytes_ret
+libdeflate_zlib_decompress_ex,decompressor,inbuffer,in_nbytes,outbuffer,out_nbytes_avail,actual_in_nbytes_ret,actual_out_nbytes_ret
+libdeflate_adler32,adler,buffer,len
+libdeflate_crc32,crc,buffer,len

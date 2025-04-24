@@ -1,0 +1,18 @@
+;------------------------------------------------------------------------------
+; Mini-LZO x86 Library
+;
+; Paste this text at the end of \Radasm\Masm\masmApiCall.api to add these to Radasm
+;
+;------------------------------------------------------------------------------
+lzo1x_1_compress,src,src_len,dst,dst_len,wrkmem
+lzo1x_decompress,src,src_len,dst,dst_len,wrkmem
+lzo1x_decompress_safe,src,src_len,dst,dst_len,wrkmem
+lzo_adler32,char,buf,len
+lzo_copyright
+lzo_memcmp,a,b,len
+lzo_memcpy,dst,src,len
+lzo_memmove,dst,src,len
+lzo_memset,buf,char,len
+lzo_version
+lzo_version_date 
+lzo_version_string
