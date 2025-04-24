@@ -12,50 +12,54 @@ Hopefully you find them useful in your coding.
 
 ## Compression
 
-| Project                                                                   | Version | Description                                 |
-| ------------------------------------------------------------------------- | ------- | ------------------------------------------- |
-| [APLib](https://github.com/mrfearless/libraries/tree/master/aPLib)        | 1.1.1   | Compression library by Jørgen Ibsen         |
-| [BriefLZ](https://github.com/mrfearless/libraries/tree/master/brieflz)    | 1.3.0   | Compression library by Jørgen Ibsen         |
-| [Brotli](https://github.com/mrfearless/libraries/tree/master/Brotli)      | 1.1.0   | Compression library by Google               |
-| [Bzip2](https://github.com/mrfearless/libraries/tree/master/Bzip2)        | 1.1.0   | Compression library by Julian Seward        |
-| [Bzip3](https://github.com/mrfearless/libraries/tree/master/Bzip3)        | 1.4.0   | Compression library by Kamila Szewczyk      |
-| [FastLZ](https://github.com/mrfearless/libraries/tree/master/FastLZ)      | 0.5.0   | Compression library by Ariya Hidayat        |
-| [FSE](https://github.com/mrfearless/libraries/tree/master/FSE)            | 0.9.0   | Compression library by Yann Collet          |
-| [JCALG1](https://bitsum.com/portfolio/jcalg1/)                            | r5.xx   | Compression library by Jeremy Collake       |
-| [libdeflate](https://github.com/mrfearless/libraries/tree/master/Deflate) | 1.3     | Compression library by Eric Biggers         |
-| [Lizard](https://github.com/mrfearless/libraries/tree/master/Lizard)      | 1.0     | Compression library by Przemyslaw Skibinski |
-| [LZ4](https://github.com/mrfearless/libraries/tree/master/LZ4)            | 1.9.5   | Compression library by Yann Collet          |
-| [LZAV](https://github.com/mrfearless/libraries/tree/master/LZAV)          | 2.15    | Compression library by Aleksey Vaneev       |
-| [LZFSE](https://github.com/mrfearless/libraries/tree/master/LZFSE)        | 1.0     | Compression library by Apple                |
-| LZMA                                                                      |         |                                             |
-| [Rtl](https://github.com/mrfearless/libraries/tree/master/RtlCompression) | -       | Native win32 compression by Microsoft       |
-| [Snappy](https://github.com/mrfearless/libraries/tree/master/Snappy)      | 1.1.10  | Compression library by Google               |
-| [Squish](https://github.com/mrfearless/libraries/tree/master/Squish)      | 1.11    | DXT library by Jack Andersen/Simon Brown    |
-| [Zlib](https://github.com/mrfearless/libraries/tree/master/Zlib)          | 1.3.1   | Compression library by Mark Adler           |
-| [zlib-ng](https://github.com/mrfearless/libraries/tree/master/zlib-ng)    | 2.2.0   | Compression library by zlib-ng              |
-| [Zstd](https://github.com/mrfearless/libraries/tree/master/zstd)          | 1.5.5   | Compression library by Facebook             |
+| Project                                                                    | Version | Description                                    |
+| -------------------------------------------------------------------------- | ------- | ---------------------------------------------- |
+| [APLib](https://github.com/mrfearless/libraries/tree/master/aPLib)         | 1.1.1   | Compression library by Jørgen Ibsen            |
+| [BriefLZ](https://github.com/mrfearless/libraries/tree/master/brieflz)     | 1.3.0   | Compression library by Jørgen Ibsen            |
+| [Brotli](https://github.com/mrfearless/libraries/tree/master/Brotli)       | 1.1.0   | Compression library by Google                  |
+| [Bzip2](https://github.com/mrfearless/libraries/tree/master/Bzip2)         | 1.1.0   | Compression library by Julian Seward           |
+| [Bzip3](https://github.com/mrfearless/libraries/tree/master/Bzip3)         | 1.4.0   | Compression library by Kamila Szewczyk         |
+| [FastLZ](https://github.com/mrfearless/libraries/tree/master/FastLZ)       | 0.5.0   | Compression library by Ariya Hidayat           |
+| [FastLZMA2](https://github.com/mrfearless/libraries/tree/master/FastLZMA2) | 1.0.1   | Compression library by Conor McCarthy          |
+| [FSE](https://github.com/mrfearless/libraries/tree/master/FSE)             | 0.9.0   | Compression library by Yann Collet             |
+| [JCALG1](https://bitsum.com/portfolio/jcalg1/)                             | r5.xx   | Compression library by Jeremy Collake          |
+| [libdeflate](https://github.com/mrfearless/libraries/tree/master/Deflate)  | 1.3     | Compression library by Eric Biggers            |
+| [Lizard](https://github.com/mrfearless/libraries/tree/master/Lizard)       | 1.0     | Compression library by Przemyslaw Skibinski    |
+| [LZ4](https://github.com/mrfearless/libraries/tree/master/LZ4)             | 1.9.5   | Compression library by Yann Collet             |
+| [LZAV](https://github.com/mrfearless/libraries/tree/master/LZAV)           | 2.15    | Compression library by Aleksey Vaneev          |
+| [LZFSE](https://github.com/mrfearless/libraries/tree/master/LZFSE)         | 1.0     | Compression library by Apple                   |
+| [LZMA](https://github.com/mrfearless/libraries/tree/master/LZMA)           | 24.07   | Compression library by Igor Pavlov             |
+| [LZO](https://github.com/mrfearless/libraries/tree/master/LZO)             | 2.10    | Compression library by Markus F.X.J. Oberhumer |
+| [miniLZO](https://github.com/mrfearless/libraries/tree/master/MiniLZO)     | 2.10    | Compression library by Markus F.X.J. Oberhumer |
+| [Rtl](https://github.com/mrfearless/libraries/tree/master/RtlCompression)  | -       | Native win32 compression by Microsoft          |
+| [Snappy](https://github.com/mrfearless/libraries/tree/master/Snappy)       | 1.2.1   | Compression library by Google                  |
+| [Squish](https://github.com/mrfearless/libraries/tree/master/Squish)       | 1.11    | DXT library by Jack Andersen/Simon Brown       |
+| [Zlib](https://github.com/mrfearless/libraries/tree/master/Zlib)           | 1.3.1   | Compression library by Mark Adler              |
+| [zlib-ng](https://github.com/mrfearless/libraries/tree/master/zlib-ng)     | 2.2.0   | Compression library by zlib-ng                 |
+| [Zstd](https://github.com/mrfearless/libraries/tree/master/zstd)           | 1.5.5   | Compression library by Facebook                |
 
 ## Compression Archive Management
 
-| Project                                                            | Version | Description                                           |
-| ------------------------------------------------------------------ | ------- | ----------------------------------------------------- |
-| libzip                                                             | 1.11.3  | zip archive library by Dieter Baron & Thomas Klausner |
-| [miniz](https://github.com/mrfearless/libraries/tree/master/Miniz) | 3.0.2   | zlib and zip archive library by Rich Geldreich        |
+| Project                                                              | Version | Description                                           |
+| -------------------------------------------------------------------- | ------- | ----------------------------------------------------- |
+| [libzip](https://github.com/mrfearless/libraries/tree/master/libzip) | 1.11.3  | zip archive library by Dieter Baron & Thomas Klausner |
+| [miniz](https://github.com/mrfearless/libraries/tree/master/Miniz)   | 3.0.2   | zlib and zip archive library by Rich Geldreich        |
 
 ## Database
 
 | Project                                                              | Version | Description                           |
 | -------------------------------------------------------------------- | ------- | ------------------------------------- |
 | [LMDB](https://github.com/mrfearless/libraries/tree/master/LMDB)     | 0.9.70  | Key-Value database library by Symas   |
-| [SQLite](https://github.com/mrfearless/libraries/tree/master/SQLite) | 3.47    | SQL database engine library by SQLite |
+| [SQLite](https://github.com/mrfearless/libraries/tree/master/SQLite) | 3.48    | SQL database engine library by SQLite |
 
 ## Data Exchange/Serialization
 
-| Project                                                                | Version | Description                    |
-| ---------------------------------------------------------------------- | ------- | ------------------------------ |
-| [cJSON](https://github.com/mrfearless/libraries/tree/master/cJSON)     | 1.7.16  | JSON library by Dave Gamble    |
-| [Jansson](https://github.com/mrfearless/libraries/tree/master/Jansson) | 2.14    | JSON library by Petri Lehtinen |
-| [Mini-XML](https://github.com/mrfearless/libraries/tree/master/mxml)   | 3.3.1   | XML library by Michael R Sweet |
+| Project                                                                | Version | Description                     |
+| ---------------------------------------------------------------------- | ------- | ------------------------------- |
+| [cJSON](https://github.com/mrfearless/libraries/tree/master/cJSON)     | 1.7.16  | JSON library by Dave Gamble     |
+| [Jansson](https://github.com/mrfearless/libraries/tree/master/Jansson) | 2.14    | JSON library by Petri Lehtinen  |
+| [Mini-XML](https://github.com/mrfearless/libraries/tree/master/mxml)   | 3.3.1   | XML library by Michael R Sweet  |
+| [Parson](https://github.com/mrfearless/libraries/tree/master/Parson)   | 1.5.3   | JSON library by Krzysztof Gabis |
 
 ## Debugging/Disassember/Assembler
 
@@ -77,6 +81,8 @@ Hopefully you find them useful in your coding.
 | ------------------------------------------------------------------------ | ------- | ------------------------------------------- |
 | [PNGLib](https://www.madwizard.org/programming/projects/pnglib)          | 1.0     | PNG file format library by Thomas Bleeker   |
 | [GIFLIB](https://www.madwizard.org/programming/toolarchive)              | 1.0     | GIF file format library by Thomas Bleeker   |
+| [Giflib](https://github.com/mrfearless/libraries/tree/master/Giflib)     | 5.2.1   | GIF file format library by Eric S. Raymond  |
+| [libspng](https://github.com/mrfearless/libraries/tree/master/libspng)   | 0.7.4   | PNG file format library by Randy408         |
 | PlutoVG                                                                  | 0.0.2   | Vector rendering library bySamuel Ugochukwu |
 | [PlutoSVG](https://github.com/mrfearless/libraries/tree/master/Plutosvg) | 0.0.8   | SVG rendering library by Samuel Ugochukwu   |
 
@@ -113,7 +119,7 @@ Hopefully you find them useful in your coding.
 | [VirtualStack](https://github.com/mrfearless/libraries/tree/master/VirtualStack) | -       | Virtual stack library by fearless  |
 | [ZeroMQ](https://github.com/mrfearless/libraries/tree/master/ZeroMQ)             | ?       | Messaging library by ZeroMQ        |
 
-## Older/Obsolte/WIP Projects:
+## Older/Obsolete/WIP Projects:
 
 | Project                                                              | Version | Description                                             |
 | -------------------------------------------------------------------- |:------- | ------------------------------------------------------- |
