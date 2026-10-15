@@ -25,7 +25,7 @@ SQLite Library reference documentation is available on the SQLite website: [http
 
 ## Download
 
-The latest downloadable release is available [here](https://github.com/mrfearless/libraries/blob/master/releases/SQLite_x64.zip?raw=true)
+The latest downloadable release is available [here](https://github.com/mrfearless/libraries/blob/master/releases/SQLite3_x64.zip?raw=true)
 
 ## Windows 10 Universal C Runtime
 
