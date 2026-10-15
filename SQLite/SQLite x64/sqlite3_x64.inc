@@ -13,6 +13,10 @@
 ; sqlite_x64.inc converted from sqlite.h source for assembler by fearless 2024
 ; www.github.com/mrfearless
 
+include msvcrt.inc
+includelib ucrt.lib
+includelib vcruntime.lib
+
 sqlite3_aggregate_context       PROTO sqlite3_context:QWORD,nBytes:QWORD
 sqlite3_aggregate_count         PROTO sqlite3_context:QWORD
 sqlite3_auto_extension          PROTO :QWORD
@@ -294,9 +298,9 @@ sqlite3_wal_hook                PROTO sqlite3:QWORD,:QWORD,:QWORD
 sqlite3_win32_is_nt             PROTO 
 sqlite3_win32_mbcs_to_utf8      PROTO :QWORD
 sqlite3_win32_mbcs_to_utf8_v2   PROTO :QWORD,:QWORD
-sqlite3_win32_set_directory16   PROTO type:QWORD,zValue:QWORD
-sqlite3_win32_set_directory8    PROTO type:QWORD,zValue:QWORD
-sqlite3_win32_set_directory     PROTO type:QWORD,zValue:QWORD
+sqlite3_win32_set_directory16   PROTO :QWORD,zValue:QWORD
+sqlite3_win32_set_directory8    PROTO :QWORD,zValue:QWORD
+sqlite3_win32_set_directory     PROTO :QWORD,zValue:QWORD
 sqlite3_win32_sleep             PROTO :QWORD
 sqlite3_win32_unicode_to_utf8   PROTO :QWORD
 sqlite3_win32_utf8_to_mbcs      PROTO :QWORD
@@ -307,6 +311,14 @@ sqlite3_win32_write_debug       PROTO :QWORD,:QWORD
 IFNDEF POINTER
 POINTER TYPEDEF QWORD
 ENDIF
+
+sqlite3                     TYPEDEF QWORD
+sqlite3_stmt                TYPEDEF QWORD
+sqlite3_int64               TYPEDEF QWORD
+sqlite3_uint64              TYPEDEF QWORD
+sqlite_int64                TYPEDEF QWORD
+sqlite_uint64               TYPEDEF QWORD
+SQLITE_INT64_TYPE           TYPEDEF QWORD
 
 sqlite3_file                STRUCT 8 ; 8 bytes
     pMethods                POINTER ?
@@ -717,7 +729,7 @@ SQLITE_OPEN_WAL             EQU 00080000h ; VFS only
 SQLITE_OPEN_NOFOLLOW        EQU 01000000h ; Ok for sqlite3_open_v2()
 SQLITE_OPEN_EXRESCODE       EQU 02000000h ; Extended result codes
 ;Reserved:                  EQU 00F00000h
-Legacy compatibility:
+;Legacy compatibility
 SQLITE_OPEN_MASTER_JOURNAL  EQU 00004000h  ; VFS only
 
 ; Device Characteristics
@@ -748,10 +760,6 @@ SQLITE_LOCK_EXCLUSIVE       EQU 4 ; xLock() only */
 SQLITE_SYNC_NORMAL          EQU 00002h
 SQLITE_SYNC_FULL            EQU 00003h
 SQLITE_SYNC_DATAONLY        EQU 00010h
-
-OS Interface Open File Handle
-
-
 
 ; Standard File Control Opcodes
 SQLITE_FCNTL_LOCKSTATE             EQU  1
