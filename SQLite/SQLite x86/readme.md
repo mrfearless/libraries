@@ -29,7 +29,7 @@ SQLite Library reference documentation is available on the SQLite website: [http
 
 ## Download
 
-The latest downloadable release is available [here](https://github.com/mrfearless/libraries/blob/master/releases/SQLite3_x86.zip?raw=true)
+The latest downloadable release is available [here](https://github.com/mrfearless/libraries/blob/master/releases/sqlite3_x86.zip?raw=true)
 
 SQLiteTest is available to download [here](https://github.com/mrfearless/libraries/blob/master/releases/SQLiteTest.zip?raw=true)
 
