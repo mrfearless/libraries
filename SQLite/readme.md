@@ -1,4 +1,4 @@
-# ![](../assets/SQLite.png) SQLite 3.47
+# ![](../assets/SQLite.png) SQLite 3.54
 
 SQLite static libraries compiled for x86 and x64 assembler 
 

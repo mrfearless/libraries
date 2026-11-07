@@ -1,4 +1,4 @@
-# LZ4 1.9.5
+# LZ4 1.11.0
 
 LZ4 static libraries compiled for x86 and x64 assembler 
 

@@ -1,5 +1,5 @@
 ; zlib.h -- interface of the 'zlib' general purpose compression library
-; version 1.3.1, January 22nd, 2024
+; version 1.4, November 4th, 2026
 ; 
 ; Copyright (C) 1995-2023 Jean-loup Gailly and Mark Adler
 ; 
@@ -413,11 +413,11 @@ unz_s                           ENDS
 
 
 .CONST
-ZLIB_VERSION                    TEXTEQU <"1.3.1">
-ZLIB_VERNUM                     EQU 1310h
+ZLIB_VERSION                    TEXTEQU <"1.4">
+ZLIB_VERNUM                     EQU 1400h
 ZLIB_VER_MAJOR                  EQU 1
-ZLIB_VER_MINOR                  EQU 3
-ZLIB_VER_REVISION               EQU 1
+ZLIB_VER_MINOR                  EQU 4
+ZLIB_VER_REVISION               EQU 0
 ZLIB_VER_SUBREVISION            EQU 0
 
 ; Allowed flush values; see deflate() and inflate() below for details

@@ -226,7 +226,7 @@ LZ4_XXH_versionNumber PROTO STDCALL
 
 ; Version
 LZ4_VERSION_MAJOR               EQU 1    ; for breaking interface changes
-LZ4_VERSION_MINOR               EQU 10   ; for new (non-breaking) interface capabilities
+LZ4_VERSION_MINOR               EQU 11   ; for new (non-breaking) interface capabilities
 LZ4_VERSION_RELEASE             EQU 0    ; for tweaks, bug-fixes, or development
 
 ; Tuning parameter
